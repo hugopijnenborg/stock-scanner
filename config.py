@@ -4,7 +4,6 @@ ROOT = Path(__file__).resolve().parent
 DATA_DIR = ROOT / "data"
 DATA_DIR.mkdir(exist_ok=True)
 
-# StockAnalysis currently exposes the US-listed market-cap ranking here.
 UNIVERSE_URL = "https://stockanalysis.com/list/biggest-companies/"
 UNIVERSE_SIZE = 1000
 
@@ -15,31 +14,51 @@ BENCHMARKS = ["SPY", "QQQ", "^VIX"]
 MIN_PRICE = 5.0
 MIN_AVG_DOLLAR_VOLUME = 5_000_000
 
-# Provisional v0.1 weights. These are intentionally explicit and will be
-# calibrated against the trader entries and a negative control set.
+# Research weights inspired by the full trader-chat analysis.
+# These are NOT trained weights yet. The calibration step must compare real
+# trader entries against matched non-entry market observations.
+#
+# The technical opportunity layer deliberately emphasizes price dislocation,
+# recent sell-off, volume/capitulation and support. Fundamental/street data is
+# kept separate and will be added once a reliable historical source is wired in.
+TECHNICAL_WEIGHTS = {
+    "drawdown_recent": 0.15,
+    "rsi": 0.15,
+    "ma_dislocation": 0.10,
+    "recent_selloff": 0.15,
+    "volume_capitulation": 0.10,
+    "support": 0.10,
+    "market": 0.05,
+    "sector": 0.05,
+}
+
+# Setup-specific weights remain available for the first scanner pass. They
+# will be recalibrated from the historical positive/negative control dataset.
 REBOUND_WEIGHTS = {
-    "drawdown_5d": 0.20,
+    "drawdown_5d": 0.15,
     "drawdown_20d": 0.10,
-    "rsi_14": 0.10,
-    "z_score": 0.15,
+    "rsi_14": 0.15,
+    "z_score": 0.10,
     "volume_ratio": 0.10,
     "bollinger_pct": 0.10,
     "distance_sma20": 0.05,
     "distance_sma50": 0.05,
-    "relative_strength_20d": 0.10,
-    "market_regime": 0.05,
+    "support": 0.10,
+    "intraday_reversal": 0.05,
+    "relative_strength_20d": 0.05,
 }
 
 QUALITY_WEIGHTS = {
-    "drawdown_20d": 0.20,
-    "distance_52w_high": 0.10,
+    "distance_52w_high": 0.15,
     "distance_sma200": 0.10,
+    "drawdown_20d": 0.10,
     "relative_strength_20d": 0.10,
     "rsi_14": 0.10,
     "z_score": 0.10,
     "volume_ratio": 0.05,
+    "support": 0.10,
     "market_regime": 0.05,
-    "fundamental_placeholder": 0.20,
+    "fundamental_placeholder": 0.15,
 }
 
 CYCLICAL_WEIGHTS = {
@@ -50,6 +69,10 @@ CYCLICAL_WEIGHTS = {
     "volume_ratio": 0.15,
     "z_score": 0.10,
     "relative_strength_20d": 0.10,
-    "bollinger_pct": 0.10,
+    "bollinger_pct": 0.05,
+    "intraday_reversal": 0.05,
     "market_regime": 0.05,
 }
+
+# An alert should be unusual, not merely technically weak.
+ALERT_THRESHOLD = 85.0
