@@ -1,0 +1,199 @@
+{
+  "version": 1,
+  "features": [
+    "return_1d",
+    "return_3d",
+    "return_5d",
+    "return_10d",
+    "return_20d",
+    "rsi_7",
+    "rsi_14",
+    "rsi_21",
+    "macd_histogram",
+    "macd_histogram_change",
+    "atr_pct",
+    "bollinger_pct",
+    "bollinger_width",
+    "distance_sma20",
+    "distance_sma50",
+    "distance_sma200",
+    "distance_1m_high",
+    "distance_3m_high",
+    "distance_6m_high",
+    "distance_52w_high",
+    "distance_support_20d",
+    "distance_support_60d",
+    "distance_support_120d",
+    "volume_ratio",
+    "volume_ratio_5d",
+    "volatility_20d",
+    "z_score",
+    "close_location",
+    "relative_strength_5d",
+    "relative_strength_20d"
+  ],
+  "mean": [
+    -0.0013608289443262727,
+    0.00012962813498224374,
+    -0.00246496641544305,
+    -0.003068944628413438,
+    0.012110393058214326,
+    51.19001192473943,
+    51.45437109650965,
+    51.55782548144097,
+    -0.7182962912897454,
+    -0.09826152671565117,
+    0.036386561918719945,
+    0.532703625254505,
+    0.16689385897536432,
+    -0.00023626175668409777,
+    0.015025105827730223,
+    0.06846800951212241,
+    -0.06809837463245796,
+    -0.10692496267940749,
+    -0.14701665058756325,
+    -0.17532660812928183,
+    0.09472430143580657,
+    0.20179085716616224,
+    0.3173291454842781,
+    0.9991223929889701,
+    1.0329222431836478,
+    0.4126063285446181,
+    0.14156718919006211,
+    0.49996976524806636,
+    0.0026405646744258756,
+    0.0010640306830699518
+  ],
+  "scale": [
+    0.030590498238756654,
+    0.05295201673593284,
+    0.07427636858283772,
+    0.08383797234380097,
+    0.1329434844309432,
+    16.571524292400937,
+    12.025566067387713,
+    10.10658837569005,
+    4.532925829286326,
+    1.156578843277565,
+    0.021061063582706388,
+    0.3238179509924523,
+    0.11493003034182658,
+    0.07267373949442996,
+    0.12099211677395404,
+    0.23819269186680794,
+    0.08139767451244577,
+    0.10922873305401112,
+    0.130903577415679,
+    0.15791612973635713,
+    0.1005087728786508,
+    0.2625247687309375,
+    0.41007922204277536,
+    0.4033518229942286,
+    0.3009506322888494,
+    0.24001510653474406,
+    1.2858051308174734,
+    0.30704942553588827,
+    0.07259529067511636,
+    0.1314121556873186
+  ],
+  "coef": [
+    -0.27178082200278986,
+    0.03422525504184121,
+    -0.6604669852611241,
+    0.42993004834522563,
+    -0.5811171577137227,
+    -0.05058772124344948,
+    0.18906714642610187,
+    0.24161068328305607,
+    0.09254226210136522,
+    -0.03336345124297977,
+    -0.6689097956128021,
+    -0.2175906642954803,
+    -0.5513741842866671,
+    -0.39562756084085654,
+    -0.10544799615820634,
+    -1.5769698847697982,
+    0.2488339229550853,
+    -0.18548141325512732,
+    0.3494592443042339,
+    -1.0514044413679524,
+    -0.8087619583457819,
+    1.5364744324652226,
+    -0.36112671146944164,
+    -0.26137507753734823,
+    0.4213353223279935,
+    -0.46753331996989317,
+    -0.44845078315383896,
+    -0.26057107215668973,
+    -0.6079587546533136,
+    -1.1116243493269489
+  ],
+  "intercept": -4.1901083156385255,
+  "positive_observations": 18,
+  "training_observations": 558,
+  "negative_observations": 540,
+  "top_feature_importance": [
+    {
+      "feature": "distance_sma200",
+      "standardized_coefficient": -1.5769698847697982
+    },
+    {
+      "feature": "distance_support_60d",
+      "standardized_coefficient": 1.5364744324652226
+    },
+    {
+      "feature": "relative_strength_20d",
+      "standardized_coefficient": -1.1116243493269489
+    },
+    {
+      "feature": "distance_52w_high",
+      "standardized_coefficient": -1.0514044413679524
+    },
+    {
+      "feature": "distance_support_20d",
+      "standardized_coefficient": -0.8087619583457819
+    },
+    {
+      "feature": "atr_pct",
+      "standardized_coefficient": -0.6689097956128021
+    },
+    {
+      "feature": "return_5d",
+      "standardized_coefficient": -0.6604669852611241
+    },
+    {
+      "feature": "relative_strength_5d",
+      "standardized_coefficient": -0.6079587546533136
+    },
+    {
+      "feature": "return_20d",
+      "standardized_coefficient": -0.5811171577137227
+    },
+    {
+      "feature": "bollinger_width",
+      "standardized_coefficient": -0.5513741842866671
+    },
+    {
+      "feature": "volatility_20d",
+      "standardized_coefficient": -0.46753331996989317
+    },
+    {
+      "feature": "z_score",
+      "standardized_coefficient": -0.44845078315383896
+    },
+    {
+      "feature": "return_10d",
+      "standardized_coefficient": 0.42993004834522563
+    },
+    {
+      "feature": "volume_ratio_5d",
+      "standardized_coefficient": 0.4213353223279935
+    },
+    {
+      "feature": "distance_sma20",
+      "standardized_coefficient": -0.39562756084085654
+    }
+  ],
+  "method": "balanced logistic regression on trader entries vs sampled same-date non-entries",
+  "warning": "Research prototype. It uses the current top-1000 universe for historical controls and is not a guarantee of future returns."
+}
