@@ -47,6 +47,8 @@ jobs:
         run: python learn_model.py
       - name: Run market scan
         run: python main.py scan --limit 1000 --top 50 --output scan_results.csv --web-output public/data/latest_scan.json
+      - name: Evaluate historical alerts
+        run: python scripts/evaluate_alerts.py
       - name: Send Discord alerts when configured
         env:
           DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
@@ -57,13 +59,14 @@ jobs:
           path: |
             scan_results.csv
             learned_model.json
-      - name: Publish latest scan data
+            public/data/alert_history.json
+      - name: Publish latest scan and alert history
         run: |
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git add public/data/latest_scan.json learned_model.json
+          git add public/data/latest_scan.json learned_model.json public/data/alert_history.json
           git diff --cached --quiet && exit 0
-          git commit -m 'Update scanner results [skip ci]'
+          git commit -m 'Update scanner results and alert history [skip ci]'
           for attempt in 1 2 3 4 5; do
             git fetch origin main
             git rebase origin/main && git push origin HEAD:main && exit 0
@@ -96,7 +99,7 @@ jobs:
     runs-on: ubuntu-latest
     needs: test
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - uses: actions/setup-python@v5
         with:
           python-version: '3.12'
