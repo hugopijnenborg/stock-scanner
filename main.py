@@ -7,6 +7,7 @@ from datetime import datetime, timezone
 from pathlib import Path
 
 from backtest import run_backtest
+from market_validation import run_market_validation
 from scanner import scan
 from universe import load_top_us_stocks
 
@@ -46,7 +47,6 @@ def write_web_output(result, universe_size: int, path: str) -> None:
     }
     output = Path(path)
     output.parent.mkdir(parents=True, exist_ok=True)
-    # allow_nan=False guarantees that the browser can parse the file with JSON.parse().
     output.write_text(json.dumps(payload, indent=2, allow_nan=False), encoding="utf-8")
 
 
@@ -54,7 +54,7 @@ def main() -> None:
     parser = argparse.ArgumentParser(description="Trader-pattern stock scanner")
     sub = parser.add_subparsers(dest="command", required=True)
 
-    u = sub.add_parser("universe", help="show current top 1000 universe")
+    u = sub.add_parser("universe", help="show current curated universe")
     u.add_argument("--limit", type=int, default=1000)
 
     s = sub.add_parser("scan", help="scan current market")
@@ -65,6 +65,11 @@ def main() -> None:
 
     b = sub.add_parser("backtest", help="backtest supplied trader entries")
     b.add_argument("--output", default="trader_backtest.csv")
+
+    v = sub.add_parser("validate-market", help="validate 80+ signals across the full curated universe")
+    v.add_argument("--start", default="2024-01-01")
+    v.add_argument("--output", default="market_validation.csv")
+    v.add_argument("--summary", default="market_validation.json")
 
     args = parser.parse_args()
     if args.command == "universe":
@@ -83,6 +88,12 @@ def main() -> None:
         print(result.to_string(index=False))
         result.to_csv(args.output, index=False)
         print(f"\nSaved {args.output}")
+    elif args.command == "validate-market":
+        signals, summary = run_market_validation(args.start)
+        print(json.dumps(summary, indent=2))
+        signals.to_csv(args.output, index=False)
+        Path(args.summary).write_text(json.dumps(summary, indent=2, allow_nan=False), encoding="utf-8")
+        print(f"Saved {args.output} and {args.summary}")
 
 
 if __name__ == "__main__":
