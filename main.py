@@ -1,10 +1,27 @@
 from __future__ import annotations
 
 import argparse
+import json
+from datetime import datetime, timezone
+from pathlib import Path
 
 from backtest import run_backtest
 from scanner import scan
 from universe import load_top_us_stocks
+
+
+def write_web_output(result, universe_size: int, path: str) -> None:
+    rows = result.where(result.notna(), None).to_dict(orient="records")
+    payload = {
+        "generated_at": datetime.now(timezone.utc).isoformat(),
+        "universe_size": int(universe_size),
+        "alert_count": int((result["signal"] == "ALERT").sum()) if not result.empty and "signal" in result else 0,
+        "top_score": float(result["overall_score"].max()) if not result.empty else None,
+        "results": rows,
+    }
+    output = Path(path)
+    output.parent.mkdir(parents=True, exist_ok=True)
+    output.write_text(json.dumps(payload, indent=2, default=str), encoding="utf-8")
 
 
 def main() -> None:
@@ -17,20 +34,24 @@ def main() -> None:
     s = sub.add_parser("scan", help="scan current market")
     s.add_argument("--limit", type=int, default=1000)
     s.add_argument("--top", type=int, default=25)
-    s.add_argument("--output", default=None, help="optional CSV output path")
+    s.add_argument("--output", default=None)
+    s.add_argument("--web-output", default="public/data/latest_scan.json")
 
     b = sub.add_parser("backtest", help="backtest supplied trader entries")
-    b.add_argument("--output", default="trader_backtest.csv", help="CSV output path")
+    b.add_argument("--output", default="trader_backtest.csv")
 
     args = parser.parse_args()
     if args.command == "universe":
         print(load_top_us_stocks(args.limit).to_string(index=False))
     elif args.command == "scan":
+        universe = load_top_us_stocks(args.limit)
         result = scan(args.limit, args.top)
         print(result.to_string(index=False))
         if args.output:
             result.to_csv(args.output, index=False)
             print(f"\nSaved {args.output}")
+        write_web_output(result, len(universe), args.web_output)
+        print(f"Saved {args.web_output}")
     elif args.command == "backtest":
         result = run_backtest()
         print(result.to_string(index=False))
