@@ -1,7 +1,12 @@
 from __future__ import annotations
 
+import json
+from pathlib import Path
+
 import numpy as np
 import pandas as pd
+
+LEARNED_MODEL_PATH = Path("learned_model.json")
 
 
 def clamp(x: float, lo: float = 0.0, hi: float = 1.0) -> float:
@@ -9,7 +14,6 @@ def clamp(x: float, lo: float = 0.0, hi: float = 1.0) -> float:
 
 
 def low_is_good(value: float, start: float, extreme: float) -> float:
-    """Score a negative metric where more negative is more oversold."""
     if pd.isna(value):
         return 0.0
     return clamp((start - value) / (start - extreme))
@@ -22,12 +26,9 @@ def high_is_good(value: float, start: float, extreme: float) -> float:
 
 
 def support_component(r: pd.Series) -> float:
-    """Reward price being close to a recent low without requiring an exact low."""
-    distances = [r.get("distance_support_20d"), r.get("distance_support_60d"), r.get("distance_support_120d")]
-    values = [float(x) for x in distances if pd.notna(x)]
+    values = [float(x) for x in [r.get("distance_support_20d"), r.get("distance_support_60d"), r.get("distance_support_120d")] if pd.notna(x)]
     if not values:
         return 0.0
-    # 0% above support is strongest. 10%+ above support gets little credit.
     return float(np.mean([clamp((0.10 - x) / 0.10) for x in values]))
 
 
@@ -59,7 +60,6 @@ def quality_components(r: pd.Series) -> dict[str, float]:
         "volume_ratio": high_is_good(r.get("volume_ratio", np.nan), 1.0, 3.0),
         "support": support_component(r),
         "market_regime": 0.5,
-        # Kept explicit until fundamental and Street data are connected.
         "fundamental_placeholder": 0.0,
     }
 
@@ -89,40 +89,45 @@ def weighted_score(components: dict[str, float], weights: dict[str, float]) -> f
 
 
 def technical_opportunity_score(r: pd.Series) -> dict[str, float]:
-    """Research score matching the trader-chat concept without fake fundamentals.
-
-    85% is technical/market/sector opportunity. Fundamental and Street
-    confirmation are deliberately separate until historical data for those
-    fields is available.
-    """
     c = rebound_components(r)
-    # The weights below sum to 0.85. We normalize over available features.
     weights = {
-        "drawdown_5d": 0.15,
-        "rsi_14": 0.15,
-        "distance_sma20": 0.05,
-        "distance_sma50": 0.05,
-        "drawdown_20d": 0.10,
-        "z_score": 0.10,
-        "volume_ratio": 0.10,
-        "support": 0.10,
-        "intraday_reversal": 0.05,
-        "relative_strength_20d": 0.05,
-        "market_regime": 0.05,
+        "drawdown_5d": 0.15, "rsi_14": 0.15, "distance_sma20": 0.05,
+        "distance_sma50": 0.05, "drawdown_20d": 0.10, "z_score": 0.10,
+        "volume_ratio": 0.10, "support": 0.10, "intraday_reversal": 0.05,
+        "relative_strength_20d": 0.05, "market_regime": 0.05,
     }
     return {"technical_opportunity_score": weighted_score(c, weights)}
 
 
 def reversal_trigger(r: pd.Series) -> float:
-    """Separate trigger: evidence that selling pressure may be exhausting."""
     signals = []
     if pd.notna(r.get("close_location")):
         signals.append(clamp((r["close_location"] - 0.45) / 0.55))
     if pd.notna(r.get("macd_histogram_change")):
-        signals.append(clamp((r["macd_histogram_change"] + abs(r.get("macd_histogram", 0.0))) / (abs(r.get("macd_histogram", 0.0)) + 1e-9)))
+        hist = float(r.get("macd_histogram", 0.0) or 0.0)
+        change = float(r.get("macd_histogram_change", 0.0) or 0.0)
+        signals.append(clamp((change + abs(hist)) / (abs(hist) + 1e-9)))
     if pd.notna(r.get("return_1d")):
         signals.append(clamp((r["return_1d"] + 0.15) / 0.20))
     return float(np.mean(signals)) if signals else 0.0
+
+
+def _learned_score(row: pd.Series) -> float | None:
+    if not LEARNED_MODEL_PATH.exists():
+        return None
+    try:
+        payload = json.loads(LEARNED_MODEL_PATH.read_text(encoding="utf-8"))
+        features = payload["features"]
+        x = pd.to_numeric(row.reindex(features), errors="coerce").replace([np.inf, -np.inf], np.nan).fillna(0.0).to_numpy(dtype=float)
+        mean = np.asarray(payload["mean"], dtype=float)
+        scale = np.asarray(payload["scale"], dtype=float)
+        coef = np.asarray(payload["coef"], dtype=float)
+        z = (x - mean) / np.where(scale == 0, 1.0, scale)
+        logit = float(np.dot(coef, z) + payload["intercept"])
+        probability = 1.0 / (1.0 + np.exp(-np.clip(logit, -30, 30)))
+        return float(probability * 100.0)
+    except Exception:
+        return None
 
 
 def score_row(row: pd.Series, rebound_weights: dict, quality_weights: dict, cyclical_weights: dict) -> dict:
@@ -134,13 +139,17 @@ def score_row(row: pd.Series, rebound_weights: dict, quality_weights: dict, cycl
         "quality_score": weighted_score(qu, quality_weights),
         "cyclical_score": weighted_score(cy, cyclical_weights),
     }
-    technical = technical_opportunity_score(row)
-    scores.update(technical)
+    scores.update(technical_opportunity_score(row))
     scores["reversal_trigger"] = reversal_trigger(row) * 100.0
-    setup = max(
-        ["rebound_score", "quality_score", "cyclical_score"],
-        key=lambda k: scores[k],
-    ).replace("_score", "")
-    scores["setup_type"] = setup
-    scores["overall_score"] = scores["technical_opportunity_score"]
+    setup_key = max(["rebound_score", "quality_score", "cyclical_score"], key=lambda k: scores[k])
+    scores["setup_type"] = setup_key.replace("_score", "")
+
+    learned = _learned_score(row)
+    scores["trader_similarity_score"] = learned if learned is not None else scores["technical_opportunity_score"]
+    # Blend only after a learned model exists. This keeps the app usable before
+    # the first calibration run while making the learned component dominant.
+    scores["overall_score"] = (
+        0.70 * scores["trader_similarity_score"] + 0.30 * scores["technical_opportunity_score"]
+        if learned is not None else scores["technical_opportunity_score"]
+    )
     return scores
