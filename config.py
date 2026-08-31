@@ -1,11 +1,11 @@
-from dataclasses import dataclass
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent
 DATA_DIR = ROOT / "data"
 DATA_DIR.mkdir(exist_ok=True)
 
-UNIVERSE_URL = "https://stockanalysis.com/stocks/market-cap/"
+# StockAnalysis currently exposes the US-listed market-cap ranking here.
+UNIVERSE_URL = "https://stockanalysis.com/list/biggest-companies/"
 UNIVERSE_SIZE = 1000
 
 DEFAULT_START = "2024-01-01"
@@ -39,7 +39,6 @@ QUALITY_WEIGHTS = {
     "z_score": 0.10,
     "volume_ratio": 0.05,
     "market_regime": 0.05,
-    # Fundamentals are added when a reliable fundamental data source is wired in.
     "fundamental_placeholder": 0.20,
 }
 
