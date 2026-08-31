@@ -1,0 +1,14 @@
+date,time_et,ticker,price,entry_type,strategy,reason,portfolio_pct
+2025-11-14,10:46,NBIS,86.72,new_position,mid_long_term,"Entered new position; mid-long term hold",1.5
+2025-11-17,11:23,ONDS,6.50,new_position,mid_term_swing,"Speculative position; mid term swing",1.0
+2025-11-20,15:49,ASST,0.9925,add,mid_term_swing,"Add; mid term swing; BTC rebound expected to help",null
+2025-11-20,16:13,META,584.30,new_position,mid_long_term,"Shopping; mid-long swing",1.0
+2025-11-20,16:13,BMNR,26.08,new_position,mid_long_term,"Shopping; mid-long swing",1.0
+2025-11-20,16:13,XPEV,20.22,new_position,mid_long_term,"Shopping; mid-long swing",1.0
+2025-11-20,16:13,ONDS,6.44,add,mid_long_term,"Shopping; mid-long swing",1.0
+2025-11-20,16:13,CIFR,14.84,new_position,mid_long_term,"Shopping; mid-long swing",1.0
+2025-11-20,16:13,HOOD,107.42,new_position,mid_long_term,"Shopping; mid-long swing",1.0
+2025-11-20,16:13,NBIS,88.32,add,mid_long_term,"Shopping; mid-long swing",1.0
+2025-11-20,18:34,BULL,8.20,add,mid_long_term,"Good earnings but dumped by market; mid-long swing",1.5
+2025-11-21,11:52,MSTR,178.23,new_position,long_term,"Long term hold",2.0
+2025-12-02,17:02,IREN,41.10,new_position,mid_term_swing,"Very speculative; huge upside potential; very volatile",null
