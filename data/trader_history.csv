@@ -1,7 +1,7 @@
 date,time_et,ticker,price,entry_type,strategy,reason,portfolio_pct
 2025-11-14,10:46,NBIS,86.72,new_position,mid_long_term,"Entered new position; mid-long term hold",1.5
 2025-11-17,11:23,ONDS,6.50,new_position,mid_term_swing,"Speculative position; mid term swing",1.0
-2025-11-20,15:49,ASST,0.9925,add,mid_term_swing,"Add; mid term swing; BTC rebound expected to help",null
+2025-11-20,15:49,ASST,0.9925,add,mid_term_swing,"Add; mid term swing; BTC rebound expected to help",
 2025-11-20,16:13,META,584.30,new_position,mid_long_term,"Shopping; mid-long swing",1.0
 2025-11-20,16:13,BMNR,26.08,new_position,mid_long_term,"Shopping; mid-long swing",1.0
 2025-11-20,16:13,XPEV,20.22,new_position,mid_long_term,"Shopping; mid-long swing",1.0
@@ -11,4 +11,31 @@ date,time_et,ticker,price,entry_type,strategy,reason,portfolio_pct
 2025-11-20,16:13,NBIS,88.32,add,mid_long_term,"Shopping; mid-long swing",1.0
 2025-11-20,18:34,BULL,8.20,add,mid_long_term,"Good earnings but dumped by market; mid-long swing",1.5
 2025-11-21,11:52,MSTR,178.23,new_position,long_term,"Long term hold",2.0
-2025-12-02,17:02,IREN,41.10,new_position,mid_term_swing,"Very speculative; huge upside potential; very volatile",null
+2025-12-02,17:02,IREN,41.10,new_position,mid_term_swing,"Very speculative; huge upside potential; very volatile",
+2026-05-07,,SOFI,16.26,new_position,unknown,"Confirmed trader purchase",
+2026-05-18,,NKE,42.12,new_position,unknown,"Confirmed trader purchase",
+2026-05-26,,HOOD,73.00,new_position,unknown,"Confirmed trader purchase",
+2026-05-26,,MSFT,400.00,new_position,unknown,"Confirmed trader purchase",
+2026-05-26,,DUOL,105.00,new_position,unknown,"Confirmed trader purchase",
+2026-06-09,,BABA,120.00,new_position,unknown,"Confirmed trader purchase",
+2026-06-09,,CRWV,94.89,new_position,unknown,"Confirmed trader purchase",
+2026-06-18,,ASTS,79.50,new_position,unknown,"Confirmed trader purchase",
+2026-06-23,,BABA,102.00,new_position,unknown,"Confirmed trader purchase",
+2026-06-23,,META,562.00,new_position,unknown,"Confirmed trader purchase",
+2026-06-23,,NFLX,73.00,new_position,unknown,"Confirmed trader purchase",
+2026-07-01,,CRWV,87.25,new_position,unknown,"Confirmed trader purchase",
+2026-07-02,,AAOI,114.00,new_position,unknown,"Confirmed trader purchase",
+2026-07-07,,ORCL,140.00,new_position,unknown,"Confirmed trader purchase",
+2026-07-16,,ASTS,54.00,new_position,unknown,"Confirmed trader purchase",
+2026-07-16,,QCOM,170.00,new_position,unknown,"Confirmed trader purchase",
+2026-07-16,,CRWV,73.00,new_position,unknown,"Confirmed trader purchase",
+2026-07-16,,AAOI,99.00,new_position,unknown,"Confirmed trader purchase",
+2026-07-23,,GOOGL,319.00,new_position,unknown,"Confirmed trader purchase",
+2026-07-27,,AAOI,94.00,new_position,unknown,"Confirmed trader purchase",
+2026-07-29,,AAOI,85.00,new_position,unknown,"Confirmed trader purchase",
+2026-07-29,,CRWV,65.00,new_position,unknown,"Confirmed trader purchase",
+2026-07-29,,TSLA,303.00,new_position,unknown,"Confirmed trader purchase",
+2026-08-11,,APP,321.00,new_position,unknown,"Confirmed trader purchase",
+2026-08-18,,META,554.00,new_position,unknown,"Confirmed trader purchase",
+2026-08-21,,VST,137.00,new_position,unknown,"Confirmed trader purchase",
+2026-08-25,,ASTS,61.00,new_position,unknown,"Confirmed trader purchase"
