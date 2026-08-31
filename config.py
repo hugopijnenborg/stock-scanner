@@ -14,13 +14,6 @@ BENCHMARKS = ["SPY", "QQQ", "^VIX"]
 MIN_PRICE = 5.0
 MIN_AVG_DOLLAR_VOLUME = 5_000_000
 
-# Research weights inspired by the full trader-chat analysis.
-# These are NOT trained weights yet. The calibration step must compare real
-# trader entries against matched non-entry market observations.
-#
-# The technical opportunity layer deliberately emphasizes price dislocation,
-# recent sell-off, volume/capitulation and support. Fundamental/street data is
-# kept separate and will be added once a reliable historical source is wired in.
 TECHNICAL_WEIGHTS = {
     "drawdown_recent": 0.15,
     "rsi": 0.15,
@@ -32,8 +25,6 @@ TECHNICAL_WEIGHTS = {
     "sector": 0.05,
 }
 
-# Setup-specific weights remain available for the first scanner pass. They
-# will be recalibrated from the historical positive/negative control dataset.
 REBOUND_WEIGHTS = {
     "drawdown_5d": 0.15,
     "drawdown_20d": 0.10,
@@ -74,5 +65,9 @@ CYCLICAL_WEIGHTS = {
     "market_regime": 0.05,
 }
 
-# An alert should be unusual, not merely technically weak.
-ALERT_THRESHOLD = 85.0
+# 80+ is an early/low-confidence buy alert. Higher tiers require stronger
+# agreement between technicals, trader-pattern similarity and fundamentals.
+ALERT_THRESHOLD = 80.0
+STRONG_ALERT_THRESHOLD = 85.0
+EXCEPTIONAL_ALERT_THRESHOLD = 90.0
+WATCH_THRESHOLD = 65.0
