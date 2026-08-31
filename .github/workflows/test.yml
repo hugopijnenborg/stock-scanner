@@ -44,7 +44,6 @@ jobs:
       - name: Run market scan
         run: python main.py scan --limit 1000 --top 50 --output scan_results.csv --web-output public/data/latest_scan.json
       - name: Send Discord alerts when configured
-        if: ${{ secrets.DISCORD_WEBHOOK_URL != '' }}
         env:
           DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
         run: python notify_discord.py
