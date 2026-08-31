@@ -39,6 +39,7 @@ def _signal_label(score: float) -> str:
 
 def scan(limit: int = 1000, top_n: int = 25) -> pd.DataFrame:
     universe = load_top_us_stocks(limit)
+    company_map = universe.set_index("ticker")["company_name"].to_dict()
     tickers = universe["ticker"].tolist()
     benchmarks = download_benchmarks(DEFAULT_START)
     spy = benchmarks.get("SPY")
@@ -60,6 +61,7 @@ def scan(limit: int = 1000, top_n: int = 25) -> pd.DataFrame:
         scores = score_row(row, REBOUND_WEIGHTS, QUALITY_WEIGHTS, CYCLICAL_WEIGHTS)
         result = {
             "ticker": ticker,
+            "company_name": company_map.get(ticker, ticker),
             "price": float(row["Close"]),
             "avg_dollar_volume_20d": float(avg_dollar_volume) if pd.notna(avg_dollar_volume) else None,
         }
