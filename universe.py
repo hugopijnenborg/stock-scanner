@@ -1,64 +1,194 @@
-import io
+from __future__ import annotations
+
 import pandas as pd
-import requests
 
-from config import UNIVERSE_URL, UNIVERSE_SIZE
+# Curated universe agreed for the scanner. This intentionally replaces the
+# previous dynamic "largest U.S. companies" universe. Only these companies
+# are downloaded, scored and shown by the dashboard.
+CURATED_UNIVERSE = {
+    # Technology, AI and software
+    "AAPL": "Apple",
+    "MSFT": "Microsoft",
+    "NVDA": "Nvidia",
+    "AMZN": "Amazon",
+    "GOOGL": "Alphabet",
+    "META": "Meta Platforms",
+    "AVGO": "Broadcom",
+    "AMD": "AMD",
+    "INTC": "Intel",
+    "QCOM": "Qualcomm",
+    "MU": "Micron Technology",
+    "AMAT": "Applied Materials",
+    "LRCX": "Lam Research",
+    "KLAC": "KLA",
+    "ANET": "Arista Networks",
+    "CSCO": "Cisco",
+    "DELL": "Dell Technologies",
+    "IBM": "IBM",
+    "ORCL": "Oracle",
+    "CRM": "Salesforce",
+    "ADBE": "Adobe",
+    "NOW": "ServiceNow",
+    "PLTR": "Palantir Technologies",
+    "ADSK": "Autodesk",
+    "INTU": "Intuit",
+    "PANW": "Palo Alto Networks",
+    "CRWD": "CrowdStrike",
+    "FTNT": "Fortinet",
+    "NET": "Cloudflare",
+    "MRVL": "Marvell Technology",
+    "SMCI": "Super Micro Computer",
+    "VRT": "Vertiv",
+    "COHR": "Coherent",
+    "LITE": "Lumentum",
+    "CIEN": "Ciena",
+    "WDC": "Western Digital",
+    "STX": "Seagate Technology",
+    "HPE": "Hewlett Packard Enterprise",
+    "NTAP": "NetApp",
+    "FI": "Fiserv",
+    "PYPL": "PayPal",
+    "XYZ": "Block",
 
-HEADERS = {"User-Agent": "Mozilla/5.0 stock-scanner-research"}
+    # Consumer and internet
+    "TSLA": "Tesla",
+    "NFLX": "Netflix",
+    "UBER": "Uber",
+    "ABNB": "Airbnb",
+    "BKNG": "Booking Holdings",
+    "SPOT": "Spotify",
+    "DASH": "DoorDash",
+    "HOOD": "Robinhood Markets",
+    "APP": "AppLovin",
+    "DUOL": "Duolingo",
+    "NKE": "Nike",
+    "SBUX": "Starbucks",
+    "MCD": "McDonald's",
+    "WMT": "Walmart",
+    "COST": "Costco",
+    "HD": "Home Depot",
+    "LOW": "Lowe's",
+    "TGT": "Target",
+    "TJX": "TJX Companies",
+    "CMG": "Chipotle Mexican Grill",
+    "GM": "General Motors",
+    "F": "Ford",
+
+    # Financial
+    "JPM": "JPMorgan Chase",
+    "BAC": "Bank of America",
+    "GS": "Goldman Sachs",
+    "MS": "Morgan Stanley",
+    "BLK": "BlackRock",
+    "SCHW": "Charles Schwab",
+    "V": "Visa",
+    "MA": "Mastercard",
+    "AXP": "American Express",
+    "SPGI": "S&P Global",
+    "MCO": "Moody's",
+    "CME": "CME Group",
+    "COIN": "Coinbase",
+    "SOFI": "SoFi Technologies",
+    "IBKR": "Interactive Brokers",
+
+    # Energy, electricity and infrastructure
+    "XOM": "Exxon Mobil",
+    "CVX": "Chevron",
+    "COP": "ConocoPhillips",
+    "OXY": "Occidental Petroleum",
+    "NEE": "NextEra Energy",
+    "CEG": "Constellation Energy",
+    "VST": "Vistra",
+    "GEV": "GE Vernova",
+    "ETN": "Eaton",
+    "PWR": "Quanta Services",
+    "CAT": "Caterpillar",
+    "DE": "Deere",
+    "WM": "Waste Management",
+    "RSG": "Republic Services",
+    "AEP": "American Electric Power",
+    "DUK": "Duke Energy",
+    "SO": "Southern Company",
+
+    # Healthcare
+    "LLY": "Eli Lilly",
+    "JNJ": "Johnson & Johnson",
+    "UNH": "UnitedHealth Group",
+    "ABBV": "AbbVie",
+    "MRK": "Merck",
+    "PFE": "Pfizer",
+    "NVO": "Novo Nordisk",
+    "AMGN": "Amgen",
+    "GILD": "Gilead Sciences",
+    "VRTX": "Vertex Pharmaceuticals",
+    "REGN": "Regeneron Pharmaceuticals",
+    "MRNA": "Moderna",
+    "ISRG": "Intuitive Surgical",
+    "TMO": "Thermo Fisher Scientific",
+    "DHR": "Danaher",
+    "ABT": "Abbott Laboratories",
+    "MDT": "Medtronic",
+
+    # Industry, defense and transport
+    "BA": "Boeing",
+    "RTX": "RTX",
+    "LMT": "Lockheed Martin",
+    "NOC": "Northrop Grumman",
+    "GD": "General Dynamics",
+    "GE": "GE Aerospace",
+    "HON": "Honeywell",
+    "UNP": "Union Pacific",
+    "UPS": "UPS",
+    "FDX": "FedEx",
+    "DAL": "Delta Air Lines",
+    "AAL": "American Airlines",
+
+    # Real estate and data centers
+    "EQIX": "Equinix",
+    "DLR": "Digital Realty",
+    "PLD": "Prologis",
+    "AMT": "American Tower",
+    "CCI": "Crown Castle",
+
+    # Extra growth companies outside the S&P 500
+    "ASTS": "AST SpaceMobile",
+    "RKLB": "Rocket Lab",
+    "CRWV": "CoreWeave",
+    "IREN": "IREN",
+    "NBIS": "Nebius",
+    "AAOI": "Applied Optoelectronics",
+    "APLD": "Applied Digital",
+    "AMKR": "Amkor Technology",
+    "NVTS": "Navitas Semiconductor",
+    "ASML": "ASML",
+    "CCJ": "Cameco",
+    "OKLO": "Oklo",
+    "SMR": "NuScale Power",
+    "ITCI": "Intellia Therapeutics",
+    "RGTI": "Rigetti Computing",
+    "IONQ": "IonQ",
+    "TEM": "Tempus AI",
+    "RDDT": "Reddit",
+
+    # Final additions agreed
+    "ARM": "Arm Holdings",
+    "ALAB": "Astera Labs",
+    "CRDO": "Credo Technology",
+    "CLS": "Celestica",
+    "BE": "Bloom Energy",
+}
 
 
-def _read_page(url: str) -> pd.DataFrame:
-    response = requests.get(url, headers=HEADERS, timeout=30)
-    response.raise_for_status()
-    tables = pd.read_html(io.StringIO(response.text))
-    if not tables:
-        raise RuntimeError(f"No stock table found on {url}")
-    table = tables[0].copy()
-    table.columns = [str(c).strip().lower().replace(" ", "_") for c in table.columns]
-    ticker_col = next((c for c in table.columns if c in {"symbol", "ticker"}), None)
-    name_col = next((c for c in table.columns if c in {"name", "company", "company_name"}), None)
-    if ticker_col is None:
-        raise RuntimeError(f"Could not identify ticker column. Columns: {list(table.columns)}")
-    out = pd.DataFrame({"ticker": table[ticker_col].astype(str).str.upper().str.strip()})
-    out["company_name"] = table[name_col].astype(str) if name_col else out["ticker"]
-    return out[["ticker", "company_name"]]
-
-
-def load_top_us_stocks(limit: int = UNIVERSE_SIZE) -> pd.DataFrame:
-    """Load the largest U.S.-listed companies by market cap.
-
-    StockAnalysis exposes 500 rows per page. Fetch successive pages until the
-    requested universe size is reached or the source stops returning new rows.
-    """
-    frames = []
-    seen = set()
-    max_pages = max(1, (limit + 499) // 500 + 1)
-
-    for page in range(1, max_pages + 1):
-        url = UNIVERSE_URL if page == 1 else f"{UNIVERSE_URL}?p={page}"
-        try:
-            frame = _read_page(url)
-        except Exception:
-            if page == 1:
-                raise
-            break
-        before = len(seen)
-        frame = frame[~frame["ticker"].isin(seen)].copy()
-        if frame.empty:
-            break
-        seen.update(frame["ticker"].tolist())
-        frames.append(frame)
-        if len(seen) >= limit or len(seen) == before:
-            break
-
-    if not frames:
-        raise RuntimeError("No stocks loaded")
-
-    out = pd.concat(frames, ignore_index=True).drop_duplicates("ticker")
-    return out.head(limit).reset_index(drop=True)
+def load_top_us_stocks(limit: int | None = None) -> pd.DataFrame:
+    """Return the fixed curated scanner universe."""
+    rows = [{"ticker": ticker, "company_name": name} for ticker, name in CURATED_UNIVERSE.items()]
+    frame = pd.DataFrame(rows)
+    if limit is not None:
+        frame = frame.head(limit)
+    return frame.reset_index(drop=True)
 
 
 if __name__ == "__main__":
     df = load_top_us_stocks()
-    print(f"Loaded {len(df)} stocks")
+    print(f"Loaded curated universe: {len(df)} stocks")
     print(df.to_string(index=False))
