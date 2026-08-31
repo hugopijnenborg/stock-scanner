@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import math
 from datetime import datetime, timezone
 from pathlib import Path
 
@@ -10,18 +11,43 @@ from scanner import scan
 from universe import load_top_us_stocks
 
 
+def _json_safe(value):
+    """Convert pandas/numpy values to strict JSON-safe Python values."""
+    if value is None:
+        return None
+    if isinstance(value, float):
+        return value if math.isfinite(value) else None
+    try:
+        if hasattr(value, "item"):
+            return _json_safe(value.item())
+    except Exception:
+        pass
+    if isinstance(value, dict):
+        return {str(k): _json_safe(v) for k, v in value.items()}
+    if isinstance(value, (list, tuple)):
+        return [_json_safe(v) for v in value]
+    return value
+
+
 def write_web_output(result, universe_size: int, path: str) -> None:
     rows = result.where(result.notna(), None).to_dict(orient="records")
+    rows = [_json_safe(row) for row in rows]
+    top_score = None
+    if not result.empty and "overall_score" in result:
+        value = result["overall_score"].max()
+        top_score = _json_safe(value)
+
     payload = {
         "generated_at": datetime.now(timezone.utc).isoformat(),
         "universe_size": int(universe_size),
         "alert_count": int((result["signal"] == "ALERT").sum()) if not result.empty and "signal" in result else 0,
-        "top_score": float(result["overall_score"].max()) if not result.empty else None,
+        "top_score": top_score,
         "results": rows,
     }
     output = Path(path)
     output.parent.mkdir(parents=True, exist_ok=True)
-    output.write_text(json.dumps(payload, indent=2, default=str), encoding="utf-8")
+    # allow_nan=False guarantees that the browser can parse the file with JSON.parse().
+    output.write_text(json.dumps(payload, indent=2, allow_nan=False), encoding="utf-8")
 
 
 def main() -> None:
