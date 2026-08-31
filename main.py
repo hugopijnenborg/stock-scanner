@@ -17,19 +17,25 @@ def main() -> None:
     s = sub.add_parser("scan", help="scan current market")
     s.add_argument("--limit", type=int, default=1000)
     s.add_argument("--top", type=int, default=25)
+    s.add_argument("--output", default=None, help="optional CSV output path")
 
     b = sub.add_parser("backtest", help="backtest supplied trader entries")
+    b.add_argument("--output", default="trader_backtest.csv", help="CSV output path")
 
     args = parser.parse_args()
     if args.command == "universe":
         print(load_top_us_stocks(args.limit).to_string(index=False))
     elif args.command == "scan":
-        print(scan(args.limit, args.top).to_string(index=False))
+        result = scan(args.limit, args.top)
+        print(result.to_string(index=False))
+        if args.output:
+            result.to_csv(args.output, index=False)
+            print(f"\nSaved {args.output}")
     elif args.command == "backtest":
         result = run_backtest()
         print(result.to_string(index=False))
-        result.to_csv("trader_backtest.csv", index=False)
-        print("\nSaved trader_backtest.csv")
+        result.to_csv(args.output, index=False)
+        print(f"\nSaved {args.output}")
 
 
 if __name__ == "__main__":
