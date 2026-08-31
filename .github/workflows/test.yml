@@ -12,10 +12,6 @@ on:
 permissions:
   contents: write
 
-concurrency:
-  group: stock-scanner-main
-  cancel-in-progress: true
-
 env:
   PYTHONUNBUFFERED: '1'
 
@@ -47,6 +43,11 @@ jobs:
         run: python learn_model.py
       - name: Run market scan
         run: python main.py scan --limit 1000 --top 50 --output scan_results.csv --web-output public/data/latest_scan.json
+      - name: Save own 80+ alerts to Supabase
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+        run: python scripts/save_alerts_supabase.py
       - name: Evaluate historical alerts
         run: python scripts/evaluate_alerts.py
       - name: Send Discord alerts when configured
@@ -99,7 +100,7 @@ jobs:
     runs-on: ubuntu-latest
     needs: test
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
         with:
           python-version: '3.12'
