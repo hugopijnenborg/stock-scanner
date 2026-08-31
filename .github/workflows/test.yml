@@ -6,6 +6,11 @@ on:
   pull_request:
     branches: [main]
   workflow_dispatch:
+  schedule:
+    - cron: '30 21 * * 1-5'
+
+permissions:
+  contents: write
 
 jobs:
   test:
@@ -17,7 +22,7 @@ jobs:
       - name: Setup Python
         uses: actions/setup-python@v5
         with:
-          python-version: "3.12"
+          python-version: '3.12'
           cache: pip
       - name: Install dependencies
         run: pip install -r requirements.txt
@@ -25,7 +30,7 @@ jobs:
         run: python -m pytest tests -q
 
   scan:
-    name: Run scanner
+    name: Learn and scan market
     runs-on: ubuntu-latest
     needs: test
     steps:
@@ -34,21 +39,31 @@ jobs:
       - name: Setup Python
         uses: actions/setup-python@v5
         with:
-          python-version: "3.12"
+          python-version: '3.12'
           cache: pip
       - name: Install dependencies
         run: pip install -r requirements.txt
+      - name: Learn trader pattern
+        run: python learn_model.py
       - name: Run market scan
-        run: python main.py scan --output scan_results.csv
+        run: python main.py scan --limit 1000 --top 50 --output scan_results.csv --web-output public/data/latest_scan.json
       - name: Upload scan results
         uses: actions/upload-artifact@v4
         with:
           name: stock-scanner-results
-          path: scan_results.csv
-          if-no-files-found: error
+          path: |
+            scan_results.csv
+            learned_model.json
+      - name: Publish latest scan data
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add public/data/latest_scan.json learned_model.json
+          git diff --cached --quiet || git commit -m 'Update scanner results [skip ci]'
+          git push
 
   backtest:
-    name: Run backtest
+    name: Backtest
     runs-on: ubuntu-latest
     needs: test
     steps:
@@ -57,7 +72,7 @@ jobs:
       - name: Setup Python
         uses: actions/setup-python@v5
         with:
-          python-version: "3.12"
+          python-version: '3.12'
           cache: pip
       - name: Install dependencies
         run: pip install -r requirements.txt
@@ -68,4 +83,20 @@ jobs:
         with:
           name: stock-scanner-backtest
           path: backtest_results.csv
-          if-no-files-found: error
+
+  web:
+    name: Build dashboard
+    runs-on: ubuntu-latest
+    needs: test
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: npm
+      - name: Install frontend dependencies
+        run: npm install
+      - name: Build dashboard
+        run: npm run build
