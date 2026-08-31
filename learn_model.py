@@ -30,72 +30,59 @@ FEATURES = [
 def _clean_row(row: pd.Series) -> np.ndarray | None:
     values = pd.to_numeric(row.reindex(FEATURES), errors="coerce")
     values = values.replace([np.inf, -np.inf], np.nan).fillna(0.0)
-    if not np.isfinite(values.to_numpy(dtype=float)).all():
-        return None
-    return values.to_numpy(dtype=float)
+    arr = values.to_numpy(dtype=float)
+    return arr if np.isfinite(arr).all() else None
 
 
 def build_training_data(limit: int = 1000, negatives_per_positive: int = 20):
     universe = load_top_us_stocks(limit)
-    universe_tickers = universe["ticker"].dropna().astype(str).str.upper().tolist()
+    tickers = universe["ticker"].dropna().astype(str).str.upper().tolist()
     entries = load_entries()
-    entry_dates = pd.to_datetime(entries["date"]).dt.tz_localize(None).dt.normalize()
-    positive_keys = {(str(t).upper(), d) for t, d in zip(entries["ticker"], entry_dates)}
+    entries["date"] = pd.to_datetime(entries["date"]).dt.tz_localize(None).dt.normalize()
+    dates = sorted(entries["date"].unique())
+    positive_keys = {(str(t).upper(), d) for t, d in zip(entries["ticker"], entries["date"])}
+    positive_by_date = {}
+    for ticker, date in positive_keys:
+        positive_by_date.setdefault(date, set()).add(ticker)
 
     benchmarks = download_benchmarks(DEFAULT_START)
     spy = benchmarks.get("SPY")
     spy_close = spy["Close"] if spy is not None and "Close" in spy.columns else None
-    prices = download_ohlcv(universe_tickers, DEFAULT_START)
+    prices = download_ohlcv(tickers, DEFAULT_START)
 
+    snapshots: dict[pd.Timestamp, dict[str, np.ndarray]] = {d: {} for d in dates}
+    positive_vectors = []
     rng = np.random.default_rng(42)
-    X, y = [], []
-    positive_count = 0
 
     for ticker, df in prices.items():
         if df.empty or "Close" not in df.columns:
             continue
         features = add_indicators(df, spy_close)
-        for date in sorted(set(entry_dates)):
-            eligible = features.loc[features.index.normalize() <= date]
-            if eligible.empty:
-                continue
-            row = eligible.iloc[-1]
-            key = (ticker.upper(), date)
-            vector = _clean_row(row)
-            if vector is None:
-                continue
-            if key in positive_keys:
-                X.append(vector)
-                y.append(1)
-                positive_count += 1
-
-    positives = [(x, d) for x, d in zip(X, entry_dates)] if False else None
-
-    # Rebuild negatives by date. Sampling is deterministic and avoids flooding
-    # the classifier with near-identical observations.
-    positive_tickers_by_date = {}
-    for ticker, date in zip(entries["ticker"].astype(str).str.upper(), entry_dates):
-        positive_tickers_by_date.setdefault(date, set()).add(ticker)
-
-    for date in sorted(set(entry_dates)):
-        candidates = []
-        for ticker, df in prices.items():
-            if ticker.upper() in positive_tickers_by_date.get(date, set()):
-                continue
-            features = add_indicators(df, spy_close)
+        ticker = ticker.upper()
+        for date in dates:
             eligible = features.loc[features.index.normalize() <= date]
             if eligible.empty:
                 continue
             vector = _clean_row(eligible.iloc[-1])
-            if vector is not None:
-                candidates.append(vector)
-        if candidates:
-            n = min(len(candidates), max(negatives_per_positive, len(positive_tickers_by_date.get(date, set())) * negatives_per_positive))
-            for vector in candidates[rng.choice(len(candidates), size=n, replace=False)]:
-                X.append(vector)
-                y.append(0)
+            if vector is None:
+                continue
+            snapshots[date][ticker] = vector
+            if (ticker, date) in positive_keys:
+                positive_vectors.append(vector)
 
-    return np.asarray(X), np.asarray(y), positive_count
+    negative_vectors = []
+    for date in dates:
+        excluded = positive_by_date.get(date, set())
+        candidates = [v for t, v in snapshots[date].items() if t not in excluded]
+        if not candidates:
+            continue
+        n = min(len(candidates), max(negatives_per_positive, len(excluded) * negatives_per_positive))
+        idx = rng.choice(len(candidates), size=n, replace=False)
+        negative_vectors.extend(candidates[i] for i in idx)
+
+    X = np.asarray(positive_vectors + negative_vectors, dtype=float)
+    y = np.asarray([1] * len(positive_vectors) + [0] * len(negative_vectors), dtype=int)
+    return X, y, len(positive_vectors)
 
 
 def train(limit: int = 1000, negatives_per_positive: int = 20, output: str = "learned_model.json") -> dict:
@@ -111,9 +98,7 @@ def train(limit: int = 1000, negatives_per_positive: int = 20, output: str = "le
 
     scaler = model.named_steps["scale"]
     clf = model.named_steps["logreg"]
-    coef = clf.coef_[0] / scaler.scale_
-    intercept = float(clf.intercept_[0] - np.dot(clf.coef_[0], scaler.mean_ / scaler.scale_))
-    importance = pd.Series(coef, index=FEATURES).sort_values(key=np.abs, ascending=False)
+    importance = pd.Series(clf.coef_[0], index=FEATURES).sort_values(key=np.abs, ascending=False)
 
     payload = {
         "version": 1,
@@ -124,8 +109,10 @@ def train(limit: int = 1000, negatives_per_positive: int = 20, output: str = "le
         "intercept": float(clf.intercept_[0]),
         "positive_observations": int(positive_count),
         "training_observations": int(len(y)),
-        "top_feature_importance": [{"feature": k, "coefficient": float(v)} for k, v in importance.head(15).items()],
+        "negative_observations": int((y == 0).sum()),
+        "top_feature_importance": [{"feature": k, "standardized_coefficient": float(v)} for k, v in importance.head(15).items()],
         "method": "balanced logistic regression on trader entries vs sampled same-date non-entries",
+        "warning": "Research prototype. It uses the current top-1000 universe for historical controls and is not a guarantee of future returns.",
     }
     Path(output).write_text(json.dumps(payload, indent=2), encoding="utf-8")
     return payload
