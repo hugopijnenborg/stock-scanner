@@ -26,12 +26,6 @@ def high_is_good(value: float, start: float, extreme: float) -> float:
 
 
 def _neutral_centered_low(value: float, start: float, extreme: float) -> float:
-    """Score a low-is-good technical signal around a neutral midpoint of 0.5.
-
-    The threshold is neutral: favourable movement toward the extreme raises the
-    score above 50, while equally strong movement in the opposite direction
-    lowers it. The result is always bounded to 0..1.
-    """
     if pd.isna(value):
         return 0.5
     span = abs(float(start) - float(extreme))
@@ -48,7 +42,6 @@ def _neutral_centered_low(value: float, start: float, extreme: float) -> float:
 
 
 def _neutral_centered_high(value: float, start: float, extreme: float) -> float:
-    """Score a high-is-good technical signal around a neutral midpoint of 0.5."""
     if pd.isna(value):
         return 0.5
     span = abs(float(extreme) - float(start))
@@ -65,7 +58,6 @@ def _neutral_centered_high(value: float, start: float, extreme: float) -> float:
 
 
 def support_component(r: pd.Series) -> float:
-    """Original support component used by the setup-family scores."""
     values = [float(x) for x in [r.get("distance_support_20d"), r.get("distance_support_60d"), r.get("distance_support_120d")] if pd.notna(x)]
     if not values:
         return 0.0
@@ -73,7 +65,6 @@ def support_component(r: pd.Series) -> float:
 
 
 def _technical_support_component(r: pd.Series) -> float:
-    """Technical-only support score with 10% above support treated as neutral."""
     values = [float(x) for x in [r.get("distance_support_20d"), r.get("distance_support_60d"), r.get("distance_support_120d")] if pd.notna(x)]
     if not values:
         return 0.5
@@ -93,7 +84,7 @@ def rebound_components(r: pd.Series) -> dict[str, float]:
         "relative_strength_20d": low_is_good(r.get("relative_strength_20d", np.nan), -0.02, -0.25),
         "support": support_component(r),
         "intraday_reversal": high_is_good(r.get("close_location", np.nan), 0.50, 1.00),
-        "market_regime": 0.5,
+        "market_regime": float(r.get("market_regime_score", 0.5)) if pd.notna(r.get("market_regime_score", np.nan)) else 0.5,
     }
 
 
@@ -107,7 +98,7 @@ def quality_components(r: pd.Series) -> dict[str, float]:
         "z_score": low_is_good(r.get("z_score", np.nan), -0.5, -3.0),
         "volume_ratio": high_is_good(r.get("volume_ratio", np.nan), 1.0, 3.0),
         "support": support_component(r),
-        "market_regime": 0.5,
+        "market_regime": float(r.get("market_regime_score", 0.5)) if pd.notna(r.get("market_regime_score", np.nan)) else 0.5,
         "fundamental_placeholder": 0.0,
     }
 
@@ -124,7 +115,7 @@ def cyclical_components(r: pd.Series) -> dict[str, float]:
         "bollinger_pct": low_is_good(r.get("bollinger_pct", np.nan), 0.35, -0.05),
         "support": support_component(r),
         "intraday_reversal": high_is_good(r.get("close_location", np.nan), 0.50, 1.00),
-        "market_regime": 0.5,
+        "market_regime": float(r.get("market_regime_score", 0.5)) if pd.notna(r.get("market_regime_score", np.nan)) else 0.5,
     }
 
 
@@ -137,14 +128,7 @@ def weighted_score(components: dict[str, float], weights: dict[str, float]) -> f
 
 
 def technical_opportunity_score(r: pd.Series) -> dict[str, float]:
-    """Return a 0..100 technical setup score with a meaningful neutral midpoint.
-
-    The same underlying indicators and weights are retained. The scoring scale
-    now treats the stated thresholds as neutral instead of assigning zero to
-    every ordinary value on the unfavourable side. This increases separation
-    between weak, neutral and genuinely favourable technical setups without
-    changing the alert threshold or the trader/fundamental scores.
-    """
+    """Return a 0..100 technical setup score with a meaningful neutral midpoint."""
     c = {
         "drawdown_5d": _neutral_centered_low(r.get("return_5d", np.nan), -0.05, -0.30),
         "rsi_14": _neutral_centered_low(r.get("rsi_14", np.nan), 45, 20),
@@ -156,7 +140,7 @@ def technical_opportunity_score(r: pd.Series) -> dict[str, float]:
         "support": _technical_support_component(r),
         "intraday_reversal": _neutral_centered_high(r.get("close_location", np.nan), 0.50, 1.00),
         "relative_strength_20d": _neutral_centered_low(r.get("relative_strength_20d", np.nan), -0.02, -0.25),
-        "market_regime": 0.5,
+        "market_regime": float(r.get("market_regime_score", 0.5)) if pd.notna(r.get("market_regime_score", np.nan)) else 0.5,
     }
     weights = {
         "drawdown_5d": 0.15, "rsi_14": 0.15, "distance_sma20": 0.05,
