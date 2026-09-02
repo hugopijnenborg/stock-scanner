@@ -6,8 +6,10 @@ on:
   pull_request:
     branches: [main]
   workflow_dispatch:
+  # GitHub Actions uses UTC. We trigger broadly and let the market-hours
+  # guard enforce the requested 15:30-22:00 Europe/Amsterdam window.
   schedule:
-    - cron: '30 21 * * 1-5'
+    - cron: '0,30 13-21 * * 1-5'
 
 permissions:
   contents: write
@@ -39,6 +41,8 @@ jobs:
           python-version: '3.12'
           cache: pip
       - run: pip install -r requirements.txt
+      - name: Check requested market window
+        run: python scripts/market_hours_guard.py
       - name: Learn trader pattern
         run: python learn_model.py
       - name: Run market scan
