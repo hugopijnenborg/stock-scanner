@@ -8,8 +8,8 @@ import requests
 import yfinance as yf
 
 TABLE = "stock_scanner_alerts"
-# Trading-day horizons. 40 trading days is used as the scanner's approximately 2-month horizon.
-HORIZONS = {1: "1D", 5: "5D", 10: "10D", 20: "20D", 30: "30D", 40: "40D"}
+# 1D-30D are trading-day horizons. 60D is explicitly 60 calendar days.
+TRADING_HORIZONS = {1: "1D", 5: "5D", 10: "10D", 20: "20D", 30: "30D"}
 TARGETS = [5, 10, 20, 30]
 
 
@@ -66,36 +66,54 @@ def evaluate(row: dict) -> dict | None:
     high = pd.to_numeric(hist.get("High", hist["Close"]), errors="coerce").reindex(close.index)
     low = pd.to_numeric(hist.get("Low", hist["Close"]), errors="coerce").reindex(close.index)
     entry = float(row.get("alert_price") or close.iloc[0])
-    entry_date = timestamp.date()
-    forward = close[close.index.date > entry_date]
+    entry_day = timestamp.normalize()
+    index_dates = pd.DatetimeIndex(close.index).normalize()
+    entry_positions = index_dates > entry_day
+    forward = close[entry_positions]
     if forward.empty:
         return None
 
     patch: dict = {"evaluated_at": datetime.now(timezone.utc).isoformat()}
-    for n, label in HORIZONS.items():
+    for n, label in TRADING_HORIZONS.items():
         if len(forward) >= n:
             value = float(forward.iloc[n - 1])
-            field = label.split("D")[0].lower()
-            patch[f"price_{field}d"] = value
-            patch[f"return_{field}d"] = round((value / entry - 1) * 100, 2)
-            patch[f"price_{field}d_at"] = pd.Timestamp(forward.index[n - 1]).isoformat()
+            field = label.lower()
+            patch[f"price_{field}"] = value
+            patch[f"return_{field}"] = round((value / entry - 1) * 100, 2)
+            patch[f"price_{field}_at"] = pd.Timestamp(forward.index[n - 1]).isoformat()
 
-    # Keep the existing 20D excursion metrics for compatibility and extend them to 40D.
-    for window_days in (20, 40):
-        available = forward.iloc[: min(window_days, len(forward))]
-        high_forward = high.reindex(available.index).dropna()
-        low_forward = low.reindex(available.index).dropna()
-        if not high_forward.empty and window_days == 20:
-            patch["max_gain"] = round((float(high_forward.max()) / entry - 1) * 100, 2)
-            patch["max_drawdown"] = round((float(low_forward.min()) / entry - 1) * 100, 2)
-            for target in TARGETS:
-                patch[f"hit_{target}pct"] = bool(float(high_forward.max()) >= entry * (1 + target / 100))
-        if not high_forward.empty and window_days == 40:
-            patch["max_gain_40d"] = round((float(high_forward.max()) / entry - 1) * 100, 2)
-            patch["max_drawdown_40d"] = round((float(low_forward.min()) / entry - 1) * 100, 2)
+    # 60D means 60 calendar days. Use the first available trading session on or after that date.
+    target_day = entry_day + pd.Timedelta(days=60)
+    target_positions = [i for i, d in enumerate(index_dates) if d >= target_day]
+    if target_positions:
+        target_pos = target_positions[0]
+        value = float(close.iloc[target_pos])
+        patch["price_60d"] = value
+        patch["return_60d"] = round((value / entry - 1) * 100, 2)
+        patch["price_60d_at"] = pd.Timestamp(close.index[target_pos]).isoformat()
 
-    # A trade remains pending until the full approximately 2-month horizon is available.
-    patch["status"] = "WIN" if "return_40d" in patch and patch["return_40d"] > 0 else "LOSS" if "return_40d" in patch else "PENDING"
+    # Keep existing 20D excursion metrics and extend excursion measurement to 60 calendar days.
+    twenty = forward.iloc[: min(20, len(forward))]
+    high_20 = high.reindex(twenty.index).dropna()
+    low_20 = low.reindex(twenty.index).dropna()
+    if not high_20.empty:
+        patch["max_gain"] = round((float(high_20.max()) / entry - 1) * 100, 2)
+        patch["max_drawdown"] = round((float(low_20.min()) / entry - 1) * 100, 2)
+        for target in TARGETS:
+            patch[f"hit_{target}pct"] = bool(float(high_20.max()) >= entry * (1 + target / 100))
+
+    target_window = close[index_dates <= target_day]
+    target_window = target_window[index_dates[index_dates <= target_day] > entry_day] if len(target_window) else target_window
+    if not target_window.empty:
+        high_60 = high.reindex(target_window.index).dropna()
+        low_60 = low.reindex(target_window.index).dropna()
+        if not high_60.empty:
+            patch["max_gain_60d"] = round((float(high_60.max()) / entry - 1) * 100, 2)
+        if not low_60.empty:
+            patch["max_drawdown_60d"] = round((float(low_60.min()) / entry - 1) * 100, 2)
+
+    # Keep an alert pending until the full 60-calendar-day horizon is available.
+    patch["status"] = "WIN" if "return_60d" in patch and patch["return_60d"] > 0 else "LOSS" if "return_60d" in patch else "PENDING"
     return patch
 
 
