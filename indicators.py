@@ -27,7 +27,6 @@ def add_indicators(df: pd.DataFrame, benchmark_close: pd.Series | None = None) -
     low = out["Low"].astype(float)
     volume = out["Volume"].astype(float)
 
-    # Returns / price dislocation.
     out["return_1d"] = close.pct_change(1)
     out["return_3d"] = close.pct_change(3)
     out["return_5d"] = close.pct_change(5)
@@ -43,7 +42,6 @@ def add_indicators(df: pd.DataFrame, benchmark_close: pd.Series | None = None) -
     out["distance_sma50"] = close / out["sma_50"] - 1
     out["distance_sma200"] = close / out["sma_200"] - 1
 
-    # Momentum.
     out["rsi_7"] = _rsi(close, 7)
     out["rsi_14"] = _rsi(close, 14)
     out["rsi_21"] = _rsi(close, 21)
@@ -55,7 +53,6 @@ def add_indicators(df: pd.DataFrame, benchmark_close: pd.Series | None = None) -
     out["macd_histogram"] = out["macd"] - out["macd_signal"]
     out["macd_histogram_change"] = out["macd_histogram"].diff()
 
-    # Volatility.
     tr = pd.concat([
         high - low,
         (high - close.shift()).abs(),
@@ -72,14 +69,10 @@ def add_indicators(df: pd.DataFrame, benchmark_close: pd.Series | None = None) -
     out["bollinger_pct"] = (close - out["bollinger_lower"]) / band
     out["bollinger_width"] = band / out["sma_20"]
 
-    # Volume / capitulation.
     out["volume_avg20"] = volume.rolling(20).mean()
     out["volume_ratio"] = volume / out["volume_avg20"]
     out["volume_ratio_5d"] = volume / volume.rolling(5).mean()
 
-    # Distribution of the current candle. A close near the high after a large
-    # intraday range can provide early evidence of a reversal rather than pure
-    # continuation of selling.
     day_range = (high - low).replace(0, np.nan)
     out["close_location"] = (close - low) / day_range
     out["intraday_reversal"] = out["close_location"] - 0.5
@@ -87,28 +80,38 @@ def add_indicators(df: pd.DataFrame, benchmark_close: pd.Series | None = None) -
     out["volatility_20d"] = out["return_1d"].rolling(20).std() * np.sqrt(252)
     out["z_score"] = (close - out["sma_20"]) / std20.replace(0, np.nan)
 
-    # Drawdown from rolling highs. We keep multiple horizons because the
-    # trader's decisions distinguish a short shock from a deep structural drawdown.
     for window, label in [(21, "1m"), (63, "3m"), (126, "6m"), (252, "52w")]:
         rolling_high = close.rolling(window, min_periods=min(window, 20)).max()
         out[f"high_{label}"] = rolling_high
         out[f"distance_{label}_high"] = close / rolling_high - 1
 
-    # Support proxies. These are deliberately simple and causal. They are not
-    # a substitute for a future price-action/support detector.
     for window, label in [(20, "20d"), (60, "60d"), (120, "120d")]:
         support = low.rolling(window, min_periods=min(window, 20)).min()
         out[f"support_{label}"] = support
         out[f"distance_support_{label}"] = close / support - 1
 
-    # Relative strength versus the benchmark.
     if benchmark_close is not None:
-        b = benchmark_close.reindex(out.index).ffill()
+        b = pd.to_numeric(benchmark_close, errors="coerce").reindex(out.index).ffill()
+        benchmark_return5 = b.pct_change(5)
         benchmark_return20 = b.pct_change(20)
+        benchmark_sma20 = b.rolling(20).mean()
+        benchmark_sma50 = b.rolling(50).mean()
         out["relative_strength_20d"] = out["return_20d"] - benchmark_return20
-        out["relative_strength_5d"] = out["return_5d"] - b.pct_change(5)
+        out["relative_strength_5d"] = out["return_5d"] - benchmark_return5
+
+        # Market regime is intentionally causal. It measures broad-market
+        # direction, trend alignment and recent return, rather than predicting
+        # the future. 0 = hostile, 0.5 = neutral, 1 = supportive.
+        trend20 = ((b / benchmark_sma20) - 1).clip(-0.10, 0.10)
+        trend50 = ((b / benchmark_sma50) - 1).clip(-0.15, 0.15)
+        regime_return = benchmark_return20.clip(-0.20, 0.20)
+        trend20_score = ((trend20 + 0.10) / 0.20).fillna(0.5)
+        trend50_score = ((trend50 + 0.15) / 0.30).fillna(0.5)
+        return_score = ((regime_return + 0.20) / 0.40).fillna(0.5)
+        out["market_regime_score"] = (0.40 * trend20_score + 0.40 * trend50_score + 0.20 * return_score).clip(0, 1)
     else:
         out["relative_strength_20d"] = np.nan
         out["relative_strength_5d"] = np.nan
+        out["market_regime_score"] = 0.5
 
     return out
