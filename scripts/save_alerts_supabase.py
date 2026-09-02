@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import json
 import os
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
 import requests
@@ -30,8 +30,7 @@ def main() -> None:
     payload = json.loads(SCAN_FILE.read_text(encoding="utf-8"))
     generated_at = payload.get("generated_at") or datetime.now(timezone.utc).isoformat()
     generated = datetime.fromisoformat(generated_at.replace("Z", "+00:00"))
-    scan_date = generated.date().isoformat()
-    active_since = (generated - __import__("datetime").timedelta(days=ACTIVE_DAYS)).isoformat()
+    active_since = (generated - timedelta(days=ACTIVE_DAYS)).isoformat()
 
     # One active scanner alert per ticker. Repeated scans update peak_score,
     # while the original entry timestamp/price/score remain unchanged.
