@@ -68,8 +68,7 @@ def evaluate(row: dict) -> dict | None:
     entry = float(row.get("alert_price") or close.iloc[0])
     entry_day = timestamp.normalize()
     index_dates = pd.DatetimeIndex(close.index).normalize()
-    entry_positions = index_dates > entry_day
-    forward = close[entry_positions]
+    forward = close[index_dates > entry_day]
     if forward.empty:
         return None
 
@@ -92,7 +91,7 @@ def evaluate(row: dict) -> dict | None:
         patch["return_60d"] = round((value / entry - 1) * 100, 2)
         patch["price_60d_at"] = pd.Timestamp(close.index[target_pos]).isoformat()
 
-    # Keep existing 20D excursion metrics and extend excursion measurement to 60 calendar days.
+    # Existing excursion metrics remain 20 trading days. The extended excursion uses the full 60-calendar-day window.
     twenty = forward.iloc[: min(20, len(forward))]
     high_20 = high.reindex(twenty.index).dropna()
     low_20 = low.reindex(twenty.index).dropna()
@@ -102,11 +101,11 @@ def evaluate(row: dict) -> dict | None:
         for target in TARGETS:
             patch[f"hit_{target}pct"] = bool(float(high_20.max()) >= entry * (1 + target / 100))
 
-    target_window = close[index_dates <= target_day]
-    target_window = target_window[index_dates[index_dates <= target_day] > entry_day] if len(target_window) else target_window
-    if not target_window.empty:
-        high_60 = high.reindex(target_window.index).dropna()
-        low_60 = low.reindex(target_window.index).dropna()
+    sixty_mask = (index_dates > entry_day) & (index_dates <= target_day)
+    sixty_window = close[sixty_mask]
+    if not sixty_window.empty:
+        high_60 = high.reindex(sixty_window.index).dropna()
+        low_60 = low.reindex(sixty_window.index).dropna()
         if not high_60.empty:
             patch["max_gain_60d"] = round((float(high_60.max()) / entry - 1) * 100, 2)
         if not low_60.empty:
