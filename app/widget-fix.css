@@ -1,0 +1,239 @@
+/* Final widget layout overrides. Loaded after globals.css. */
+
+/* Shared hero sizing */
+.heroSignal{padding:20px!important;min-height:176px!important;overflow:hidden!important;}
+
+/* SCANNER CONVICTION */
+.heroSignal .convictionBody{
+  position:relative!important;
+  z-index:2!important;
+  display:grid!important;
+  grid-template-columns:112px minmax(0,1fr)!important;
+  align-items:center!important;
+  gap:0!important;
+  width:100%!important;
+  height:122px!important;
+  margin:0!important;
+}
+.heroSignal .convictionBody:after{
+  content:''!important;
+  position:absolute!important;
+  left:112px!important;
+  top:32px!important;
+  width:1px!important;
+  height:58px!important;
+  background:linear-gradient(180deg,transparent,#314354,transparent)!important;
+}
+.heroSignal .convictionBody>div{
+  min-width:0!important;
+  margin:0!important;
+  background:transparent!important;
+  border:0!important;
+  box-shadow:none!important;
+}
+.heroSignal .convictionBody>div:first-child{
+  display:flex!important;
+  align-items:center!important;
+  justify-content:center!important;
+  width:112px!important;
+  height:100%!important;
+  padding:0!important;
+}
+.heroSignal .convictionBody>div:last-child{
+  display:block!important;
+  width:auto!important;
+  padding:0 0 0 27px!important;
+}
+.heroSignal .convictionBody>div:last-child strong{
+  display:block!important;
+  font-family:'Space Grotesk',sans-serif!important;
+  font-size:25px!important;
+  line-height:1.05!important;
+  letter-spacing:-.04em!important;
+  white-space:nowrap!important;
+}
+.heroSignal .convictionBody>div:last-child span{
+  display:block!important;
+  color:#8393a4!important;
+  font-size:9px!important;
+  line-height:1.35!important;
+  margin-top:5px!important;
+}
+.heroSignal .convictionBody>div:last-child small{
+  display:block!important;
+  color:#5e7083!important;
+  font-size:7px!important;
+  line-height:1.35!important;
+  margin-top:9px!important;
+}
+.heroSignal .scoreRing.large{
+  width:84px!important;
+  height:84px!important;
+  min-width:84px!important;
+  min-height:84px!important;
+  display:grid!important;
+  place-items:center!important;
+  margin:0 auto!important;
+}
+.heroSignal .scoreRing.large:before{inset:6px!important;}
+.heroSignal .scoreRing.large>div{
+  position:relative!important;
+  z-index:1!important;
+  display:flex!important;
+  align-items:baseline!important;
+  justify-content:center!important;
+  width:100%!important;
+  margin:0!important;
+  padding:0!important;
+  background:transparent!important;
+  border:0!important;
+  box-shadow:none!important;
+  text-align:center!important;
+}
+.heroSignal .scoreRing.large strong{font-size:24px!important;line-height:1!important;}
+.heroSignal .scoreRing.large span{font-size:8px!important;margin-left:2px!important;}
+
+/* PERFORMANCE */
+.heroSignal .performanceHero{
+  position:relative!important;
+  z-index:2!important;
+  display:grid!important;
+  grid-template-columns:minmax(0,1fr) minmax(185px,.9fr)!important;
+  align-items:stretch!important;
+  gap:0!important;
+  width:100%!important;
+  height:122px!important;
+  margin:0!important;
+}
+.heroSignal .performanceHero .metricStack{
+  display:grid!important;
+  grid-template-rows:1fr 1fr!important;
+  align-self:stretch!important;
+  min-width:0!important;
+  margin:10px 0!important;
+  padding:0 0 0 20px!important;
+  border-left:1px solid rgba(67,199,255,.16)!important;
+  background:transparent!important;
+}
+.heroSignal .performanceHero .metricBox{
+  display:flex!important;
+  flex-direction:column!important;
+  justify-content:center!important;
+  min-width:0!important;
+  margin:0!important;
+  padding:0!important;
+  background:transparent!important;
+  border:0!important;
+  border-radius:0!important;
+  box-shadow:none!important;
+}
+.heroSignal .performanceHero .metricBox+.metricBox{
+  margin:0!important;
+  padding:9px 0 0!important;
+  border-top:1px solid #253544!important;
+}
+.heroSignal .performanceHero .metricBox small{display:block!important;color:#65788d!important;font-size:6px!important;font-weight:800!important;letter-spacing:.12em!important;}
+.heroSignal .performanceHero .metricBox strong{display:block!important;font-family:'Space Grotesk',sans-serif!important;font-size:19px!important;line-height:1.05!important;margin-top:3px!important;}
+.heroSignal .performanceHero .metricBox span{display:block!important;color:#718397!important;font-size:7px!important;margin-top:2px!important;}
+.heroSignal .performanceHero .metricBox.return strong{color:#f5f8fb!important;}
+.heroSignal .performanceHero .metricBox.win strong{color:var(--green)!important;}
+
+/* VALIDATION */
+.heroSignal .validationHero{
+  position:relative!important;
+  z-index:2!important;
+  display:grid!important;
+  grid-template-columns:minmax(0,1fr) minmax(170px,.95fr)!important;
+  align-items:stretch!important;
+  gap:0!important;
+  width:100%!important;
+  height:122px!important;
+  margin:0!important;
+}
+.heroSignal .validationHero>.oosBadge{
+  grid-column:1!important;
+  grid-row:1!important;
+  display:flex!important;
+  flex-direction:column!important;
+  justify-content:center!important;
+  align-items:flex-start!important;
+  min-width:0!important;
+  width:auto!important;
+  margin:0!important;
+  padding:0 24px 0 0!important;
+  background:transparent!important;
+  border:0!important;
+  border-radius:0!important;
+  box-shadow:none!important;
+}
+.heroSignal .validationHero .oosBadge span{display:block!important;color:#65788d!important;font-size:7px!important;font-weight:800!important;letter-spacing:.13em!important;margin:0!important;text-transform:uppercase!important;}
+.heroSignal .validationHero .oosBadge strong{display:block!important;font-family:'Space Grotesk',sans-serif!important;font-size:30px!important;line-height:1!important;letter-spacing:-.055em!important;white-space:nowrap!important;margin:5px 0 0!important;}
+.heroSignal .validationHero .oosBadge small{display:block!important;color:#8393a4!important;font-size:8px!important;line-height:1.3!important;margin:6px 0 0!important;}
+.heroSignal .validationHero .validationMetrics{
+  grid-column:2!important;
+  grid-row:1!important;
+  display:grid!important;
+  grid-template-columns:1fr!important;
+  grid-template-rows:1fr 1fr!important;
+  align-self:stretch!important;
+  min-width:0!important;
+  width:auto!important;
+  height:auto!important;
+  margin:10px 0!important;
+  padding:0 0 0 20px!important;
+  border-left:1px solid rgba(67,199,255,.16)!important;
+  background:transparent!important;
+  border-radius:0!important;
+  box-shadow:none!important;
+  overflow:visible!important;
+}
+.heroSignal .validationHero .validationMetrics>div{
+  min-width:0!important;
+  width:auto!important;
+  height:auto!important;
+  display:flex!important;
+  flex-direction:column!important;
+  justify-content:center!important;
+  align-items:flex-start!important;
+  margin:0!important;
+  padding:0!important;
+  background:transparent!important;
+  border:0!important;
+  border-radius:0!important;
+  box-shadow:none!important;
+  overflow:visible!important;
+}
+.heroSignal .validationHero .validationMetrics>div+div{
+  margin:0!important;
+  padding:9px 0 0!important;
+  border-top:1px solid #253544!important;
+}
+.heroSignal .validationHero .validationMetrics small{display:block!important;color:#65788d!important;font-size:6px!important;font-weight:800!important;letter-spacing:.12em!important;margin:0!important;}
+.heroSignal .validationHero .validationMetrics strong{display:block!important;font-family:'Space Grotesk',sans-serif!important;font-size:19px!important;line-height:1.05!important;margin:3px 0 0!important;}
+.heroSignal .validationHero .validationMetrics span{display:block!important;color:#718397!important;font-size:7px!important;line-height:1.2!important;margin:2px 0 0!important;}
+.heroSignal .validationFoot{position:relative!important;z-index:3!important;display:flex!important;align-items:center!important;gap:6px!important;border-top:1px solid #1c2b38!important;padding-top:8px!important;color:#63768a!important;font-size:6px!important;letter-spacing:.04em!important;}
+.heroSignal .validationFoot b{margin-left:auto!important;color:var(--green)!important;font-size:6px!important;letter-spacing:.08em!important;}
+.heroSignal .validationDot{width:5px!important;height:5px!important;border-radius:50%!important;background:var(--green)!important;box-shadow:0 0 8px rgba(53,229,160,.65)!important;flex:none!important;}
+
+/* Performance horizon cells */
+.horizonCells{display:grid!important;grid-template-columns:repeat(6,1fr)!important;gap:4px!important;}
+.horizonCell{padding:5px 6px!important;border:1px solid #1b2937!important;border-radius:6px!important;background:#0c141c!important;min-width:0!important;}
+.horizonCell.selected{border-color:rgba(53,229,160,.55)!important;background:rgba(53,229,160,.09)!important;box-shadow:inset 0 0 14px rgba(53,229,160,.04)!important;}
+.horizonCell span,.horizonCell b,.horizonCell small{display:block!important;white-space:nowrap!important;overflow:hidden!important;text-overflow:ellipsis!important;}
+.horizonCell span{font-size:6px!important;color:#65788d!important;font-weight:800!important;letter-spacing:.08em!important;}
+.horizonCell b{font-family:'Space Grotesk',sans-serif!important;font-size:9px!important;margin-top:2px!important;}
+.horizonCell small{font-size:6px!important;color:#617487!important;margin-top:1px!important;}
+
+@media(max-width:900px){
+  .heroSignal .convictionBody{grid-template-columns:100px minmax(0,1fr)!important;height:auto!important;min-height:122px!important;padding:0!important;}
+  .heroSignal .convictionBody:after{left:100px!important;}
+  .heroSignal .convictionBody>div:first-child{width:100px!important;}
+  .heroSignal .convictionBody>div:last-child{padding-left:18px!important;}
+  .heroSignal .performanceHero,.heroSignal .validationHero{grid-template-columns:1fr!important;height:auto!important;padding:0!important;}
+  .heroSignal .performanceHero .metricStack,.heroSignal .validationHero .validationMetrics{grid-column:1!important;grid-row:auto!important;margin:10px 0 0!important;padding:10px 0 0!important;border-left:0!important;border-top:1px solid rgba(67,199,255,.16)!important;}
+  .heroSignal .validationHero>.oosBadge{grid-column:1!important;grid-row:auto!important;padding:0!important;}
+  .heroSignal .performanceHero .metricStack{grid-template-rows:auto auto!important;}
+  .heroSignal .validationHero .validationMetrics{grid-template-rows:auto auto!important;}
+  .heroSignal .validationHero .validationMetrics>div+div{margin-top:8px!important;padding-top:8px!important;}
+  .horizonCells{grid-template-columns:repeat(3,1fr)!important;}
+}
