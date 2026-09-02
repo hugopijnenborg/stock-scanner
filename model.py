@@ -128,7 +128,7 @@ def weighted_score(components: dict[str, float], weights: dict[str, float]) -> f
 
 
 def technical_opportunity_score(r: pd.Series) -> dict[str, float]:
-    """Return a 0..100 technical setup score with a meaningful neutral midpoint."""
+    """Return a 0..100 technical setup score with market and sector context."""
     c = {
         "drawdown_5d": _neutral_centered_low(r.get("return_5d", np.nan), -0.05, -0.30),
         "rsi_14": _neutral_centered_low(r.get("rsi_14", np.nan), 45, 20),
@@ -140,13 +140,15 @@ def technical_opportunity_score(r: pd.Series) -> dict[str, float]:
         "support": _technical_support_component(r),
         "intraday_reversal": _neutral_centered_high(r.get("close_location", np.nan), 0.50, 1.00),
         "relative_strength_20d": _neutral_centered_low(r.get("relative_strength_20d", np.nan), -0.02, -0.25),
+        "sector_relative_strength_20d": _neutral_centered_high(r.get("sector_relative_strength_20d", np.nan), 0.0, 0.20),
         "market_regime": float(r.get("market_regime_score", 0.5)) if pd.notna(r.get("market_regime_score", np.nan)) else 0.5,
     }
     weights = {
         "drawdown_5d": 0.15, "rsi_14": 0.15, "distance_sma20": 0.05,
         "distance_sma50": 0.05, "drawdown_20d": 0.10, "z_score": 0.10,
         "volume_ratio": 0.10, "support": 0.10, "intraday_reversal": 0.05,
-        "relative_strength_20d": 0.05, "market_regime": 0.05,
+        "relative_strength_20d": 0.03, "sector_relative_strength_20d": 0.07,
+        "market_regime": 0.05,
     }
     return {"technical_opportunity_score": weighted_score(c, weights)}
 
