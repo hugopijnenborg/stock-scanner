@@ -14,6 +14,11 @@ on:
 permissions:
   contents: write
 
+# Prevent two scheduled scans from writing the same result files at once.
+concurrency:
+  group: stock-scanner-main
+  cancel-in-progress: false
+
 env:
   PYTHONUNBUFFERED: '1'
 
@@ -79,14 +84,14 @@ jobs:
             scan_results.csv
             learned_model.json
             public/data/alert_history.json
-      - name: Publish latest scan and alert history
+      - name: Publish latest scan, cache and alert history
         if: steps.market_window.outputs.run == 'true'
         run: |
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git add public/data/latest_scan.json learned_model.json public/data/alert_history.json
+          git add public/data/latest_scan.json learned_model.json public/data/alert_history.json data/fundamentals_cache.json
           git diff --cached --quiet && exit 0
-          git commit -m 'Update scanner results and alert history [skip ci]'
+          git commit -m 'Update scanner results and fundamentals cache [skip ci]'
           for attempt in 1 2 3 4 5; do
             git fetch origin main
             git rebase origin/main && git push origin HEAD:main && exit 0
