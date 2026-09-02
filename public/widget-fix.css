@@ -1,12 +1,4 @@
-/* Final override layer for widget layout. */
-html body .heroSignal .convictionBody{display:grid!important;grid-template-columns:112px minmax(0,1fr)!important;align-items:center!important;width:100%!important;height:122px!important;margin:0!important;gap:0!important;position:relative!important;}
-html body .heroSignal .convictionBody>div{background:transparent!important;border:0!important;border-radius:0!important;box-shadow:none!important;margin:0!important;min-width:0!important;}
-html body .heroSignal .convictionBody>div:first-child{display:flex!important;align-items:center!important;justify-content:center!important;width:112px!important;height:100%!important;padding:0!important;}
-html body .heroSignal .convictionBody>div:last-child{display:block!important;padding:0 0 0 27px!important;}
-html body .heroSignal .convictionBody:after{content:''!important;position:absolute!important;left:112px!important;top:32px!important;width:1px!important;height:58px!important;background:linear-gradient(180deg,transparent,#314354,transparent)!important;}
-html body .heroSignal .scoreRing.large{width:84px!important;height:84px!important;min-width:84px!important;min-height:84px!important;margin:0 auto!important;display:grid!important;place-items:center!important;}
-html body .heroSignal .scoreRing.large>div{width:100%!important;display:flex!important;justify-content:center!important;align-items:baseline!important;margin:0!important;padding:0!important;background:transparent!important;border:0!important;box-shadow:none!important;text-align:center!important;}
-html body .heroSignal .scoreRing.large strong{font-size:24px!important;line-height:1!important;}
+/* Validation widget only. Keep scanner conviction and page-specific performance/history widgets untouched. */
 html body .heroSignal .validationHero{display:grid!important;grid-template-columns:minmax(0,1fr) minmax(170px,.95fr)!important;align-items:stretch!important;width:100%!important;height:122px!important;margin:0!important;gap:0!important;}
 html body .heroSignal .validationHero>.oosBadge{grid-column:1!important;grid-row:1!important;display:flex!important;flex-direction:column!important;justify-content:center!important;align-items:flex-start!important;margin:0!important;padding:0 24px 0 0!important;background:transparent!important;border:0!important;border-radius:0!important;box-shadow:none!important;}
 html body .heroSignal .validationHero .validationMetrics{grid-column:2!important;grid-row:1!important;display:grid!important;grid-template-columns:1fr!important;grid-template-rows:1fr 1fr!important;align-self:stretch!important;width:auto!important;height:auto!important;margin:10px 0!important;padding:0 0 0 20px!important;border-left:1px solid rgba(67,199,255,.16)!important;border-top:0!important;background:transparent!important;border-radius:0!important;box-shadow:none!important;overflow:visible!important;}
@@ -19,18 +11,4 @@ html body .heroSignal .validationHero .oosBadge span{display:block!important;mar
 html body .heroSignal .validationHero .oosBadge strong{display:block!important;margin:5px 0 0!important;}
 html body .heroSignal .validationHero .oosBadge small{display:block!important;margin:6px 0 0!important;}
 html body .heroSignal .validationFoot{display:flex!important;align-items:center!important;position:relative!important;border-top:1px solid #1c2b38!important;padding-top:8px!important;}
-
-html body .heroSignal .performanceHero{display:grid!important;grid-template-columns:minmax(0,1fr) minmax(185px,.9fr)!important;align-items:stretch!important;width:100%!important;height:122px!important;margin:0!important;gap:0!important;}
-html body .heroSignal .performanceHero .metricStack{display:grid!important;grid-template-rows:1fr 1fr!important;align-self:stretch!important;min-width:0!important;margin:10px 0!important;padding:0 0 0 20px!important;border-left:1px solid rgba(67,199,255,.16)!important;background:transparent!important;}
-html body .heroSignal .performanceHero .metricBox{display:flex!important;flex-direction:column!important;justify-content:center!important;min-width:0!important;margin:0!important;padding:0!important;background:transparent!important;border:0!important;border-radius:0!important;box-shadow:none!important;}
-html body .heroSignal .performanceHero .metricBox+.metricBox{margin:0!important;padding:9px 0 0!important;border-top:1px solid #253544!important;}
-
-@media(max-width:900px){
-html body .heroSignal .convictionBody{grid-template-columns:100px minmax(0,1fr)!important;height:auto!important;min-height:122px!important;}
-html body .heroSignal .convictionBody>div:first-child{width:100px!important;}
-html body .heroSignal .convictionBody:after{left:100px!important;}
-html body .heroSignal .convictionBody>div:last-child{padding-left:18px!important;}
-html body .heroSignal .performanceHero,html body .heroSignal .validationHero{grid-template-columns:1fr!important;height:auto!important;}
-html body .heroSignal .performanceHero .metricStack,html body .heroSignal .validationHero .validationMetrics{grid-column:1!important;grid-row:auto!important;margin:10px 0 0!important;padding:10px 0 0!important;border-left:0!important;border-top:1px solid rgba(67,199,255,.16)!important;}
-html body .heroSignal .validationHero>.oosBadge{grid-column:1!important;grid-row:auto!important;padding:0!important;}
-}
+@media(max-width:900px){html body .heroSignal .validationHero{grid-template-columns:1fr!important;height:auto!important}.heroSignal .validationHero .validationMetrics{grid-column:1!important;grid-row:auto!important;margin:10px 0 0!important;padding:10px 0 0!important;border-left:0!important;border-top:1px solid rgba(67,199,255,.16)!important}.heroSignal .validationHero>.oosBadge{grid-column:1!important;grid-row:auto!important;padding:0!important}}
