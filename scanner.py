@@ -14,7 +14,7 @@ from universe import load_top_us_stocks
 
 FEATURE_COLUMNS = ["rsi_7", "rsi_14", "rsi_21", "macd", "macd_signal", "macd_histogram", "macd_histogram_change", "atr_pct", "bollinger_pct", "bollinger_width", "return_1d", "return_3d", "return_5d", "return_10d", "return_20d", "distance_sma20", "distance_sma50", "distance_sma200", "distance_1m_high", "distance_3m_high", "distance_6m_high", "distance_52w_high", "distance_support_20d", "distance_support_60d", "distance_support_120d", "volume_ratio", "volume_ratio_5d", "volatility_20d", "z_score", "close_location", "relative_strength_5d", "relative_strength_20d", "sector_relative_strength_20d"]
 FUNDAMENTAL_COLUMNS = ["revenue", "revenue_growth", "eps", "eps_growth", "net_margin", "gross_margin", "fcf", "fcf_growth", "fcf_margin", "roe", "debt_equity", "cash", "pe", "forward_pe", "peg", "fundamental_score", "fundamental_completeness", "sector", "sector_median_pe", "sector_median_forward_pe", "sector_median_peg", "pe_vs_sector", "forward_pe_vs_sector", "peg_vs_sector"]
-ANALYST_COLUMNS = ["analyst_recommendation", "analyst_consensus_score", "analyst_strong_buy", "analyst_buy", "analyst_hold", "analyst_sell", "analyst_strong_sell", "analyst_count", "analyst_target_current", "analyst_target_mean", "analyst_target_median", "analyst_target_low", "analyst_target_high", "analyst_target_upside", "analyst_changes_30d", "analyst_bullish_changes_30d", "analyst_bearish_changes_30d", "analyst_target_changes_30d", "analyst_recent_changes", "analyst_completeness"]
+ANALYST_COLUMNS = ["analyst_recommendation", "analyst_consensus_score", "analyst_strong_buy", "analyst_buy", "analyst_hold", "analyst_sell", "analyst_strong_sell", "analyst_count", "analyst_target_current", "analyst_target_mean", "analyst_target_median", "analyst_target_low", "analyst_target_high", "analyst_target_upside", "analyst_changes_30d", "analyst_bullish_changes_30d", "analyst_bearish_changes_30d", "analyst_target_changes_30d", "analyst_recent_changes", "analyst_completeness", "last_earnings_date", "last_earnings_surprise_pct", "next_earnings_date", "recent_news"]
 LIVE_HISTORY_DAYS = 450
 
 
@@ -39,8 +39,6 @@ def _alert_tier(score: float, signal: str) -> str:
 
 
 def _combined_score(trader_similarity, technical_score, fundamental_score, analyst_score):
-    # Live score: trader pattern 40%, technical setup 25%, fundamentals 25%, analyst confirmation 10%.
-    # Missing inputs are renormalized rather than treated as zero.
     parts = []
     for value, weight in ((trader_similarity, 0.40), (technical_score, 0.25), (fundamental_score, 0.25), (analyst_score, 0.10)):
         if pd.notna(value):
@@ -93,35 +91,89 @@ def _sector_relative_strength(stock_prices: pd.DataFrame, sector_prices: pd.Data
     return stock_return - sector_return
 
 
+def _fmt_pct(v):
+    return f"{float(v) * 100:+.1f}%"
+
+
 def _alert_summary(row):
-    drivers = []
-    trader = row.get("trader_similarity_score")
-    technical = row.get("technical_score")
-    fundamental = row.get("fundamental_score")
-    analyst = row.get("analyst_consensus_score")
-    if trader is not None and trader >= 75:
-        drivers.append(f"sterke match met het historische trader-patroon ({trader:.0f}/100)")
-    if technical is not None and technical >= 75:
-        drivers.append(f"technisch sterk momentum ({technical:.0f}/100)")
+    """Explain the current market situation, not the internal component scores."""
+    price = row.get("price")
+    r1 = row.get("return_1d")
+    r5 = row.get("return_5d")
+    r10 = row.get("return_10d")
+    r20 = row.get("return_20d")
+    news = row.get("recent_news") or []
+    earnings_date = row.get("last_earnings_date")
+    earnings_surprise = row.get("last_earnings_surprise_pct")
+    news_text = " ".join(str(x.get("title", "")) for x in news if isinstance(x, dict)).lower()
+
+    sentences = []
+    recent_move = r5 if r5 is not None else r10
+    if recent_move is not None and recent_move <= -0.06:
+        sentences.append(f"Het aandeel is de afgelopen periode hard teruggevallen ({_fmt_pct(recent_move)}), terwijl de koers op korte termijn nog onder druk staat.")
+    elif recent_move is not None and recent_move >= 0.06:
+        sentences.append(f"Het aandeel heeft de afgelopen periode duidelijk momentum opgebouwd ({_fmt_pct(recent_move)}), waardoor de huidige beweging meer is dan een kleine dagfluctuatie.")
+    elif r1 is not None and abs(r1) >= 0.025:
+        sentences.append(f"De koers beweegt vandaag opvallend sterk ({_fmt_pct(r1)}), na een bredere beweging van {_fmt_pct(recent_move)} over de afgelopen periode.") if recent_move is not None else sentences.append(f"De koers beweegt vandaag opvallend sterk ({_fmt_pct(r1)}).")
+
+    earnings_recent = False
+    if earnings_date:
+        try:
+            dt = pd.Timestamp(earnings_date)
+            if dt.tzinfo is None:
+                dt = dt.tz_localize("UTC")
+            earnings_recent = (pd.Timestamp.now(tz="UTC") - dt).days <= 10
+        except Exception:
+            pass
+    if earnings_recent and ("earnings" in news_text or "quarter" in news_text or "results" in news_text or "revenue" in news_text):
+        if earnings_surprise is not None:
+            direction = "positief" if earnings_surprise >= 0 else "negatief"
+            sentences.append(f"De recente koersreactie valt samen met de kwartaalcijfers, waarbij de winstverrassing {direction} was ({earnings_surprise:+.1f}%).")
+        else:
+            sentences.append("De recente koersreactie valt samen met de publicatie van de kwartaalcijfers.")
+    elif earnings_recent and earnings_surprise is not None:
+        direction = "positief" if earnings_surprise >= 0 else "negatief"
+        sentences.append(f"De recente koersreactie volgt kort op de kwartaalcijfers, met een {direction} winstverrassing van {earnings_surprise:+.1f}%.")
+
+    revenue_growth = row.get("revenue_growth")
+    fcf = row.get("fcf")
+    fcf_growth = row.get("fcf_growth")
+    margin = row.get("net_margin")
+    roe = row.get("roe")
+    debt = row.get("debt_equity")
+    quality_bits = []
+    if revenue_growth is not None and revenue_growth > 0.05:
+        quality_bits.append(f"omzet groeit met {_fmt_pct(revenue_growth)}")
+    if fcf is not None and fcf > 0:
+        if fcf_growth is not None and fcf_growth > 0.05:
+            quality_bits.append(f"vrije kasstroom is positief en groeit met {_fmt_pct(fcf_growth)}")
+        else:
+            quality_bits.append("vrije kasstroom blijft positief")
+    if margin is not None and margin > 0.08:
+        quality_bits.append(f"nettomarge ligt rond {margin * 100:.1f}%")
+    if roe is not None and roe > 0.12:
+        quality_bits.append(f"ROE ligt rond {roe * 100:.1f}%")
+    if debt is not None and debt < 1.0:
+        quality_bits.append(f"schuld/eigen vermogen is {debt:.2f}")
+    if quality_bits:
+        sentences.append("De koersdaling staat niet automatisch gelijk aan verslechterende bedrijfsfundamentals: " + ", ".join(quality_bits[:3]) + ".")
+
+    analyst = row.get("analyst_recommendation")
+    upside = row.get("analyst_target_upside")
+    target = row.get("analyst_target_mean")
+    if analyst and analyst not in {"HOLD", "SELL", "STRONG SELL"}:
+        if upside is not None and upside > 0.08 and target is not None:
+            sentences.append(f"Ook analisten blijven overwegend positief, met een consensus van {analyst.replace('_', ' ').title()} en een gemiddeld koersdoel van ${target:.2f} ({upside * 100:+.1f}% vanaf de huidige koers).")
+        else:
+            sentences.append(f"De analistenconsensus blijft {analyst.replace('_', ' ').lower()}.")
+
     rs = row.get("sector_relative_strength_20d")
     if rs is not None and rs > 0.03:
-        drivers.append("presteert duidelijk beter dan de sector")
-    if row.get("volume_ratio") is not None and row.get("volume_ratio") >= 1.5:
-        drivers.append(f"verhoogd volume ({row['volume_ratio']:.1f}x)")
-    if row.get("rsi_14") is not None and row.get("rsi_14") < 45:
-        drivers.append(f"RSI blijft relatief laag ({row['rsi_14']:.0f})")
-    if row.get("macd_histogram") is not None and row.get("macd_histogram") > 0:
-        drivers.append("MACD bevestigt positieve momentumrichting")
-    if fundamental is not None and fundamental >= 75:
-        drivers.append(f"sterke financiële kwaliteit ({fundamental:.0f}/100)")
-    upside = row.get("analyst_target_upside")
-    if analyst is not None and analyst >= 65 and upside is not None and upside > 0.10:
-        drivers.append(f"analisten zien gemiddeld {upside*100:.0f}% koerspotentieel")
-    elif analyst is not None and analyst >= 65:
-        drivers.append("analistenconsensus is overwegend positief")
-    if not drivers:
-        drivers.append("de gecombineerde score overschrijdt de alertdrempel")
-    return "Deze alert ontstaat doordat " + ", ".join(drivers[:4]) + "."
+        sentences.append("Tegelijk houdt het aandeel relatief goed stand tegenover de eigen sector.")
+
+    if not sentences:
+        sentences.append("De huidige koersbeweging en onderliggende bedrijfsdata komen samen op een niveau waarop de scanner een kansrijke setup ziet.")
+    return " ".join(sentences[:4])
 
 
 def scan(limit: int = 1000, top_n: int = 25) -> pd.DataFrame:
@@ -206,13 +258,18 @@ def scan(limit: int = 1000, top_n: int = 25) -> pd.DataFrame:
         result["alert_summary"] = _alert_summary(result) if signal == "ALERT" else None
         history = prices[["Close"]].dropna().tail(140).reset_index()
         result["history_6m"] = [{"date": str(x.date()) if hasattr(x, "date") else str(x), "close": float(y)} for x, y in zip(history.iloc[:, 0], history["Close"])]
-        today_points = []
+        week_points = []
         if intraday_data is not None and not intraday_data.empty and "Close" in intraday_data.columns:
             d = intraday_data.dropna(subset=["Close"]).sort_index()
             if not d.empty:
-                latest_date = d.index[-1].date()
-                d = d[d.index.date == latest_date].tail(32)
-                today_points = [{"date": x.isoformat() if hasattr(x, "isoformat") else str(x), "close": float(y)} for x, y in zip(d.index, d["Close"])]
+                cutoff = d.index[-1] - pd.Timedelta(days=7)
+                d = d[d.index >= cutoff]
+                week_points = [{"date": x.isoformat() if hasattr(x, "isoformat") else str(x), "close": float(y)} for x, y in zip(d.index, d["Close"])]
+        result["history_1w"] = week_points
+        today_points = []
+        if week_points:
+            latest_day = str(week_points[-1]["date"])[:10]
+            today_points = [p for p in week_points if str(p["date"])[:10] == latest_day]
         result["history_today"] = today_points
         rows.append(result)
     if not rows:
