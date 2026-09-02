@@ -6,8 +6,11 @@
   const ratingClass = r => /STRONG BUY|BUY/.test(r || '') ? 'bull' : /SELL/.test(r || '') ? 'bear' : 'neutral';
 
   async function loadData() {
-    if (cache.data) return cache.data;
-    if (!cache.promise) cache.promise = fetch('/api/scan?alertdetail='+Date.now(), { cache: 'no-store' }).then(r => r.json()).then(d => (cache.data = d)).catch(() => null);
+    if (cache.data?.results?.length) return cache.data;
+    if (!cache.promise) cache.promise = fetch('/api/scan?alertdetail='+Date.now(), { cache: 'no-store' })
+      .then(r => r.ok ? r.json() : null)
+      .then(d => d?.results ? (cache.data = d) : null)
+      .catch(() => null);
     return cache.promise;
   }
 
@@ -65,8 +68,7 @@
     const counts = [
       ['Strong buy', row.analyst_strong_buy], ['Buy', row.analyst_buy], ['Hold', row.analyst_hold], ['Sell', row.analyst_sell], ['Strong sell', row.analyst_strong_sell]
     ].filter(x => Number(x[1]) > 0);
-    el.innerHTML = `<div class="intelSummary"><div class="intelEyebrow">WAAROM NU EEN ALERT?</div><p>${esc(row.alert_summary || 'De gecombineerde scanner-score is boven de alertdrempel gekomen.')}</p></div><div class="intelGrid"><div class="intelBlock"><span>ANALISTENCONSENSUS</span><div class="ratingLine"><strong class="${ratingClass(recommendation)}">${esc(recommendation)}</strong><small>${row.analyst_count ? `${row.analyst_count} beoordelingen` : 'Geen consensusaantal'}</small></div><div class="ratingBars">${counts.map(([name,n]) => `<div><span>${name}</span><b>${n}</b></div>`).join('')}</div></div><div class="intelBlock"><span>KOERSDOEL</span><div class="targetMain"><strong>${fmtPrice(target)}</strong><b class="${targetUpside >= 0 ? 'positive' : 'negative'}">${fmtPct(targetUpside)}</b></div><small>Gemiddeld analyst target · range ${fmtPrice(row.analyst_target_low)} — ${fmtPrice(row.analyst_target_high)}</small><div class="targetMeta">Mediaan {fmtPrice(row.analyst_target_median)} · ${row.analyst_target_changes_30d || 0} targetwijzigingen in 30D</div></div></div><div class="intelBlock intelChanges"><span>RECENTE ANALISTENACTIES</span>${changes.length ? `<div class="changeList">${changes.map(c => `<div><b>${esc(c.firm || 'Analist')}</b><span>${esc(c.action || '')}</span><small>${esc(c.from_grade || '')}${c.from_grade && c.to_grade ? ' → ' : ''}${esc(c.to_grade || '')}</small></div>`).join('')}</div>` : '<small>Geen recente wijzigingen beschikbaar.</small>'}</div>`;
-    // Fix the template literal placeholder after insertion.
+    el.innerHTML = `<div class="intelSummary"><div class="intelEyebrow">WAAROM NU EEN ALERT?</div><p>${esc(row.alert_summary || 'De gecombineerde scanner-score is boven de alertdrempel gekomen.')}</p></div><div class="intelGrid"><div class="intelBlock"><span>ANALISTENCONSENSUS</span><div class="ratingLine"><strong class="${ratingClass(recommendation)}">${esc(recommendation)}</strong><small>${row.analyst_count ? `${row.analyst_count} beoordelingen` : 'Geen consensusaantal'}</small></div><div class="ratingBars">${counts.map(([name,n]) => `<div><span>${name}</span><b>${n}</b></div>`).join('')}</div></div><div class="intelBlock"><span>KOERSDOEL</span><div class="targetMain"><strong>${fmtPrice(target)}</strong><b class="${targetUpside >= 0 ? 'positive' : 'negative'}">${fmtPct(targetUpside)}</b></div><small>Gemiddeld analyst target · range ${fmtPrice(row.analyst_target_low)} — ${fmtPrice(row.analyst_target_high)}</small><div class="targetMeta"></div></div></div><div class="intelBlock intelChanges"><span>RECENTE ANALISTENACTIES</span>${changes.length ? `<div class="changeList">${changes.map(c => `<div><b>${esc(c.firm || 'Analist')}</b><span>${esc(c.action || '')}</span><small>${esc(c.from_grade || '')}${c.from_grade && c.to_grade ? ' → ' : ''}${esc(c.to_grade || '')}</small></div>`).join('')}</div>` : '<small>Geen recente wijzigingen beschikbaar.</small>'}</div>`;
     el.querySelector('.targetMeta').textContent = `Mediaan ${fmtPrice(row.analyst_target_median)} · ${row.analyst_target_changes_30d || 0} targetwijzigingen in 30D`;
     scoreSection.after(el);
   }
