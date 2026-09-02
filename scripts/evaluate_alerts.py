@@ -8,7 +8,6 @@ import requests
 import yfinance as yf
 
 TABLE = "stock_scanner_alerts"
-# 1D-30D are trading-day horizons. 60D is explicitly 60 calendar days.
 TRADING_HORIZONS = {1: "1D", 5: "5D", 10: "10D", 20: "20D", 30: "30D"}
 TARGETS = [5, 10, 20, 30]
 
@@ -56,9 +55,17 @@ def download_history(ticker: str, start: pd.Timestamp) -> pd.DataFrame:
     return hist.dropna(how="all")
 
 
+def naive_day(value: pd.Timestamp) -> pd.Timestamp:
+    ts = pd.Timestamp(value)
+    if ts.tzinfo is not None:
+        ts = ts.tz_localize(None)
+    return ts.normalize()
+
+
 def evaluate(row: dict) -> dict | None:
     timestamp = pd.Timestamp(row.get("entry_timestamp") or row.get("alert_timestamp"))
-    hist = download_history(row["ticker"], timestamp.normalize())
+    entry_day = naive_day(timestamp)
+    hist = download_history(row["ticker"], entry_day)
     if hist.empty or "Close" not in hist.columns:
         return None
 
@@ -66,8 +73,7 @@ def evaluate(row: dict) -> dict | None:
     high = pd.to_numeric(hist.get("High", hist["Close"]), errors="coerce").reindex(close.index)
     low = pd.to_numeric(hist.get("Low", hist["Close"]), errors="coerce").reindex(close.index)
     entry = float(row.get("alert_price") or close.iloc[0])
-    entry_day = timestamp.normalize()
-    index_dates = pd.DatetimeIndex(close.index).normalize()
+    index_dates = pd.DatetimeIndex(close.index).tz_localize(None).normalize()
     forward = close[index_dates > entry_day]
     if forward.empty:
         return None
@@ -81,7 +87,6 @@ def evaluate(row: dict) -> dict | None:
             patch[f"return_{field}"] = round((value / entry - 1) * 100, 2)
             patch[f"price_{field}_at"] = pd.Timestamp(forward.index[n - 1]).isoformat()
 
-    # 60D means 60 calendar days. Use the first available trading session on or after that date.
     target_day = entry_day + pd.Timedelta(days=60)
     target_positions = [i for i, d in enumerate(index_dates) if d >= target_day]
     if target_positions:
@@ -91,7 +96,6 @@ def evaluate(row: dict) -> dict | None:
         patch["return_60d"] = round((value / entry - 1) * 100, 2)
         patch["price_60d_at"] = pd.Timestamp(close.index[target_pos]).isoformat()
 
-    # Existing excursion metrics remain 20 trading days. The extended excursion uses the full 60-calendar-day window.
     twenty = forward.iloc[: min(20, len(forward))]
     high_20 = high.reindex(twenty.index).dropna()
     low_20 = low.reindex(twenty.index).dropna()
@@ -111,7 +115,6 @@ def evaluate(row: dict) -> dict | None:
         if not low_60.empty:
             patch["max_drawdown_60d"] = round((float(low_60.min()) / entry - 1) * 100, 2)
 
-    # Keep an alert pending until the full 60-calendar-day horizon is available.
     patch["status"] = "WIN" if "return_60d" in patch and patch["return_60d"] > 0 else "LOSS" if "return_60d" in patch else "PENDING"
     return patch
 
