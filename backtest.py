@@ -8,15 +8,16 @@ from indicators import add_indicators
 from model import score_row
 
 TRADING_HORIZONS = [1, 3, 5, 10, 20, 30]
+TRADER_HISTORY_PATH = "data/trader_history.csv"
 
 
-def load_entries(path: str = "trader_data.csv") -> pd.DataFrame:
+def load_entries(path: str = TRADER_HISTORY_PATH) -> pd.DataFrame:
     df = pd.read_csv(path, parse_dates=["date"])
     df["date"] = df["date"].dt.tz_localize(None)
     return df
 
 
-def run_backtest(path: str = "trader_data.csv") -> pd.DataFrame:
+def run_backtest(path: str = TRADER_HISTORY_PATH) -> pd.DataFrame:
     entries = load_entries(path)
     tickers = entries["ticker"].unique().tolist()
     benchmarks = download_benchmarks(DEFAULT_START)
