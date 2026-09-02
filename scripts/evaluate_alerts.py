@@ -8,7 +8,8 @@ import requests
 import yfinance as yf
 
 TABLE = "stock_scanner_alerts"
-HORIZONS = {1: "1D", 5: "5D", 10: "10D", 20: "20D"}
+# Trading-day horizons. 40 trading days is used as the scanner's approximately 2-month horizon.
+HORIZONS = {1: "1D", 5: "5D", 10: "10D", 20: "20D", 30: "30D", 40: "40D"}
 TARGETS = [5, 10, 20, 30]
 
 
@@ -17,19 +18,37 @@ def headers(key: str) -> dict[str, str]:
 
 
 def get_pending(url: str, key: str) -> list[dict]:
-    r = requests.get(f"{url}/rest/v1/{TABLE}", headers=headers(key), params={"select": "*", "status": "eq.PENDING", "order": "alert_timestamp.asc", "limit": "1000"}, timeout=30)
+    r = requests.get(
+        f"{url}/rest/v1/{TABLE}",
+        headers=headers(key),
+        params={"select": "*", "status": "eq.PENDING", "order": "alert_timestamp.asc", "limit": "1000"},
+        timeout=30,
+    )
     r.raise_for_status()
     return r.json()
 
 
 def update_row(url: str, key: str, row_id: str, patch: dict) -> None:
-    r = requests.patch(f"{url}/rest/v1/{TABLE}", headers={**headers(key), "Prefer": "return=minimal"}, params={"id": f"eq.{row_id}"}, json=patch, timeout=30)
+    r = requests.patch(
+        f"{url}/rest/v1/{TABLE}",
+        headers={**headers(key), "Prefer": "return=minimal"},
+        params={"id": f"eq.{row_id}"},
+        json=patch,
+        timeout=30,
+    )
     r.raise_for_status()
 
 
 def download_history(ticker: str, start: pd.Timestamp) -> pd.DataFrame:
     end = pd.Timestamp.now(tz="UTC") + pd.Timedelta(days=2)
-    hist = yf.download(ticker, start=start.strftime("%Y-%m-%d"), end=end.strftime("%Y-%m-%d"), auto_adjust=True, progress=False, threads=False)
+    hist = yf.download(
+        ticker,
+        start=start.strftime("%Y-%m-%d"),
+        end=end.strftime("%Y-%m-%d"),
+        auto_adjust=True,
+        progress=False,
+        threads=False,
+    )
     if hist.empty:
         return hist
     if hasattr(hist.columns, "levels") and getattr(hist.columns, "nlevels", 1) > 1:
@@ -61,16 +80,22 @@ def evaluate(row: dict) -> dict | None:
             patch[f"return_{field}d"] = round((value / entry - 1) * 100, 2)
             patch[f"price_{field}d_at"] = pd.Timestamp(forward.index[n - 1]).isoformat()
 
-    available = forward.iloc[: min(20, len(forward))]
-    high_forward = high.reindex(available.index).dropna()
-    low_forward = low.reindex(available.index).dropna()
-    if not high_forward.empty:
-        patch["max_gain"] = round((float(high_forward.max()) / entry - 1) * 100, 2)
-        patch["max_drawdown"] = round((float(low_forward.min()) / entry - 1) * 100, 2)
-        for target in TARGETS:
-            patch[f"hit_{target}pct"] = bool(float(high_forward.max()) >= entry * (1 + target / 100))
+    # Keep the existing 20D excursion metrics for compatibility and extend them to 40D.
+    for window_days in (20, 40):
+        available = forward.iloc[: min(window_days, len(forward))]
+        high_forward = high.reindex(available.index).dropna()
+        low_forward = low.reindex(available.index).dropna()
+        if not high_forward.empty and window_days == 20:
+            patch["max_gain"] = round((float(high_forward.max()) / entry - 1) * 100, 2)
+            patch["max_drawdown"] = round((float(low_forward.min()) / entry - 1) * 100, 2)
+            for target in TARGETS:
+                patch[f"hit_{target}pct"] = bool(float(high_forward.max()) >= entry * (1 + target / 100))
+        if not high_forward.empty and window_days == 40:
+            patch["max_gain_40d"] = round((float(high_forward.max()) / entry - 1) * 100, 2)
+            patch["max_drawdown_40d"] = round((float(low_forward.min()) / entry - 1) * 100, 2)
 
-    patch["status"] = "WIN" if "return_20d" in patch and patch["return_20d"] > 0 else "LOSS" if "return_20d" in patch else "PENDING"
+    # A trade remains pending until the full approximately 2-month horizon is available.
+    patch["status"] = "WIN" if "return_40d" in patch and patch["return_40d"] > 0 else "LOSS" if "return_40d" in patch else "PENDING"
     return patch
 
 
