@@ -93,14 +93,9 @@ jobs:
           git add public/data/latest_scan.json learned_model.json public/data/alert_history.json data/fundamentals_cache.json
           git diff --cached --quiet && exit 0
           git commit -m 'Update scanner results and fundamentals cache [skip ci]'
-          for attempt in 1 2 3 4 5; do
-            git fetch origin main
-            git rebase origin/main && git push origin HEAD:main && exit 0
-            git rebase --abort || true
-            sleep $((attempt * 2))
-          done
-          echo 'Could not publish scan results after 5 attempts.'
-          exit 1
+          git fetch origin main
+          git rebase origin/main
+          git push origin HEAD:main
 
   backtest:
     name: Backtest trader entries
@@ -125,7 +120,7 @@ jobs:
     name: Walk-forward validation
     if: github.event_name != 'schedule'
     runs-on: ubuntu-latest
-    needs: test
+    needs: scan
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
@@ -144,14 +139,9 @@ jobs:
           git add public/data/walk_forward_validation.json
           git diff --cached --quiet && exit 0
           git commit -m 'Update model validation result [skip ci]'
-          for attempt in 1 2 3 4 5; do
-            git fetch origin main
-            git rebase origin/main && git push origin HEAD:main && exit 0
-            git rebase --abort || true
-            sleep $((attempt * 2))
-          done
-          echo 'Could not publish validation result after 5 attempts.'
-          exit 1
+          git fetch origin main
+          git rebase origin/main
+          git push origin HEAD:main
       - uses: actions/upload-artifact@v4
         with:
           name: stock-scanner-walk-forward
