@@ -137,6 +137,23 @@ jobs:
       - run: pip install -r requirements.txt
       - name: Run walk-forward validation
         run: python walk_forward_validation.py
+      - name: Publish validation result
+        run: |
+          mkdir -p public/data
+          cp walk_forward_validation.json public/data/walk_forward_validation.json
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add public/data/walk_forward_validation.json
+          git diff --cached --quiet && exit 0
+          git commit -m 'Update model validation result [skip ci]'
+          for attempt in 1 2 3 4 5; do
+            git fetch origin main
+            git rebase origin/main && git push origin HEAD:main && exit 0
+            git rebase --abort || true
+            sleep $((attempt * 2))
+          done
+          echo 'Could not publish validation result after 5 attempts.'
+          exit 1
       - uses: actions/upload-artifact@v4
         with:
           name: stock-scanner-walk-forward
