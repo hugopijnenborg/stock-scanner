@@ -1,8 +1,15 @@
 from __future__ import annotations
 
 from concurrent.futures import ThreadPoolExecutor, as_completed
+from datetime import datetime, timedelta, timezone
+import json
 import math
+from pathlib import Path
+
 import yfinance as yf
+
+CACHE_PATH = Path(__file__).resolve().parent / "data" / "fundamentals_cache.json"
+CACHE_TTL_HOURS = 24
 
 
 def _num(value):
@@ -98,9 +105,6 @@ def _one(ticker: str) -> dict:
             "forward_pe": forward_pe, "peg": peg, "market_cap": market_cap,
         })
 
-        # Continuous scores are used instead of simple pass/fail tests.
-        # The thresholds are deliberately broad. Historical calibration can
-        # replace these research priors once enough labelled observations exist.
         components = {
             "revenue_growth": _score_high(revenue_growth, -0.05, 0.30),
             "eps_growth": _score_high(eps_growth, -0.10, 0.30),
@@ -114,33 +118,68 @@ def _one(ticker: str) -> dict:
             "peg": _score_low(peg, 1.0, 3.0),
         }
         weights = {
-            "revenue_growth": 0.16,
-            "eps_growth": 0.14,
-            "net_margin": 0.12,
-            "fcf_margin": 0.12,
-            "fcf_growth": 0.08,
-            "roe": 0.10,
-            "debt_equity": 0.08,
-            "eps_positive": 0.06,
-            "pe": 0.08,
-            "peg": 0.06,
+            "revenue_growth": 0.16, "eps_growth": 0.14, "net_margin": 0.12,
+            "fcf_margin": 0.12, "fcf_growth": 0.08, "roe": 0.10,
+            "debt_equity": 0.08, "eps_positive": 0.06, "pe": 0.08, "peg": 0.06,
         }
         usable = [(k, w) for k, w in weights.items() if components.get(k) is not None]
         total_weight = sum(w for _, w in usable)
         out["fundamental_completeness"] = round(100.0 * total_weight / sum(weights.values()), 1)
-        out["fundamental_score"] = round(
-            sum(components[k] * w for k, w in usable) / total_weight, 1
-        ) if total_weight else None
+        out["fundamental_score"] = round(sum(components[k] * w for k, w in usable) / total_weight, 1) if total_weight else None
     except Exception as exc:
         out["fundamental_error"] = str(exc)[:160]
     return {"ticker": ticker, **out}
 
 
-def download_fundamentals(tickers: list[str], workers: int = 8) -> dict[str, dict]:
-    results = {}
-    with ThreadPoolExecutor(max_workers=workers) as pool:
-        futures = {pool.submit(_one, ticker): ticker for ticker in tickers}
-        for future in as_completed(futures):
-            row = future.result()
-            results[row["ticker"]] = row
-    return results
+def _load_cache() -> dict[str, dict]:
+    try:
+        return json.loads(CACHE_PATH.read_text(encoding="utf-8"))
+    except (FileNotFoundError, json.JSONDecodeError, OSError):
+        return {}
+
+
+def _save_cache(cache: dict[str, dict]) -> None:
+    CACHE_PATH.parent.mkdir(parents=True, exist_ok=True)
+    CACHE_PATH.write_text(json.dumps(cache, indent=2, allow_nan=False), encoding="utf-8")
+
+
+def download_fundamentals(tickers: list[str], workers: int = 8, refresh_hours: int = CACHE_TTL_HOURS) -> dict[str, dict]:
+    """Return fundamentals from a persistent cache and refresh stale symbols.
+
+    Fundamentals change far less frequently than prices, so live scans should
+    not call Yahoo's expensive financial-statement endpoints every 30 minutes.
+    The cache is persisted in the repository and refreshed at most once per day.
+    """
+    cache = _load_cache()
+    now = datetime.now(timezone.utc)
+    cutoff = now - timedelta(hours=refresh_hours)
+    fresh = {}
+    stale = []
+
+    for ticker in dict.fromkeys(tickers):
+        item = cache.get(ticker)
+        if not item:
+            stale.append(ticker)
+            continue
+        try:
+            updated = datetime.fromisoformat(item.get("_cached_at", ""))
+            if updated.tzinfo is None:
+                updated = updated.replace(tzinfo=timezone.utc)
+            if updated >= cutoff:
+                fresh[ticker] = {k: v for k, v in item.items() if k != "_cached_at"}
+            else:
+                stale.append(ticker)
+        except (TypeError, ValueError):
+            stale.append(ticker)
+
+    if stale:
+        with ThreadPoolExecutor(max_workers=8) as pool:
+            futures = {pool.submit(_one, ticker): ticker for ticker in stale}
+            for future in as_completed(futures):
+                row = future.result()
+                row["_cached_at"] = now.isoformat()
+                cache[row["ticker"]] = row
+                fresh[row["ticker"]] = {k: v for k, v in row.items() if k != "_cached_at"}
+        _save_cache(cache)
+
+    return fresh
