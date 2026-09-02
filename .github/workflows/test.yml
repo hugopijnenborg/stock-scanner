@@ -6,15 +6,12 @@ on:
   pull_request:
     branches: [main]
   workflow_dispatch:
-  # GitHub Actions uses UTC. We trigger broadly and the market-hours guard
-  # enforces the requested 15:30-22:00 Europe/Amsterdam window.
   schedule:
     - cron: '0,30 13-21 * * 1-5'
 
 permissions:
   contents: write
 
-# Prevent two scheduled scans from writing the same result files at once.
 concurrency:
   group: stock-scanner-main
   cancel-in-progress: false
@@ -69,6 +66,9 @@ jobs:
         run: python scripts/save_alerts_supabase.py
       - name: Evaluate historical alerts
         if: steps.market_window.outputs.run == 'true'
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
         run: python scripts/evaluate_alerts.py
       - name: Send Discord alerts when configured
         if: steps.market_window.outputs.run == 'true'
@@ -103,6 +103,7 @@ jobs:
 
   backtest:
     name: Backtest trader entries
+    if: github.event_name != 'schedule'
     runs-on: ubuntu-latest
     needs: test
     steps:
@@ -120,7 +121,8 @@ jobs:
           path: backtest_results.csv
 
   validation:
-    name: Validate market-wide alerts
+    name: Walk-forward validation
+    if: github.event_name != 'schedule'
     runs-on: ubuntu-latest
     needs: test
     steps:
@@ -130,19 +132,18 @@ jobs:
           python-version: '3.12'
           cache: pip
       - run: pip install -r requirements.txt
-      - name: Learn trader pattern
-        run: python learn_model.py
-      - name: Validate 80+ signals
-        run: python main.py validate-market --start 2024-01-01 --output market_validation.csv --summary market_validation.json
+      - name: Run walk-forward validation
+        run: python walk_forward_validation.py
       - uses: actions/upload-artifact@v4
         with:
-          name: market-validation
+          name: stock-scanner-walk-forward
           path: |
-            market_validation.csv
-            market_validation.json
+            walk_forward_validation.csv
+            walk_forward_validation.json
 
   web:
     name: Build dashboard
+    if: github.event_name != 'schedule'
     runs-on: ubuntu-latest
     needs: test
     steps:
