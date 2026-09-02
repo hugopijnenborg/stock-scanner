@@ -60,18 +60,21 @@ jobs:
         run: python main.py scan --limit 1000 --top 50 --output scan_results.csv --web-output public/data/latest_scan.json
       - name: Save own 80+ alerts to Supabase
         if: steps.market_window.outputs.run == 'true'
+        continue-on-error: true
         env:
           SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
           SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
         run: python scripts/save_alerts_supabase.py
       - name: Evaluate historical alerts
         if: steps.market_window.outputs.run == 'true'
+        continue-on-error: true
         env:
           SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
           SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
         run: python scripts/evaluate_alerts.py
       - name: Send Discord alerts when configured
         if: steps.market_window.outputs.run == 'true'
+        continue-on-error: true
         env:
           DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
         run: python notify_discord.py
