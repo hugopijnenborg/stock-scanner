@@ -45,8 +45,14 @@ html body .chartHeadline{display:flex;justify-content:space-between;align-items:
 html body .chartHeadline span{display:block;color:#64798c;font-size:9px;font-weight:800;letter-spacing:.12em}
 html body .chartHeadline strong{display:block;font-family:'Space Grotesk',sans-serif;font-size:22px;margin-top:3px}
 html body .chartHeadline>b{font-family:'Space Grotesk',sans-serif;font-size:14px}
-html body .enhancedChart svg{display:block;width:100%;height:260px;border:1px solid #1b2b38;border-radius:10px;background:linear-gradient(180deg,rgba(16,29,39,.65),rgba(8,14,20,.3));color:#45dfa2;padding:8px}
-html body .chartAxis{display:flex;justify-content:space-between;color:#5f7285;font-size:9px;margin-top:5px}
+html body .chartCanvas{position:relative}
+html body .enhancedChart svg{display:block;width:100%;height:260px;border:1px solid #1b2b38;border-radius:10px;background:linear-gradient(180deg,rgba(16,29,39,.65),rgba(8,14,20,.3));color:#45dfa2;padding:8px;overflow:visible}
+html body .chartPoint{fill:#45dfa2;stroke:#0b1219;stroke-width:1;opacity:.35;cursor:crosshair}
+html body .chartPoint:hover{opacity:1;r:6}
+html body .chartTooltip{position:absolute;transform:translate(-50%,-100%);pointer-events:none;z-index:5;padding:7px 9px;border:1px solid #304556;border-radius:7px;background:#0b141d;box-shadow:0 8px 24px rgba(0,0,0,.35);white-space:nowrap}
+html body .chartTooltip strong{display:block;color:#eef6fb;font-size:12px}
+html body .chartTooltip span{display:block;color:#8195a8;font-size:9px;margin-top:2px}
+html body .chartAxis{display:flex;justify-content:space-between;color:#708396;font-size:10px;margin-top:6px;gap:8px}
 
 /* Restore the scanner conviction donut after the generic widget reset. */
 html body .heroSignal .convictionBody>div:first-child.scoreRing{background:conic-gradient(var(--green) var(--score),#263544 0)!important;box-shadow:0 0 22px rgba(53,229,160,.12)!important}
