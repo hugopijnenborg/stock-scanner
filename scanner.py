@@ -5,14 +5,14 @@ import numpy as np
 import pandas as pd
 
 from config import ALERT_THRESHOLD, STRONG_ALERT_THRESHOLD, EXCEPTIONAL_ALERT_THRESHOLD, WATCH_THRESHOLD, MIN_AVG_DOLLAR_VOLUME, MIN_PRICE, REBOUND_WEIGHTS, QUALITY_WEIGHTS, CYCLICAL_WEIGHTS
-from data import download_benchmarks, download_ohlcv, download_intraday, download_intraday_benchmarks
+from data import download_benchmarks, download_ohlcv, download_intraday, download_intraday_benchmarks, download_sector_benchmarks, SECTOR_ETFS
 from fundamentals import download_fundamentals
 from indicators import add_indicators
 from model import score_row
 from universe import load_top_us_stocks
 
-FEATURE_COLUMNS = ["rsi_7", "rsi_14", "rsi_21", "macd", "macd_signal", "macd_histogram", "macd_histogram_change", "atr_pct", "bollinger_pct", "bollinger_width", "return_1d", "return_3d", "return_5d", "return_10d", "return_20d", "distance_sma20", "distance_sma50", "distance_sma200", "distance_1m_high", "distance_3m_high", "distance_6m_high", "distance_52w_high", "distance_support_20d", "distance_support_60d", "distance_support_120d", "volume_ratio", "volume_ratio_5d", "volatility_20d", "z_score", "close_location", "relative_strength_5d", "relative_strength_20d"]
-FUNDAMENTAL_COLUMNS = ["revenue", "revenue_growth", "eps", "eps_growth", "net_margin", "gross_margin", "fcf", "fcf_growth", "fcf_margin", "roe", "debt_equity", "cash", "pe", "forward_pe", "peg", "fundamental_score", "fundamental_completeness"]
+FEATURE_COLUMNS = ["rsi_7", "rsi_14", "rsi_21", "macd", "macd_signal", "macd_histogram", "macd_histogram_change", "atr_pct", "bollinger_pct", "bollinger_width", "return_1d", "return_3d", "return_5d", "return_10d", "return_20d", "distance_sma20", "distance_sma50", "distance_sma200", "distance_1m_high", "distance_3m_high", "distance_6m_high", "distance_52w_high", "distance_support_20d", "distance_support_60d", "distance_support_120d", "volume_ratio", "volume_ratio_5d", "volatility_20d", "z_score", "close_location", "relative_strength_5d", "relative_strength_20d", "sector_relative_strength_20d"]
+FUNDAMENTAL_COLUMNS = ["revenue", "revenue_growth", "eps", "eps_growth", "net_margin", "gross_margin", "fcf", "fcf_growth", "fcf_margin", "roe", "debt_equity", "cash", "pe", "forward_pe", "peg", "fundamental_score", "fundamental_completeness", "sector", "sector_median_pe", "sector_median_forward_pe", "sector_median_peg", "pe_vs_sector", "forward_pe_vs_sector", "peg_vs_sector"]
 LIVE_HISTORY_DAYS = 450
 
 
@@ -80,6 +80,18 @@ def _intraday_confirmation(intraday: pd.DataFrame, benchmark: pd.DataFrame | Non
     return {"intraday_score": round(score, 2), "intraday_return_1h": one_hour, "intraday_return_session": session_return, "intraday_volume_ratio": volume_ratio, "intraday_vwap_distance": vwap_distance}
 
 
+def _sector_relative_strength(stock_prices: pd.DataFrame, sector_prices: pd.DataFrame | None) -> float | None:
+    if sector_prices is None or sector_prices.empty or "Close" not in sector_prices.columns or "Close" not in stock_prices.columns:
+        return None
+    stock_close = pd.to_numeric(stock_prices["Close"], errors="coerce").dropna()
+    sector_close = pd.to_numeric(sector_prices["Close"], errors="coerce").dropna()
+    if len(stock_close) < 21 or len(sector_close) < 21:
+        return None
+    stock_return = float(stock_close.iloc[-1] / stock_close.iloc[-21] - 1)
+    sector_return = float(sector_close.iloc[-1] / sector_close.iloc[-21] - 1)
+    return stock_return - sector_return
+
+
 def scan(limit: int = 1000, top_n: int = 25) -> pd.DataFrame:
     universe = load_top_us_stocks(limit)
     company_map = universe.set_index("ticker")["company_name"].to_dict()
@@ -89,6 +101,7 @@ def scan(limit: int = 1000, top_n: int = 25) -> pd.DataFrame:
     spy = benchmarks.get("SPY")
     benchmark_close = spy["Close"] if spy is not None and "Close" in spy else None
     market = download_ohlcv(tickers, live_start)
+    sector_benchmarks = download_sector_benchmarks(live_start)
     intraday = download_intraday(tickers, period="10d", interval="15m")
     intraday_benchmarks = download_intraday_benchmarks(period="10d", interval="15m")
     fundamentals = download_fundamentals(tickers)
@@ -99,6 +112,11 @@ def scan(limit: int = 1000, top_n: int = 25) -> pd.DataFrame:
             continue
         features = add_indicators(prices, benchmark_close)
         row = features.iloc[-1].copy()
+        f = fundamentals.get(ticker, {})
+        sector = f.get("sector")
+        sector_etf = SECTOR_ETFS.get(sector)
+        sector_rs = _sector_relative_strength(prices, sector_benchmarks.get(sector_etf)) if sector_etf else None
+        row["sector_relative_strength_20d"] = sector_rs
         intraday_data = intraday.get(ticker)
         live = _intraday_confirmation(intraday_data, intraday_benchmarks.get("SPY"))
         current_price = None
@@ -114,7 +132,6 @@ def scan(limit: int = 1000, top_n: int = 25) -> pd.DataFrame:
         if row.get("Close", 0) < MIN_PRICE or (pd.notna(avg_dollar_volume) and avg_dollar_volume < MIN_AVG_DOLLAR_VOLUME):
             continue
         scores = score_row(row, REBOUND_WEIGHTS, QUALITY_WEIGHTS, CYCLICAL_WEIGHTS)
-        f = fundamentals.get(ticker, {})
         daily_technical = scores.get("technical_opportunity_score")
         live_score = live.get("intraday_score")
         technical_score = 0.85 * float(daily_technical) + 0.15 * float(live_score) if live_score is not None and pd.notna(daily_technical) else daily_technical
@@ -140,6 +157,8 @@ def scan(limit: int = 1000, top_n: int = 25) -> pd.DataFrame:
             "fundamental_score": round(float(fundamental_score), 1) if pd.notna(fundamental_score) else None,
             "fundamental_completeness": f.get("fundamental_completeness"),
             "market_regime_score": round(float(row.get("market_regime_score", 0.5)) * 100, 1),
+            "sector": sector,
+            "sector_relative_strength_20d": round(float(sector_rs), 4) if sector_rs is not None else None,
             "overall_score": round(float(combined_score), 1),
             "signal": signal,
             "alert_tier": _alert_tier(float(combined_score), signal),
