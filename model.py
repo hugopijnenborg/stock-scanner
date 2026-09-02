@@ -25,11 +25,56 @@ def high_is_good(value: float, start: float, extreme: float) -> float:
     return clamp((value - start) / (extreme - start))
 
 
+def _neutral_centered_low(value: float, start: float, extreme: float) -> float:
+    """Score a low-is-good signal around a neutral midpoint of 0.5.
+
+    The previous technical score treated every value above the favourable
+    threshold as zero. That made ordinary/neutral conditions look identical
+    to genuinely weak conditions and compressed the practical score range.
+    Here the threshold is explicitly neutral (50/100): moving toward the
+    favourable extreme raises the score, while moving equally far in the
+    opposite direction lowers it. The mapping remains bounded to 0..1.
+    """
+    if pd.isna(value):
+        return 0.5
+    span = abs(float(start) - float(extreme))
+    if span == 0:
+        return 0.5
+    value = float(value)
+    if value <= extreme:
+        return 1.0
+    if value >= start + span:
+        return 0.0
+    if value < start:
+        return 0.5 + 0.5 * (start - value) / span
+    return 0.5 - 0.5 * (value - start) / span
+
+
+def _neutral_centered_high(value: float, start: float, extreme: float) -> float:
+    """Score a high-is-good signal around a neutral midpoint of 0.5."""
+    if pd.isna(value):
+        return 0.5
+    span = abs(float(extreme) - float(start))
+    if span == 0:
+        return 0.5
+    value = float(value)
+    if value >= extreme:
+        return 1.0
+    if value <= start - span:
+        return 0.0
+    if value > start:
+        return 0.5 + 0.5 * (value - start) / span
+    return 0.5 - 0.5 * (start - value) / span
+
+
 def support_component(r: pd.Series) -> float:
     values = [float(x) for x in [r.get("distance_support_20d"), r.get("distance_support_60d"), r.get("distance_support_120d")] if pd.notna(x)]
     if not values:
-        return 0.0
-    return float(np.mean([clamp((0.10 - x) / 0.10) for x in values]))
+        return 0.5
+    # At support (0% above the rolling low) the setup is strongest. 10% away
+    # is neutral and 20% away is weak. This keeps support useful without
+    # forcing most normal stocks to receive a zero contribution.
+    return float(np.mean([_neutral_centered_low(x, 0.10, 0.0) for x in values]))
 
 
 def rebound_components(r: pd.Series) -> dict[str, float]:
@@ -89,7 +134,27 @@ def weighted_score(components: dict[str, float], weights: dict[str, float]) -> f
 
 
 def technical_opportunity_score(r: pd.Series) -> dict[str, float]:
-    c = rebound_components(r)
+    """Return a 0..100 technical setup score with a meaningful neutral midpoint.
+
+    The underlying signals are the same as before. The key change is their
+    technical scoring scale: neutral conditions contribute roughly 50/100,
+    favourable conditions move above 50, and unfavourable conditions move below
+    50. This preserves the meaning of the indicators while using the available
+    score range instead of collapsing ordinary setups toward zero.
+    """
+    c = {
+        "drawdown_5d": _neutral_centered_low(r.get("return_5d", np.nan), -0.05, -0.30),
+        "rsi_14": _neutral_centered_low(r.get("rsi_14", np.nan), 45, 20),
+        "distance_sma20": _neutral_centered_low(r.get("distance_sma20", np.nan), -0.03, -0.25),
+        "distance_sma50": _neutral_centered_low(r.get("distance_sma50", np.nan), -0.03, -0.30),
+        "drawdown_20d": _neutral_centered_low(r.get("return_20d", np.nan), -0.05, -0.40),
+        "z_score": _neutral_centered_low(r.get("z_score", np.nan), -0.5, -3.0),
+        "volume_ratio": _neutral_centered_high(r.get("volume_ratio", np.nan), 1.0, 4.0),
+        "support": support_component(r),
+        "intraday_reversal": _neutral_centered_high(r.get("close_location", np.nan), 0.50, 1.00),
+        "relative_strength_20d": _neutral_centered_low(r.get("relative_strength_20d", np.nan), -0.02, -0.25),
+        "market_regime": 0.5,
+    }
     weights = {
         "drawdown_5d": 0.15, "rsi_14": 0.15, "distance_sma20": 0.05,
         "distance_sma50": 0.05, "drawdown_20d": 0.10, "z_score": 0.10,
@@ -146,8 +211,6 @@ def score_row(row: pd.Series, rebound_weights: dict, quality_weights: dict, cycl
 
     learned = _learned_score(row)
     scores["trader_similarity_score"] = learned if learned is not None else scores["technical_opportunity_score"]
-    # Blend only after a learned model exists. This keeps the app usable before
-    # the first calibration run while making the learned component dominant.
     scores["overall_score"] = (
         0.70 * scores["trader_similarity_score"] + 0.30 * scores["technical_opportunity_score"]
         if learned is not None else scores["technical_opportunity_score"]
