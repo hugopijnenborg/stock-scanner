@@ -148,6 +148,7 @@ jobs:
           path: |
             walk_forward_validation.csv
             walk_forward_validation.json
+            walk_forward_trade_events.csv
 
   web:
     name: Build dashboard
