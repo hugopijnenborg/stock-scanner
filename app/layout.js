@@ -6,5 +6,5 @@ export const metadata = {
 };
 
 export default function RootLayout({ children }) {
-  return <html lang="en"><head><link rel="stylesheet" href="/widget-fix.css" /></head><body>{children}</body></html>;
+  return <html lang="en"><head><link rel="stylesheet" href="/widget-fix.css" /><link rel="stylesheet" href="/readability.css" /><script src="/alert-enhancer.js" defer /></head><body>{children}</body></html>;
 }
