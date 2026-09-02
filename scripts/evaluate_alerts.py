@@ -17,29 +17,19 @@ def headers(key: str) -> dict[str, str]:
 
 
 def get_pending(url: str, key: str) -> list[dict]:
-    r = requests.get(
-        f"{url}/rest/v1/{TABLE}", headers=headers(key),
-        params={"select": "*", "status": "eq.PENDING", "order": "alert_timestamp.asc", "limit": "1000"},
-        timeout=30,
-    )
+    r = requests.get(f"{url}/rest/v1/{TABLE}", headers=headers(key), params={"select": "*", "status": "eq.PENDING", "order": "alert_timestamp.asc", "limit": "1000"}, timeout=30)
     r.raise_for_status()
     return r.json()
 
 
 def update_row(url: str, key: str, row_id: str, patch: dict) -> None:
-    r = requests.patch(
-        f"{url}/rest/v1/{TABLE}", headers={**headers(key), "Prefer": "return=minimal"},
-        params={"id": f"eq.{row_id}"}, json=patch, timeout=30,
-    )
+    r = requests.patch(f"{url}/rest/v1/{TABLE}", headers={**headers(key), "Prefer": "return=minimal"}, params={"id": f"eq.{row_id}"}, json=patch, timeout=30)
     r.raise_for_status()
 
 
 def download_history(ticker: str, start: pd.Timestamp) -> pd.DataFrame:
     end = pd.Timestamp.now(tz="UTC") + pd.Timedelta(days=2)
-    hist = yf.download(
-        ticker, start=start.strftime("%Y-%m-%d"), end=end.strftime("%Y-%m-%d"),
-        auto_adjust=True, progress=False, threads=False,
-    )
+    hist = yf.download(ticker, start=start.strftime("%Y-%m-%d"), end=end.strftime("%Y-%m-%d"), auto_adjust=True, progress=False, threads=False)
     if hist.empty:
         return hist
     if hasattr(hist.columns, "levels") and getattr(hist.columns, "nlevels", 1) > 1:
@@ -58,7 +48,6 @@ def evaluate(row: dict) -> dict | None:
     low = pd.to_numeric(hist.get("Low", hist["Close"]), errors="coerce").reindex(close.index)
     entry = float(row.get("alert_price") or close.iloc[0])
     entry_date = timestamp.date()
-    # Forward performance is measured on trading-day closes after the alert day.
     forward = close[close.index.date > entry_date]
     if forward.empty:
         return None
@@ -67,9 +56,10 @@ def evaluate(row: dict) -> dict | None:
     for n, label in HORIZONS.items():
         if len(forward) >= n:
             value = float(forward.iloc[n - 1])
-            patch[f"price_{label.lower()}" if False else f"price_{label.split('D')[0]}d"] = value
-            patch[f"return_{label.lower()}" if False else f"return_{label.split('D')[0]}d"] = round((value / entry - 1) * 100, 2)
-            patch[f"price_{label.split('D')[0]}d_at"] = pd.Timestamp(forward.index[n - 1]).isoformat()
+            field = label.split("D")[0].lower()
+            patch[f"price_{field}d"] = value
+            patch[f"return_{field}d"] = round((value / entry - 1) * 100, 2)
+            patch[f"price_{field}d_at"] = pd.Timestamp(forward.index[n - 1]).isoformat()
 
     available = forward.iloc[: min(20, len(forward))]
     high_forward = high.reindex(available.index).dropna()
@@ -80,12 +70,7 @@ def evaluate(row: dict) -> dict | None:
         for target in TARGETS:
             patch[f"hit_{target}pct"] = bool(float(high_forward.max()) >= entry * (1 + target / 100))
 
-    if "return_20d" in patch:
-        patch["status"] = "WIN" if patch["return_20d"] > 0 else "LOSS"
-    elif "return_10d" in patch:
-        patch["status"] = "PENDING"
-    else:
-        patch["status"] = "PENDING"
+    patch["status"] = "WIN" if "return_20d" in patch and patch["return_20d"] > 0 else "LOSS" if "return_20d" in patch else "PENDING"
     return patch
 
 
@@ -97,6 +82,7 @@ def main() -> None:
 
     rows = get_pending(url, key)
     updated = 0
+    failures = 0
     for row in rows:
         try:
             patch = evaluate(row)
@@ -104,8 +90,11 @@ def main() -> None:
                 update_row(url, key, row["id"], patch)
                 updated += 1
         except Exception as exc:
+            failures += 1
             print(f"Evaluation failed for {row.get('ticker')} {row.get('id')}: {exc}")
     print(f"Evaluated {updated}/{len(rows)} pending scanner alert(s).")
+    if failures:
+        raise RuntimeError(f"{failures} alert evaluation(s) failed")
 
 
 if __name__ == "__main__":
