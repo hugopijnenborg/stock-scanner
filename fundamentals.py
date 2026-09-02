@@ -96,6 +96,7 @@ def _one(ticker: str) -> dict:
         forward_pe = _num(info.get("forwardPE"))
         peg = _num(info.get("pegRatio"))
         market_cap = _num(info.get("marketCap"))
+        sector = info.get("sector") or None
 
         out.update({
             "revenue": revenue, "revenue_growth": revenue_growth, "eps": eps,
@@ -103,6 +104,7 @@ def _one(ticker: str) -> dict:
             "fcf": fcf, "fcf_growth": fcf_growth, "fcf_margin": fcf_margin, "roe": roe,
             "debt_equity": debt_equity, "cash": cash, "pe": pe,
             "forward_pe": forward_pe, "peg": peg, "market_cap": market_cap,
+            "sector": sector,
         })
 
         components = {
@@ -131,6 +133,66 @@ def _one(ticker: str) -> dict:
     return {"ticker": ticker, **out}
 
 
+def _apply_sector_relative_valuation(rows: dict[str, dict]) -> dict[str, dict]:
+    """Compare valuation with current sector peers when enough peers exist.
+
+    This is deliberately relative rather than a hard global P/E rule because
+    a P/E that is expensive for a utility can be cheap for a fast-growing
+    software company. Current sector medians are used for live scanning.
+    """
+    by_sector: dict[str, list[dict]] = {}
+    for row in rows.values():
+        sector = row.get("sector")
+        if sector:
+            by_sector.setdefault(sector, []).append(row)
+
+    for row in rows.values():
+        sector = row.get("sector")
+        peers = by_sector.get(sector, []) if sector else []
+        if len(peers) < 4:
+            continue
+        for field in ["pe", "forward_pe", "peg"]:
+            values = [float(p[field]) for p in peers if p.get(field) is not None and float(p[field]) > 0]
+            if not values or row.get(field) is None or float(row[field]) <= 0:
+                continue
+            median = sorted(values)[len(values) // 2] if len(values) % 2 else (sorted(values)[len(values)//2 - 1] + sorted(values)[len(values)//2]) / 2
+            relative = float(row[field]) / median
+            row[f"sector_median_{field}"] = median
+            row[f"{field}_vs_sector"] = relative
+
+        # Replace the absolute valuation contribution with sector-relative
+        # valuation when peer data is available. Other quality metrics remain.
+        replacements = {}
+        if row.get("pe_vs_sector") is not None:
+            replacements["pe"] = _score_low(row["pe_vs_sector"], 0.75, 1.75)
+        if row.get("peg_vs_sector") is not None:
+            replacements["peg"] = _score_low(row["peg_vs_sector"], 0.75, 1.75)
+        if replacements:
+            # Reconstruct the score using the same weights as above.
+            weights = {
+                "revenue_growth": 0.16, "eps_growth": 0.14, "net_margin": 0.12,
+                "fcf_margin": 0.12, "fcf_growth": 0.08, "roe": 0.10,
+                "debt_equity": 0.08, "eps_positive": 0.06, "pe": 0.08, "peg": 0.06,
+            }
+            inc = {
+                "revenue_growth": _score_high(row.get("revenue_growth"), -0.05, 0.30),
+                "eps_growth": _score_high(row.get("eps_growth"), -0.10, 0.30),
+                "net_margin": _score_high(row.get("net_margin"), 0.0, 0.25),
+                "fcf_margin": _score_high(row.get("fcf_margin"), -0.05, 0.20),
+                "fcf_growth": _score_high(row.get("fcf_growth"), -0.20, 0.30),
+                "roe": _score_high(row.get("roe"), 0.0, 0.30),
+                "debt_equity": _score_low(row.get("debt_equity"), 0.25, 2.0),
+                "eps_positive": 100.0 if row.get("eps") is not None and row["eps"] > 0 else (0.0 if row.get("eps") is not None else None),
+                "pe": replacements.get("pe", _score_low(row.get("pe"), 15.0, 60.0)),
+                "peg": replacements.get("peg", _score_low(row.get("peg"), 1.0, 3.0)),
+            }
+            usable = [(k, w) for k, w in weights.items() if inc.get(k) is not None]
+            total = sum(w for _, w in usable)
+            if total:
+                row["fundamental_score"] = round(sum(inc[k] * w for k, w in usable) / total, 1)
+    return rows
+
+
 def _load_cache() -> dict[str, dict]:
     try:
         return json.loads(CACHE_PATH.read_text(encoding="utf-8"))
@@ -144,12 +206,7 @@ def _save_cache(cache: dict[str, dict]) -> None:
 
 
 def download_fundamentals(tickers: list[str], workers: int = 8, refresh_hours: int = CACHE_TTL_HOURS) -> dict[str, dict]:
-    """Return fundamentals from a persistent cache and refresh stale symbols.
-
-    Fundamentals change far less frequently than prices, so live scans should
-    not call Yahoo's expensive financial-statement endpoints every 30 minutes.
-    The cache is persisted in the repository and refreshed at most once per day.
-    """
+    """Return fundamentals from a persistent cache and refresh stale symbols."""
     cache = _load_cache()
     now = datetime.now(timezone.utc)
     cutoff = now - timedelta(hours=refresh_hours)
@@ -173,7 +230,7 @@ def download_fundamentals(tickers: list[str], workers: int = 8, refresh_hours: i
             stale.append(ticker)
 
     if stale:
-        with ThreadPoolExecutor(max_workers=8) as pool:
+        with ThreadPoolExecutor(max_workers=workers) as pool:
             futures = {pool.submit(_one, ticker): ticker for ticker in stale}
             for future in as_completed(futures):
                 row = future.result()
@@ -182,4 +239,6 @@ def download_fundamentals(tickers: list[str], workers: int = 8, refresh_hours: i
                 fresh[row["ticker"]] = {k: v for k, v in row.items() if k != "_cached_at"}
         _save_cache(cache)
 
+    # Sector-relative valuation is calculated from the complete live universe.
+    fresh = _apply_sector_relative_valuation(fresh)
     return fresh
