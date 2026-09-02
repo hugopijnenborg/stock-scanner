@@ -1,33 +1,33 @@
 {
   "method": "walk-forward logistic trader-pattern model; training uses only entries strictly before each evaluation date; fundamentals excluded because point-in-time historical fundamentals are unavailable",
   "evaluation_start": "2025-01-01",
-  "observations": 56,
+  "observations": 52,
   "unique_dates": 6,
-  "unique_tickers": 29,
+  "unique_tickers": 27,
   "thresholds": {
     "80": {
-      "alerts": 56,
-      "winrate_1d": 0.7857142857142857,
-      "winrate_5d": 0.7857142857142857,
-      "winrate_10d": 0.6964285714285714,
-      "winrate_20d": 0.8392857142857143,
-      "avg_return_5d": 0.14897778355980956,
-      "avg_return_20d": 0.18696769719958065,
-      "median_return_20d": 0.17992559253815243,
-      "avg_max_gain_20d": 0.3056062434864265,
-      "avg_max_drawdown_20d": -0.04703023854195195
+      "alerts": 52,
+      "winrate_1d": 0.75,
+      "winrate_5d": 0.7692307692307693,
+      "winrate_10d": 0.6923076923076923,
+      "winrate_20d": 0.8461538461538461,
+      "avg_return_5d": 0.15036996284016177,
+      "avg_return_20d": 0.18351133320600804,
+      "median_return_20d": 0.18279234890470097,
+      "avg_max_gain_20d": 0.3081539378924892,
+      "avg_max_drawdown_20d": -0.0422286950620869
     },
     "85": {
       "alerts": 27,
-      "winrate_1d": 0.7407407407407407,
+      "winrate_1d": 0.7777777777777778,
       "winrate_5d": 0.8518518518518519,
-      "winrate_10d": 0.7407407407407407,
+      "winrate_10d": 0.7777777777777778,
       "winrate_20d": 0.8888888888888888,
-      "avg_return_5d": 0.17482962233931595,
-      "avg_return_20d": 0.23679099499014056,
-      "median_return_20d": 0.26959513117578715,
-      "avg_max_gain_20d": 0.3609049708816409,
-      "avg_max_drawdown_20d": -0.02992030294762542
+      "avg_return_5d": 0.18661660735488256,
+      "avg_return_20d": 0.2292042402619458,
+      "median_return_20d": 0.22350915966460372,
+      "avg_max_gain_20d": 0.37033429531126305,
+      "avg_max_drawdown_20d": -0.009024401341859873
     },
     "90": {
       "alerts": 6,
