@@ -51,7 +51,6 @@ def _parse_recommendations(df):
     counts = {k: 0 for k in RATING_WEIGHTS}
     if not isinstance(df, pd.DataFrame) or df.empty:
         return counts, None
-    # Yahoo presents the current recommendation period first (typically 0m).
     row = df.iloc[0]
     for key in counts:
         if key in row.index:
@@ -96,18 +95,44 @@ def _parse_changes(df):
             if "target" in action_l:
                 target_changes += 1
         if len(changes) < 6:
-            changes.append({
-                "date": ts.isoformat() if ts is not None else None,
-                "firm": firm,
-                "action": action,
-                "from_grade": from_grade,
-                "to_grade": to_grade,
-            })
+            changes.append({"date": ts.isoformat() if ts is not None else None, "firm": firm, "action": action, "from_grade": from_grade, "to_grade": to_grade})
     return changes, recent_count, bullish, bearish, target_changes
 
 
+def _parse_news(items):
+    out = []
+    if not isinstance(items, list):
+        return out
+    for item in items[:10]:
+        content = item.get("content", item) if isinstance(item, dict) else {}
+        title = _clean_text(content.get("title"))
+        if not title:
+            continue
+        pub = content.get("pubDate") or content.get("displayTime")
+        provider = content.get("provider", {}) if isinstance(content, dict) else {}
+        publisher = _clean_text(provider.get("displayName")) if isinstance(provider, dict) else None
+        out.append({"title": title, "publisher": publisher, "published": _clean_text(pub)})
+    return out[:5]
+
+
+def _parse_earnings_history(df):
+    if not isinstance(df, pd.DataFrame) or df.empty:
+        return None, None
+    d = df.copy().sort_index(ascending=False)
+    try:
+        idx = pd.Timestamp(d.index[0])
+        if idx.tzinfo is None:
+            idx = idx.tz_localize("UTC")
+        idx = idx.tz_convert("UTC")
+    except Exception:
+        idx = None
+    row = d.iloc[0]
+    surprise = _num(row.get("surprisePercent"))
+    return idx.isoformat() if idx is not None else None, surprise
+
+
 def _one(ticker):
-    out = {"ticker": ticker, "analyst_completeness": 0.0}
+    out = {"ticker": ticker, "analyst_completeness": 0.0, "recent_news": []}
     try:
         t = yf.Ticker(ticker)
         counts = {k: 0 for k in RATING_WEIGHTS}
@@ -134,6 +159,35 @@ def _one(ticker):
         changes, recent_count, bullish_30d, bearish_30d, target_changes_30d = [], 0, 0, 0, 0
         try:
             changes, recent_count, bullish_30d, bearish_30d, target_changes_30d = _parse_changes(t.upgrades_downgrades)
+        except Exception:
+            pass
+
+        earnings_last_date = None
+        earnings_surprise = None
+        try:
+            earnings_last_date, earnings_surprise = _parse_earnings_history(t.earnings_history)
+        except Exception:
+            pass
+
+        next_earnings = None
+        try:
+            dates = t.get_earnings_dates(limit=4)
+            if isinstance(dates, pd.DataFrame) and not dates.empty:
+                now = pd.Timestamp.now(tz="UTC")
+                for idx in dates.index:
+                    ts = pd.Timestamp(idx)
+                    if ts.tzinfo is None:
+                        ts = ts.tz_localize("UTC")
+                    ts = ts.tz_convert("UTC")
+                    if ts >= now:
+                        next_earnings = ts.isoformat()
+                        break
+        except Exception:
+            pass
+
+        recent_news = []
+        try:
+            recent_news = _parse_news(t.get_news(count=10, tab="news"))
         except Exception:
             pass
 
@@ -167,6 +221,10 @@ def _one(ticker):
             "analyst_target_changes_30d": target_changes_30d,
             "analyst_recent_changes": changes,
             "analyst_completeness": round(min(100.0, usable / 3 * 100), 1),
+            "last_earnings_date": earnings_last_date,
+            "last_earnings_surprise_pct": earnings_surprise,
+            "next_earnings_date": next_earnings,
+            "recent_news": recent_news,
         })
     except Exception as exc:
         out["analyst_error"] = str(exc)[:160]
