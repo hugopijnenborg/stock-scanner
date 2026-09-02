@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from datetime import datetime, timedelta, timezone
 import pandas as pd
 
 from config import ALERT_THRESHOLD, STRONG_ALERT_THRESHOLD, EXCEPTIONAL_ALERT_THRESHOLD, WATCH_THRESHOLD, DEFAULT_START, MIN_AVG_DOLLAR_VOLUME, MIN_PRICE, REBOUND_WEIGHTS, QUALITY_WEIGHTS, CYCLICAL_WEIGHTS
@@ -11,6 +12,10 @@ from universe import load_top_us_stocks
 
 FEATURE_COLUMNS = ["rsi_7", "rsi_14", "rsi_21", "macd", "macd_signal", "macd_histogram", "macd_histogram_change", "atr_pct", "bollinger_pct", "bollinger_width", "return_1d", "return_3d", "return_5d", "return_10d", "return_20d", "distance_sma20", "distance_sma50", "distance_sma200", "distance_1m_high", "distance_3m_high", "distance_6m_high", "distance_52w_high", "distance_support_20d", "distance_support_60d", "distance_support_120d", "volume_ratio", "volume_ratio_5d", "volatility_20d", "z_score", "close_location", "relative_strength_5d", "relative_strength_20d"]
 FUNDAMENTAL_COLUMNS = ["revenue", "revenue_growth", "eps", "eps_growth", "net_margin", "gross_margin", "fcf", "fcf_growth", "fcf_margin", "roe", "debt_equity", "cash", "pe", "forward_pe", "peg", "fundamental_score", "fundamental_completeness"]
+
+# Live scans only need enough history for the longest indicator (SMA200),
+# rather than downloading the full 2024-present dataset every 30 minutes.
+LIVE_HISTORY_DAYS = 450
 
 
 def _signal_label(score: float, fundamental_score) -> str:
@@ -51,11 +56,14 @@ def scan(limit: int = 1000, top_n: int = 25) -> pd.DataFrame:
     universe = load_top_us_stocks(limit)
     company_map = universe.set_index("ticker")["company_name"].to_dict()
     tickers = universe["ticker"].tolist()
-    benchmarks = download_benchmarks(DEFAULT_START)
+
+    live_start = (datetime.now(timezone.utc) - timedelta(days=LIVE_HISTORY_DAYS)).strftime("%Y-%m-%d")
+    benchmarks = download_benchmarks(live_start)
     spy = benchmarks.get("SPY")
     benchmark_close = spy["Close"] if spy is not None and "Close" in spy else None
-    market = download_ohlcv(tickers, DEFAULT_START)
+    market = download_ohlcv(tickers, live_start)
     fundamentals = download_fundamentals(tickers)
+
     rows = []
     for ticker, prices in market.items():
         if prices.empty or "Close" not in prices.columns:
