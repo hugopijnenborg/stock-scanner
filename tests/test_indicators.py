@@ -25,7 +25,7 @@ def test_indicator_columns_exist():
         "rsi_14", "macd", "macd_signal", "macd_histogram", "atr_14",
         "atr_pct", "sma_20", "sma_50", "sma_200", "bollinger_pct",
         "bollinger_width", "volume_ratio", "volatility_20d", "z_score",
-        "distance_52w_high", "relative_strength_20d",
+        "distance_52w_high", "relative_strength_20d", "market_regime_score",
     ]
     assert all(column in result.columns for column in expected)
     assert pd.notna(result["sma_200"].iloc[-1])
@@ -37,3 +37,12 @@ def test_rsi_range():
     valid = result["rsi_14"].dropna()
     assert (valid >= 0).all()
     assert (valid <= 100).all()
+
+
+def test_market_regime_is_bounded():
+    prices = sample_prices()
+    benchmark = sample_prices()["Close"]
+    result = add_indicators(prices, benchmark)
+    valid = result["market_regime_score"].dropna()
+    assert not valid.empty
+    assert ((valid >= 0) & (valid <= 1)).all()
