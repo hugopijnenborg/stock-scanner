@@ -26,14 +26,11 @@ def high_is_good(value: float, start: float, extreme: float) -> float:
 
 
 def _neutral_centered_low(value: float, start: float, extreme: float) -> float:
-    """Score a low-is-good signal around a neutral midpoint of 0.5.
+    """Score a low-is-good technical signal around a neutral midpoint of 0.5.
 
-    The previous technical score treated every value above the favourable
-    threshold as zero. That made ordinary/neutral conditions look identical
-    to genuinely weak conditions and compressed the practical score range.
-    Here the threshold is explicitly neutral (50/100): moving toward the
-    favourable extreme raises the score, while moving equally far in the
-    opposite direction lowers it. The mapping remains bounded to 0..1.
+    The threshold is neutral: favourable movement toward the extreme raises the
+    score above 50, while equally strong movement in the opposite direction
+    lowers it. The result is always bounded to 0..1.
     """
     if pd.isna(value):
         return 0.5
@@ -51,7 +48,7 @@ def _neutral_centered_low(value: float, start: float, extreme: float) -> float:
 
 
 def _neutral_centered_high(value: float, start: float, extreme: float) -> float:
-    """Score a high-is-good signal around a neutral midpoint of 0.5."""
+    """Score a high-is-good technical signal around a neutral midpoint of 0.5."""
     if pd.isna(value):
         return 0.5
     span = abs(float(extreme) - float(start))
@@ -68,12 +65,18 @@ def _neutral_centered_high(value: float, start: float, extreme: float) -> float:
 
 
 def support_component(r: pd.Series) -> float:
+    """Original support component used by the setup-family scores."""
+    values = [float(x) for x in [r.get("distance_support_20d"), r.get("distance_support_60d"), r.get("distance_support_120d")] if pd.notna(x)]
+    if not values:
+        return 0.0
+    return float(np.mean([clamp((0.10 - x) / 0.10) for x in values]))
+
+
+def _technical_support_component(r: pd.Series) -> float:
+    """Technical-only support score with 10% above support treated as neutral."""
     values = [float(x) for x in [r.get("distance_support_20d"), r.get("distance_support_60d"), r.get("distance_support_120d")] if pd.notna(x)]
     if not values:
         return 0.5
-    # At support (0% above the rolling low) the setup is strongest. 10% away
-    # is neutral and 20% away is weak. This keeps support useful without
-    # forcing most normal stocks to receive a zero contribution.
     return float(np.mean([_neutral_centered_low(x, 0.10, 0.0) for x in values]))
 
 
@@ -136,11 +139,11 @@ def weighted_score(components: dict[str, float], weights: dict[str, float]) -> f
 def technical_opportunity_score(r: pd.Series) -> dict[str, float]:
     """Return a 0..100 technical setup score with a meaningful neutral midpoint.
 
-    The underlying signals are the same as before. The key change is their
-    technical scoring scale: neutral conditions contribute roughly 50/100,
-    favourable conditions move above 50, and unfavourable conditions move below
-    50. This preserves the meaning of the indicators while using the available
-    score range instead of collapsing ordinary setups toward zero.
+    The same underlying indicators and weights are retained. The scoring scale
+    now treats the stated thresholds as neutral instead of assigning zero to
+    every ordinary value on the unfavourable side. This increases separation
+    between weak, neutral and genuinely favourable technical setups without
+    changing the alert threshold or the trader/fundamental scores.
     """
     c = {
         "drawdown_5d": _neutral_centered_low(r.get("return_5d", np.nan), -0.05, -0.30),
@@ -150,7 +153,7 @@ def technical_opportunity_score(r: pd.Series) -> dict[str, float]:
         "drawdown_20d": _neutral_centered_low(r.get("return_20d", np.nan), -0.05, -0.40),
         "z_score": _neutral_centered_low(r.get("z_score", np.nan), -0.5, -3.0),
         "volume_ratio": _neutral_centered_high(r.get("volume_ratio", np.nan), 1.0, 4.0),
-        "support": support_component(r),
+        "support": _technical_support_component(r),
         "intraday_reversal": _neutral_centered_high(r.get("close_location", np.nan), 0.50, 1.00),
         "relative_strength_20d": _neutral_centered_low(r.get("relative_strength_20d", np.nan), -0.02, -0.25),
         "market_regime": 0.5,
