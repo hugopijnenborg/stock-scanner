@@ -27,10 +27,18 @@ FEATURES = [
     "volume_ratio_5d", "volatility_20d", "z_score", "close_location",
     "relative_strength_5d", "relative_strength_20d", "sector_relative_strength_20d",
 ]
-EVAL_START = pd.Timestamp("2025-01-01")
+
+EVAL_START = pd.Timestamp("2024-01-01")
 THRESHOLDS = [80, 85, 90]
 TRADING_HORIZONS = [1, 5, 10, 20, 30]
 SCORE_BANDS = [(50, 60), (60, 65), (65, 70), (70, 75), (75, 80), (80, 85), (85, 90), (90, float("inf"))]
+
+
+def _naive_day_index(index) -> pd.DatetimeIndex:
+    idx = pd.DatetimeIndex(index)
+    if idx.tz is not None:
+        idx = idx.tz_localize(None)
+    return idx.normalize()
 
 
 def vector(row: pd.Series) -> np.ndarray:
@@ -80,16 +88,20 @@ def probability(pipe: Pipeline, row: pd.Series) -> float:
 
 
 def forward_metrics(close: pd.Series, date: pd.Timestamp) -> dict[str, float | None]:
+    close = pd.to_numeric(close, errors="coerce").dropna()
+    if close.empty:
+        return {**{f"return_{d}d": None for d in TRADING_HORIZONS}, "return_60d": None, "max_gain_60d": None, "max_drawdown_60d": None}
+
+    index_dates = _naive_day_index(close.index)
     day = pd.Timestamp(date).normalize()
-    index_dates = pd.DatetimeIndex(close.index).normalize()
-    entry_positions = np.flatnonzero(index_dates == day)
-    if len(entry_positions) == 0:
+    positions = np.flatnonzero(index_dates == day)
+    if len(positions):
+        entry_pos = int(positions[-1])
+    else:
         prior = np.flatnonzero(index_dates <= day)
         if len(prior) == 0:
             return {**{f"return_{d}d": None for d in TRADING_HORIZONS}, "return_60d": None, "max_gain_60d": None, "max_drawdown_60d": None}
         entry_pos = int(prior[-1])
-    else:
-        entry_pos = int(entry_positions[-1])
 
     entry = float(close.iloc[entry_pos])
     future = close.iloc[entry_pos + 1:]
@@ -97,19 +109,19 @@ def forward_metrics(close: pd.Series, date: pd.Timestamp) -> dict[str, float | N
     for days in TRADING_HORIZONS:
         out[f"return_{days}d"] = float(future.iloc[days - 1] / entry - 1) if len(future) >= days else None
 
-    # 60D is explicitly 60 calendar days. Use the first available trading session on or after that date.
+    # 60D means 60 calendar days. Use the first available trading session on or after that calendar date.
     target_date = day + pd.Timedelta(days=60)
     target_positions = np.flatnonzero(index_dates >= target_date)
     if len(target_positions):
         target_pos = int(target_positions[0])
         out["return_60d"] = float(close.iloc[target_pos] / entry - 1)
         window = close.iloc[entry_pos + 1:target_pos + 1]
+        out["max_gain_60d"] = float(window.max() / entry - 1) if len(window) else None
+        out["max_drawdown_60d"] = float(window.min() / entry - 1) if len(window) else None
     else:
         out["return_60d"] = None
-        window = future
-
-    out["max_gain_60d"] = float(window.max() / entry - 1) if len(window) else None
-    out["max_drawdown_60d"] = float(window.min() / entry - 1) if len(window) else None
+        out["max_gain_60d"] = None
+        out["max_drawdown_60d"] = None
     return out
 
 
@@ -139,17 +151,20 @@ def run(output_csv: str = "walk_forward_validation.csv", summary_json: str = "wa
     spy_close = spy["Close"] if spy is not None and "Close" in spy.columns else None
     prices = download_ohlcv(tickers, DEFAULT_START)
     sector_benchmarks = download_sector_benchmarks(DEFAULT_START)
+    # Fundamentals are downloaded for sector classification only. Point-in-time values are not used in historical scoring.
     fundamentals = download_fundamentals(tickers)
     sector_by_ticker = {ticker: data.get("sector") for ticker, data in fundamentals.items()}
 
     if spy_close is not None and not spy_close.empty:
-        market_dates = pd.DatetimeIndex(spy_close.index).tz_localize(None).normalize()
+        market_dates = _naive_day_index(spy_close.index)
     else:
-        market_dates = pd.DatetimeIndex(sorted({idx for df in prices.values() for idx in df.index})).tz_localize(None).normalize()
+        market_dates = _naive_day_index(sorted({idx for df in prices.values() for idx in df.index}))
     eval_dates = sorted(d for d in market_dates.unique() if d >= EVAL_START)
     if not eval_dates:
         raise RuntimeError("No historical market dates available for walk-forward validation")
 
+    # Build a feature snapshot for EVERY market day, not only trader-entry days.
+    # This is critical: the validation must test what the scanner would have seen on normal days too.
     snapshots: dict[pd.Timestamp, dict[str, np.ndarray]] = {}
     feature_rows: dict[pd.Timestamp, dict[str, pd.Series]] = {}
     close_by_ticker: dict[str, pd.Series] = {}
@@ -158,36 +173,38 @@ def run(output_csv: str = "walk_forward_validation.csv", summary_json: str = "wa
         if df.empty or "Close" not in df.columns:
             continue
         features = add_indicators(df, spy_close).copy()
-        features.index = pd.DatetimeIndex(features.index).tz_localize(None)
+        features.index = _naive_day_index(features.index)
+        features = features[~features.index.duplicated(keep="last")]
         close = pd.to_numeric(features["Close"], errors="coerce").dropna()
+        close.index = _naive_day_index(close.index)
         close_by_ticker[ticker] = close
 
-        daily = features.copy()
-        daily.index = daily.index.normalize()
-        daily = daily[~daily.index.duplicated(keep="last")]
-        aligned = daily.reindex(eval_dates, method="ffill")
+        aligned = features.reindex(eval_dates, method="ffill")
 
         sector = sector_by_ticker.get(ticker)
         sector_etf = SECTOR_ETFS.get(sector)
         sector_close = None
         if sector_etf in sector_benchmarks:
             sector_close = pd.to_numeric(sector_benchmarks[sector_etf]["Close"], errors="coerce").dropna()
-            sector_close.index = pd.DatetimeIndex(sector_close.index).tz_localize(None)
+            sector_close.index = _naive_day_index(sector_close.index)
         sector_rs_series = None
-        if sector_close is not None:
+        if sector_close is not None and not sector_close.empty:
             stock_ret = close.reindex(eval_dates, method="ffill").pct_change(20)
             sector_ret = sector_close.reindex(eval_dates, method="ffill").pct_change(20)
             sector_rs_series = stock_ret - sector_ret
 
         for date, row in aligned.iterrows():
+            date = pd.Timestamp(date).normalize()
             if row.isna().all():
                 continue
             row = row.copy()
-            row["sector_relative_strength_20d"] = float(sector_rs_series.loc[date]) if sector_rs_series is not None and pd.notna(sector_rs_series.get(date)) else None
-            date = pd.Timestamp(date)
+            row["sector_relative_strength_20d"] = (
+                float(sector_rs_series.loc[date])
+                if sector_rs_series is not None and date in sector_rs_series.index and pd.notna(sector_rs_series.loc[date])
+                else None
+            )
             feature_rows.setdefault(date, {})[ticker] = row
-            if date in entry_dates:
-                snapshots.setdefault(date, {})[ticker] = vector(row)
+            snapshots.setdefault(date, {})[ticker] = vector(row)
 
     results = []
     model_counts = []
@@ -220,7 +237,7 @@ def run(output_csv: str = "walk_forward_validation.csv", summary_json: str = "wa
     df.to_csv(output_csv, index=False)
 
     summary: dict[str, object] = {
-        "method": "Daily walk-forward logistic trader-pattern validation across the full curated universe. Each evaluation day trains only on trader entries before that day, then scores every available ticker. All scored scenarios are retained for calibration; 80+/85+/90+ are reported as alert thresholds. Fundamentals are excluded from historical scoring because point-in-time fundamentals are unavailable.",
+        "method": "Daily walk-forward logistic trader-pattern validation across the full curated universe. Each evaluation day trains only on trader entries before that day, then scores every available ticker. Feature snapshots are built for every market day so normal non-entry days are also tested. All scored scenarios are retained for calibration. Fundamentals are excluded from historical scoring because point-in-time fundamentals are unavailable.",
         "evaluation_start": EVAL_START.date().isoformat(),
         "scenarios": int(len(df)),
         "alerts_80_plus": int((df["score"] >= 80).sum()),
