@@ -1,55 +1,112 @@
 from __future__ import annotations
-import json
-from pathlib import Path
+
+import os
 from datetime import datetime, timezone
+
 import pandas as pd
+import requests
 import yfinance as yf
 
-SCAN=Path('public/data/latest_scan.json')
-HISTORY=Path('public/data/alert_history.json')
-HORIZONS={1:'1D',5:'5D',10:'10D',20:'20D'}
-TARGETS=[5,10,20,30]
+TABLE = "stock_scanner_alerts"
+HORIZONS = {1: "1D", 5: "5D", 10: "10D", 20: "20D"}
+TARGETS = [5, 10, 20, 30]
 
-def load(path):
-    if not path.exists(): return {}
-    try: return json.loads(path.read_text(encoding='utf-8'))
-    except Exception: return {}
 
-def evaluate(a):
-    try:
-        start=pd.Timestamp(a['alert_date'])
-        hist=yf.download(a['ticker'],start=start.strftime('%Y-%m-%d'),end=(pd.Timestamp.now()+pd.Timedelta(days=2)).strftime('%Y-%m-%d'),auto_adjust=False,progress=False)
-        if hist.empty: return
-        close,high,low=hist['Close'],hist['High'],hist['Low']
-        if hasattr(close,'columns'): close,high,low=close.iloc[:,0],high.iloc[:,0],low.iloc[:,0]
-        close=close.dropna(); high=high.reindex(close.index).dropna(); low=low.reindex(close.index).dropna()
-        if close.empty: return
-        entry=float(a['alert_price'] or close.iloc[0])
-        a.setdefault('returns',{})
-        for n,label in HORIZONS.items():
-            if len(close)>n: a['returns'][label]=round((float(close.iloc[n])/entry-1)*100,2)
-        if not high.empty:
-            a['max_gain_pct']=round((float(high.max())/entry-1)*100,2)
-            a['max_drawdown_pct']=round((float(low.min())/entry-1)*100,2)
-            a['targets_hit']=[f'+{t}%' for t in TARGETS if float(high.max())>=entry*(1+t/100)]
-        if '20D' in a['returns']: a['status']='WIN' if a['returns']['20D']>0 else 'LOSS'
-        elif '10D' in a['returns']: a['status']='WIN' if a['returns']['10D']>0 else 'LOSS'
-        elif '5D' in a['returns']: a['status']='WIN' if a['returns']['5D']>0 else 'LOSS'
-        else: a['status']='PENDING'
-    except Exception as exc:
-        a['evaluation_error']=str(exc)
+def headers(key: str) -> dict[str, str]:
+    return {"apikey": key, "Authorization": f"Bearer {key}", "Content-Type": "application/json"}
 
-def main():
-    scan=load(SCAN); data=load(HISTORY); alerts=data.get('alerts',[])
-    existing={(x.get('ticker'),x.get('alert_date')) for x in alerts}
-    today=datetime.now(timezone.utc).date().isoformat()
-    for r in scan.get('results',[]):
-        if r.get('signal')!='ALERT': continue
-        key=(r.get('ticker'),today)
-        if key not in existing:
-            alerts.append({'ticker':r.get('ticker'),'company_name':r.get('company_name'),'alert_date':today,'alert_price':r.get('price'),'score':r.get('overall_score'),'trader_score':r.get('trader_similarity_score'),'technical_score':r.get('technical_score'),'fundamental_score':r.get('fundamental_score'),'returns':{},'max_gain_pct':None,'max_drawdown_pct':None,'targets_hit':[],'status':'PENDING'})
-    for a in alerts: evaluate(a)
-    HISTORY.parent.mkdir(parents=True,exist_ok=True)
-    HISTORY.write_text(json.dumps({'updated_at':datetime.now(timezone.utc).isoformat(),'alerts':sorted(alerts,key=lambda x:x.get('alert_date',''),reverse=True)},indent=2,allow_nan=False),encoding='utf-8')
 
-if __name__=='__main__': main()
+def get_pending(url: str, key: str) -> list[dict]:
+    r = requests.get(
+        f"{url}/rest/v1/{TABLE}", headers=headers(key),
+        params={"select": "*", "status": "eq.PENDING", "order": "alert_timestamp.asc", "limit": "1000"},
+        timeout=30,
+    )
+    r.raise_for_status()
+    return r.json()
+
+
+def update_row(url: str, key: str, row_id: str, patch: dict) -> None:
+    r = requests.patch(
+        f"{url}/rest/v1/{TABLE}", headers={**headers(key), "Prefer": "return=minimal"},
+        params={"id": f"eq.{row_id}"}, json=patch, timeout=30,
+    )
+    r.raise_for_status()
+
+
+def download_history(ticker: str, start: pd.Timestamp) -> pd.DataFrame:
+    end = pd.Timestamp.now(tz="UTC") + pd.Timedelta(days=2)
+    hist = yf.download(
+        ticker, start=start.strftime("%Y-%m-%d"), end=end.strftime("%Y-%m-%d"),
+        auto_adjust=True, progress=False, threads=False,
+    )
+    if hist.empty:
+        return hist
+    if hasattr(hist.columns, "levels") and getattr(hist.columns, "nlevels", 1) > 1:
+        hist = hist.xs(ticker, axis=1, level=1) if ticker in hist.columns.get_level_values(1) else hist.xs(ticker, axis=1, level=0)
+    return hist.dropna(how="all")
+
+
+def evaluate(row: dict) -> dict | None:
+    timestamp = pd.Timestamp(row.get("entry_timestamp") or row.get("alert_timestamp"))
+    hist = download_history(row["ticker"], timestamp.normalize())
+    if hist.empty or "Close" not in hist.columns:
+        return None
+
+    close = pd.to_numeric(hist["Close"], errors="coerce").dropna()
+    high = pd.to_numeric(hist.get("High", hist["Close"]), errors="coerce").reindex(close.index)
+    low = pd.to_numeric(hist.get("Low", hist["Close"]), errors="coerce").reindex(close.index)
+    entry = float(row.get("alert_price") or close.iloc[0])
+    entry_date = timestamp.date()
+    # Forward performance is measured on trading-day closes after the alert day.
+    forward = close[close.index.date > entry_date]
+    if forward.empty:
+        return None
+
+    patch: dict = {"evaluated_at": datetime.now(timezone.utc).isoformat()}
+    for n, label in HORIZONS.items():
+        if len(forward) >= n:
+            value = float(forward.iloc[n - 1])
+            patch[f"price_{label.lower()}" if False else f"price_{label.split('D')[0]}d"] = value
+            patch[f"return_{label.lower()}" if False else f"return_{label.split('D')[0]}d"] = round((value / entry - 1) * 100, 2)
+            patch[f"price_{label.split('D')[0]}d_at"] = pd.Timestamp(forward.index[n - 1]).isoformat()
+
+    available = forward.iloc[: min(20, len(forward))]
+    high_forward = high.reindex(available.index).dropna()
+    low_forward = low.reindex(available.index).dropna()
+    if not high_forward.empty:
+        patch["max_gain"] = round((float(high_forward.max()) / entry - 1) * 100, 2)
+        patch["max_drawdown"] = round((float(low_forward.min()) / entry - 1) * 100, 2)
+        for target in TARGETS:
+            patch[f"hit_{target}pct"] = bool(float(high_forward.max()) >= entry * (1 + target / 100))
+
+    if "return_20d" in patch:
+        patch["status"] = "WIN" if patch["return_20d"] > 0 else "LOSS"
+    elif "return_10d" in patch:
+        patch["status"] = "PENDING"
+    else:
+        patch["status"] = "PENDING"
+    return patch
+
+
+def main() -> None:
+    url = os.environ.get("SUPABASE_URL", "").rstrip("/")
+    key = os.environ.get("SUPABASE_SERVICE_ROLE_KEY", "")
+    if not url or not key:
+        raise RuntimeError("SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY must be configured")
+
+    rows = get_pending(url, key)
+    updated = 0
+    for row in rows:
+        try:
+            patch = evaluate(row)
+            if patch:
+                update_row(url, key, row["id"], patch)
+                updated += 1
+        except Exception as exc:
+            print(f"Evaluation failed for {row.get('ticker')} {row.get('id')}: {exc}")
+    print(f"Evaluated {updated}/{len(rows)} pending scanner alert(s).")
+
+
+if __name__ == "__main__":
+    main()
