@@ -29,7 +29,7 @@ FEATURES = [
 ]
 EVAL_START = pd.Timestamp("2025-01-01")
 THRESHOLDS = [80, 85, 90]
-HORIZONS = [1, 5, 10, 20, 30, 40]
+TRADING_HORIZONS = [1, 5, 10, 20, 30]
 
 
 def vector(row: pd.Series) -> np.ndarray:
@@ -79,25 +79,43 @@ def probability(pipe: Pipeline, row: pd.Series) -> float:
 
 
 def forward_metrics(close: pd.Series, date: pd.Timestamp) -> dict[str, float | None]:
-    day = date.normalize()
-    entry_rows = close[close.index.normalize() == day]
-    if entry_rows.empty:
-        return {**{f"return_{d}d": None for d in HORIZONS}, "max_gain_40d": None, "max_drawdown_40d": None}
-    entry = float(entry_rows.iloc[-1])
-    future = close[close.index.normalize() > day]
+    day = pd.Timestamp(date).normalize()
+    index_dates = pd.DatetimeIndex(close.index).normalize()
+    entry_positions = np.flatnonzero(index_dates == day)
+    if len(entry_positions) == 0:
+        prior = np.flatnonzero(index_dates <= day)
+        if len(prior) == 0:
+            return {**{f"return_{d}d": None for d in TRADING_HORIZONS}, "return_60d": None, "max_gain_60d": None, "max_drawdown_60d": None}
+        entry_pos = int(prior[-1])
+    else:
+        entry_pos = int(entry_positions[-1])
+
+    entry = float(close.iloc[entry_pos])
+    future = close.iloc[entry_pos + 1:]
     out: dict[str, float | None] = {}
-    for days in HORIZONS:
+    for days in TRADING_HORIZONS:
         out[f"return_{days}d"] = float(future.iloc[days - 1] / entry - 1) if len(future) >= days else None
-    window = future.iloc[:40]
-    out["max_gain_40d"] = float(window.max() / entry - 1) if len(window) else None
-    out["max_drawdown_40d"] = float(window.min() / entry - 1) if len(window) else None
+
+    # 60D is intentionally a calendar-day horizon, not 40 trading days.
+    target_date = day + pd.Timedelta(days=60)
+    target_positions = np.flatnonzero(index_dates >= target_date)
+    if len(target_positions):
+        target_pos = int(target_positions[0])
+        out["return_60d"] = float(close.iloc[target_pos] / entry - 1)
+        window = close.iloc[entry_pos + 1:target_pos + 1]
+    else:
+        out["return_60d"] = None
+        window = future
+
+    out["max_gain_60d"] = float(window.max() / entry - 1) if len(window) else None
+    out["max_drawdown_60d"] = float(window.min() / entry - 1) if len(window) else None
     return out
 
 
 def sector_relative_strength(stock_close: pd.Series, sector_close: pd.Series | None, date: pd.Timestamp) -> float | None:
     if sector_close is None:
         return None
-    day = date.normalize()
+    day = pd.Timestamp(date).normalize()
     stock = stock_close[stock_close.index.normalize() <= day]
     sector = sector_close[sector_close.index.normalize() <= day]
     if len(stock) < 21 or len(sector) < 21:
@@ -105,14 +123,21 @@ def sector_relative_strength(stock_close: pd.Series, sector_close: pd.Series | N
     return float((stock.iloc[-1] / stock.iloc[-21]) - (sector.iloc[-1] / sector.iloc[-21]))
 
 
+def _summary_horizon(x: pd.DataFrame, horizon: str) -> dict[str, float | int | None]:
+    values = pd.to_numeric(x[f"return_{horizon}"], errors="coerce").dropna()
+    return {
+        "n": int(len(values)),
+        "winrate": float((values > 0).mean()) if len(values) else None,
+        "avg_return": float(values.mean()) if len(values) else None,
+        "median_return": float(values.median()) if len(values) else None,
+    }
+
+
 def run(output_csv: str = "walk_forward_validation.csv", summary_json: str = "walk_forward_validation.json") -> dict:
     universe = load_top_us_stocks()
     tickers = universe["ticker"].tolist()
     entries = load_entries()
     entries["date"] = pd.to_datetime(entries["date"]).dt.tz_localize(None).dt.normalize()
-    eval_dates = sorted(d for d in entries["date"].unique() if d >= EVAL_START)
-    if not eval_dates:
-        raise RuntimeError("No trader entries available for walk-forward validation")
 
     benchmarks = download_benchmarks(DEFAULT_START)
     spy = benchmarks.get("SPY")
@@ -122,37 +147,65 @@ def run(output_csv: str = "walk_forward_validation.csv", summary_json: str = "wa
     fundamentals = download_fundamentals(tickers)
     sector_by_ticker = {ticker: data.get("sector") for ticker, data in fundamentals.items()}
 
+    if spy_close is not None and not spy_close.empty:
+        market_dates = pd.DatetimeIndex(spy_close.index).tz_localize(None).normalize()
+    else:
+        market_dates = pd.DatetimeIndex(sorted({idx for df in prices.values() for idx in df.index})).tz_localize(None).normalize()
+    eval_dates = sorted(d for d in market_dates.unique() if d >= EVAL_START)
+    if not eval_dates:
+        raise RuntimeError("No historical market dates available for walk-forward validation")
+
     snapshots: dict[pd.Timestamp, dict[str, np.ndarray]] = {}
     feature_rows: dict[pd.Timestamp, dict[str, pd.Series]] = {}
     close_by_ticker: dict[str, pd.Series] = {}
-    all_dates = set(eval_dates)
-    all_dates.update(entries["date"].tolist())
 
     for ticker, df in prices.items():
         if df.empty or "Close" not in df.columns:
             continue
         features = add_indicators(df, spy_close)
-        close_by_ticker[ticker] = pd.to_numeric(features["Close"], errors="coerce").dropna()
-        for date in sorted(all_dates):
-            eligible = features.loc[features.index.normalize() <= date]
-            if eligible.empty:
-                continue
-            row = eligible.iloc[-1].copy()
-            sector = sector_by_ticker.get(ticker)
-            sector_etf = SECTOR_ETFS.get(sector)
-            sector_close = None
-            if sector_etf in sector_benchmarks:
-                sector_close = pd.to_numeric(sector_benchmarks[sector_etf]["Close"], errors="coerce").dropna()
-            row["sector_relative_strength_20d"] = sector_relative_strength(close_by_ticker[ticker], sector_close, pd.Timestamp(date))
-            snapshots.setdefault(date, {})[ticker] = vector(row)
-            feature_rows.setdefault(date, {})[ticker] = row
+        features = features.copy()
+        features.index = pd.DatetimeIndex(features.index).tz_localize(None)
+        close = pd.to_numeric(features["Close"], errors="coerce").dropna()
+        close_by_ticker[ticker] = close
 
+        daily = features.copy()
+        daily.index = daily.index.normalize()
+        daily = daily[~daily.index.duplicated(keep="last")]
+        aligned = daily.reindex(eval_dates, method="ffill")
+
+        sector = sector_by_ticker.get(ticker)
+        sector_etf = SECTOR_ETFS.get(sector)
+        sector_close = None
+        if sector_etf in sector_benchmarks:
+            sector_close = pd.to_numeric(sector_benchmarks[sector_etf]["Close"], errors="coerce").dropna()
+            sector_close.index = pd.DatetimeIndex(sector_close.index).tz_localize(None)
+        sector_rs_series = None
+        if sector_close is not None:
+            stock_ret = close.reindex(eval_dates, method="ffill").pct_change(20)
+            sector_ret = sector_close.reindex(eval_dates, method="ffill").pct_change(20)
+            sector_rs_series = stock_ret - sector_ret
+
+        for date, row in aligned.iterrows():
+            if row.isna().all():
+                continue
+            row = row.copy()
+            if sector_rs_series is not None and pd.notna(sector_rs_series.get(date)):
+                row["sector_relative_strength_20d"] = float(sector_rs_series.loc[date])
+            else:
+                row["sector_relative_strength_20d"] = None
+            feature_rows.setdefault(pd.Timestamp(date), {})[ticker] = row
+            if pd.Timestamp(date) in set(entries["date"]):
+                snapshots.setdefault(pd.Timestamp(date), {})[ticker] = vector(row)
+
+    eval_set = set(eval_dates)
     results = []
     model_counts = []
+    evaluated_dates = 0
     for date in eval_dates:
         pipe, positives = train_prior(entries, snapshots, pd.Timestamp(date))
         if pipe is None:
             continue
+        evaluated_dates += 1
         model_counts.append(positives)
         for ticker, row in feature_rows.get(pd.Timestamp(date), {}).items():
             trader_score = probability(pipe, row)
@@ -177,30 +230,38 @@ def run(output_csv: str = "walk_forward_validation.csv", summary_json: str = "wa
     df.to_csv(output_csv, index=False)
 
     summary: dict[str, object] = {
-        "method": "Walk-forward logistic trader-pattern model. Each evaluation date trains only on earlier trader entries. Technical score includes market regime and sector-relative strength. Fundamentals are excluded from historical scoring because point-in-time fundamentals are unavailable.",
+        "method": "Daily walk-forward logistic trader-pattern validation across the full curated universe. Each evaluation day trains only on trader entries before that day, then scores every available ticker. Fundamentals are excluded from historical scoring because point-in-time fundamentals are unavailable.",
         "evaluation_start": EVAL_START.date().isoformat(),
         "observations": int(len(df)),
         "unique_dates": int(df["date"].nunique()),
         "unique_tickers": int(df["ticker"].nunique()),
-        "evaluated_universe_rows": int(sum(len(v) for d, v in feature_rows.items() if d in eval_dates)),
-        "horizons": {"30d": "30 trading days", "40d": "approximately 2 months / 40 trading days"},
+        "evaluated_universe_rows": int(sum(len(feature_rows.get(d, {})) for d in eval_dates if d in feature_rows)),
+        "evaluated_dates": evaluated_dates,
+        "market_days_available": len(eval_dates),
+        "horizons": {
+            "1d": "1 trading day",
+            "5d": "5 trading days",
+            "10d": "10 trading days",
+            "20d": "20 trading days",
+            "30d": "30 trading days",
+            "60d": "60 calendar days",
+        },
         "thresholds": {},
         "average_positive_training_observations": float(np.mean(model_counts)) if model_counts else None,
     }
     for threshold in THRESHOLDS:
         x = df[df["score"] >= threshold]
-        summary["thresholds"][str(threshold)] = {
-            "alerts": int(len(x)),
-            **{f"winrate_{d}d": float((x[f"return_{d}d"] > 0).mean()) if x[f"return_{d}d"].notna().any() else None for d in HORIZONS},
-            "avg_return_5d": float(x["return_5d"].mean()) if x["return_5d"].notna().any() else None,
-            "avg_return_20d": float(x["return_20d"].mean()) if x["return_20d"].notna().any() else None,
-            "avg_return_30d": float(x["return_30d"].mean()) if x["return_30d"].notna().any() else None,
-            "avg_return_40d": float(x["return_40d"].mean()) if x["return_40d"].notna().any() else None,
-            "median_return_20d": float(x["return_20d"].median()) if x["return_20d"].notna().any() else None,
-            "median_return_40d": float(x["return_40d"].median()) if x["return_40d"].notna().any() else None,
-            "avg_max_gain_40d": float(x["max_gain_40d"].mean()) if x["max_gain_40d"].notna().any() else None,
-            "avg_max_drawdown_40d": float(x["max_drawdown_40d"].mean()) if x["max_drawdown_40d"].notna().any() else None,
-        }
+        threshold_summary: dict[str, object] = {"alerts": int(len(x))}
+        for horizon in ["1d", "5d", "10d", "20d", "30d", "60d"]:
+            stats = _summary_horizon(x, horizon)
+            threshold_summary[f"n_{horizon}"] = stats["n"]
+            threshold_summary[f"winrate_{horizon}"] = stats["winrate"]
+            threshold_summary[f"avg_return_{horizon}"] = stats["avg_return"]
+            threshold_summary[f"median_return_{horizon}"] = stats["median_return"]
+        threshold_summary["avg_max_gain_60d"] = float(x["max_gain_60d"].mean()) if x["max_gain_60d"].notna().any() else None
+        threshold_summary["avg_max_drawdown_60d"] = float(x["max_drawdown_60d"].mean()) if x["max_drawdown_60d"].notna().any() else None
+        summary["thresholds"][str(threshold)] = threshold_summary
+
     Path(summary_json).write_text(json.dumps(summary, indent=2), encoding="utf-8")
     return summary
 
