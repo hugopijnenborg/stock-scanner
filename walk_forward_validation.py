@@ -31,7 +31,9 @@ FEATURES = [
 EVAL_START = pd.Timestamp("2024-01-01")
 THRESHOLDS = [80, 85, 90]
 TRADING_HORIZONS = [1, 5, 10, 20, 30]
-SCORE_BANDS = [(50, 60), (60, 65), (65, 70), (70, 75), (75, 80), (80, 85), (85, 90), (90, float("inf"))]
+SCORE_BANDS = [(80, 85), (85, 90), (90, float("inf"))]
+TRADE_EVENT_COOLDOWN_DAYS = 60
+MIN_RANK_N = 30
 
 
 def _naive_day_index(index) -> pd.DatetimeIndex:
@@ -109,7 +111,6 @@ def forward_metrics(close: pd.Series, date: pd.Timestamp) -> dict[str, float | N
     for days in TRADING_HORIZONS:
         out[f"return_{days}d"] = float(future.iloc[days - 1] / entry - 1) if len(future) >= days else None
 
-    # 60D means 60 calendar days. Use the first available trading session on or after that calendar date.
     target_date = day + pd.Timedelta(days=60)
     target_positions = np.flatnonzero(index_dates >= target_date)
     if len(target_positions):
@@ -139,19 +140,70 @@ def _band_key(lo: int, hi: float) -> str:
     return f"{lo}+" if hi == float("inf") else f"{lo}-{int(hi) - 1}"
 
 
+def _event_summary(events: pd.DataFrame, name: str) -> dict[str, object]:
+    out: dict[str, object] = {"events": int(len(events))}
+    for horizon in ["1d", "5d", "10d", "20d", "30d", "60d"]:
+        out[horizon] = _summary_horizon(events, horizon)
+    out["avg_max_gain_60d"] = float(events["max_gain_60d"].mean()) if events["max_gain_60d"].notna().any() else None
+    out["avg_max_drawdown_60d"] = float(events["max_drawdown_60d"].mean()) if events["max_drawdown_60d"].notna().any() else None
+    return out
+
+
+def build_trade_events(df: pd.DataFrame) -> pd.DataFrame:
+    """Turn daily 80+ scenarios into trade-like events: first 80+ per ticker, then cooldown 60 calendar days."""
+    if df.empty:
+        return df.copy()
+    x = df.copy()
+    x["date_ts"] = pd.to_datetime(x["date"]).dt.normalize()
+    x = x.sort_values(["ticker", "date_ts"]).reset_index(drop=True)
+    selected = []
+    next_allowed: dict[str, pd.Timestamp] = {}
+    for row in x.itertuples(index=False):
+        if float(row.score) < 80:
+            continue
+        ticker = str(row.ticker).upper()
+        date = pd.Timestamp(row.date_ts)
+        if ticker in next_allowed and date < next_allowed[ticker]:
+            continue
+        selected.append(row)
+        next_allowed[ticker] = date + pd.Timedelta(days=TRADE_EVENT_COOLDOWN_DAYS)
+    events = pd.DataFrame(selected)
+    if events.empty:
+        return events
+    events["entry_score"] = events["score"].astype(float)
+    events["peak_score_60d"] = events["entry_score"].astype(float)
+    events["peak_score_date"] = events["date_ts"].dt.date.astype(str)
+    events["days_to_85"] = np.nan
+    events["days_to_90"] = np.nan
+    # Score evolution is measured from the same ticker's daily scenarios during the 60-day event window.
+    for i, event in events.iterrows():
+        ticker = event["ticker"]
+        start = event["date_ts"]
+        end = start + pd.Timedelta(days=60)
+        path = x[(x["ticker"] == ticker) & (x["date_ts"] >= start) & (x["date_ts"] <= end)]
+        if path.empty:
+            continue
+        peak_idx = path["score"].astype(float).idxmax()
+        events.at[i, "peak_score_60d"] = float(path.loc[peak_idx, "score"])
+        events.at[i, "peak_score_date"] = str(path.loc[peak_idx, "date_ts"].date())
+        for threshold, col in [(85, "days_to_85"), (90, "days_to_90")]:
+            hit = path[path["score"] >= threshold]
+            if not hit.empty:
+                events.at[i, col] = float((hit.iloc[0]["date_ts"] - start).days)
+    return events.drop(columns=["date_ts"])
+
+
 def run(output_csv: str = "walk_forward_validation.csv", summary_json: str = "walk_forward_validation.json") -> dict:
     universe = load_top_us_stocks()
     tickers = universe["ticker"].tolist()
     entries = load_entries()
     entries["date"] = pd.to_datetime(entries["date"]).dt.tz_localize(None).dt.normalize()
-    entry_dates = set(entries["date"])
 
     benchmarks = download_benchmarks(DEFAULT_START)
     spy = benchmarks.get("SPY")
     spy_close = spy["Close"] if spy is not None and "Close" in spy.columns else None
     prices = download_ohlcv(tickers, DEFAULT_START)
     sector_benchmarks = download_sector_benchmarks(DEFAULT_START)
-    # Fundamentals are downloaded for sector classification only. Point-in-time values are not used in historical scoring.
     fundamentals = download_fundamentals(tickers)
     sector_by_ticker = {ticker: data.get("sector") for ticker, data in fundamentals.items()}
 
@@ -163,8 +215,6 @@ def run(output_csv: str = "walk_forward_validation.csv", summary_json: str = "wa
     if not eval_dates:
         raise RuntimeError("No historical market dates available for walk-forward validation")
 
-    # Build a feature snapshot for EVERY market day, not only trader-entry days.
-    # This is critical: the validation must test what the scanner would have seen on normal days too.
     snapshots: dict[pd.Timestamp, dict[str, np.ndarray]] = {}
     feature_rows: dict[pd.Timestamp, dict[str, pd.Series]] = {}
     close_by_ticker: dict[str, pd.Series] = {}
@@ -180,7 +230,6 @@ def run(output_csv: str = "walk_forward_validation.csv", summary_json: str = "wa
         close_by_ticker[ticker] = close
 
         aligned = features.reindex(eval_dates, method="ffill")
-
         sector = sector_by_ticker.get(ticker)
         sector_etf = SECTOR_ETFS.get(sector)
         sector_close = None
@@ -236,26 +285,28 @@ def run(output_csv: str = "walk_forward_validation.csv", summary_json: str = "wa
         raise RuntimeError("Walk-forward produced no scenarios")
     df.to_csv(output_csv, index=False)
 
+    events = build_trade_events(df)
+    event_csv = Path(output_csv).with_name("walk_forward_trade_events.csv")
+    events.to_csv(event_csv, index=False)
+
     summary: dict[str, object] = {
-        "method": "Daily walk-forward logistic trader-pattern validation across the full curated universe. Each evaluation day trains only on trader entries before that day, then scores every available ticker. Feature snapshots are built for every market day so normal non-entry days are also tested. All scored scenarios are retained for calibration. Fundamentals are excluded from historical scoring because point-in-time fundamentals are unavailable.",
+        "method": "Daily walk-forward logistic trader-pattern validation across the full curated universe. Each evaluation day trains only on trader entries before that day, then scores every available ticker. Daily scenarios are retained for model calibration. Trade-event results separately deduplicate 80+ signals per ticker with a 60-calendar-day cooldown, using the first 80+ as entry and measuring score evolution within that event. Fundamentals are excluded from historical scoring because point-in-time fundamentals are unavailable.",
         "evaluation_start": EVAL_START.date().isoformat(),
         "scenarios": int(len(df)),
         "alerts_80_plus": int((df["score"] >= 80).sum()),
+        "trade_events_80_plus": int(len(events)),
         "unique_dates": int(df["date"].nunique()),
         "unique_tickers": int(df["ticker"].nunique()),
         "evaluated_universe_rows": int(len(df)),
         "evaluated_dates": evaluated_dates,
         "market_days_available": len(eval_dates),
-        "horizons": {
-            "1d": "1 trading day",
-            "5d": "5 trading days",
-            "10d": "10 trading days",
-            "20d": "20 trading days",
-            "30d": "30 trading days",
-            "60d": "60 calendar days",
-        },
+        "trade_event_rule": f"First 80+ signal per ticker, then no new event for {TRADE_EVENT_COOLDOWN_DAYS} calendar days.",
+        "min_rank_n": MIN_RANK_N,
+        "horizons": {"1d": "1 trading day", "5d": "5 trading days", "10d": "10 trading days", "20d": "20 trading days", "30d": "30 trading days", "60d": "60 calendar days"},
         "thresholds": {},
         "score_bands": {},
+        "trade_events": {},
+        "score_evolution": {},
         "average_positive_training_observations": float(np.mean(model_counts)) if model_counts else None,
     }
 
@@ -282,6 +333,20 @@ def run(output_csv: str = "walk_forward_validation.csv", summary_json: str = "wa
             summary["score_bands"][key][f"winrate_{horizon}"] = stats["winrate"]
             summary["score_bands"][key][f"avg_return_{horizon}"] = stats["avg_return"]
             summary["score_bands"][key][f"median_return_{horizon}"] = stats["median_return"]
+
+    for threshold in [80, 85, 90]:
+        x = events[events["entry_score"] >= threshold] if not events.empty else events
+        summary["trade_events"][str(threshold)] = _event_summary(x, str(threshold))
+
+    if not events.empty:
+        for threshold in [85, 90]:
+            reached = events[events["peak_score_60d"] >= threshold]
+            summary["score_evolution"][f"reached_{threshold}"] = {
+                "events": int(len(reached)),
+                "avg_days_to_threshold": float(reached[f"days_to_{threshold}"].dropna().mean()) if reached[f"days_to_{threshold}"].notna().any() else None,
+                **{h: _summary_horizon(reached, h) for h in ["1d", "5d", "10d", "20d", "30d", "60d"]},
+            }
+        summary["score_evolution"]["entry_80_to_peak_90"] = int((events["peak_score_60d"] >= 90).sum())
 
     Path(summary_json).write_text(json.dumps(summary, indent=2), encoding="utf-8")
     return summary
