@@ -25,10 +25,11 @@ FEATURES = [
     "distance_6m_high", "distance_52w_high", "distance_support_20d",
     "distance_support_60d", "distance_support_120d", "volume_ratio",
     "volume_ratio_5d", "volatility_20d", "z_score", "close_location",
-    "relative_strength_5d", "relative_strength_20d",
+    "relative_strength_5d", "relative_strength_20d", "sector_relative_strength_20d",
 ]
 EVAL_START = pd.Timestamp("2025-01-01")
 THRESHOLDS = [80, 85, 90]
+HORIZONS = [1, 5, 10, 20, 30, 40]
 
 
 def vector(row: pd.Series) -> np.ndarray:
@@ -81,15 +82,15 @@ def forward_metrics(close: pd.Series, date: pd.Timestamp) -> dict[str, float | N
     day = date.normalize()
     entry_rows = close[close.index.normalize() == day]
     if entry_rows.empty:
-        return {**{f"return_{d}d": None for d in [1, 5, 10, 20]}, "max_gain_20d": None, "max_drawdown_20d": None}
+        return {**{f"return_{d}d": None for d in HORIZONS}, "max_gain_40d": None, "max_drawdown_40d": None}
     entry = float(entry_rows.iloc[-1])
     future = close[close.index.normalize() > day]
     out: dict[str, float | None] = {}
-    for days in [1, 5, 10, 20]:
+    for days in HORIZONS:
         out[f"return_{days}d"] = float(future.iloc[days - 1] / entry - 1) if len(future) >= days else None
-    window = future.iloc[:20]
-    out["max_gain_20d"] = float(window.max() / entry - 1) if len(window) else None
-    out["max_drawdown_20d"] = float(window.min() / entry - 1) if len(window) else None
+    window = future.iloc[:40]
+    out["max_gain_40d"] = float(window.max() / entry - 1) if len(window) else None
+    out["max_drawdown_40d"] = float(window.min() / entry - 1) if len(window) else None
     return out
 
 
@@ -182,6 +183,7 @@ def run(output_csv: str = "walk_forward_validation.csv", summary_json: str = "wa
         "unique_dates": int(df["date"].nunique()),
         "unique_tickers": int(df["ticker"].nunique()),
         "evaluated_universe_rows": int(sum(len(v) for d, v in feature_rows.items() if d in eval_dates)),
+        "horizons": {"30d": "30 trading days", "40d": "approximately 2 months / 40 trading days"},
         "thresholds": {},
         "average_positive_training_observations": float(np.mean(model_counts)) if model_counts else None,
     }
@@ -189,15 +191,15 @@ def run(output_csv: str = "walk_forward_validation.csv", summary_json: str = "wa
         x = df[df["score"] >= threshold]
         summary["thresholds"][str(threshold)] = {
             "alerts": int(len(x)),
-            "winrate_1d": float((x["return_1d"] > 0).mean()) if x["return_1d"].notna().any() else None,
-            "winrate_5d": float((x["return_5d"] > 0).mean()) if x["return_5d"].notna().any() else None,
-            "winrate_10d": float((x["return_10d"] > 0).mean()) if x["return_10d"].notna().any() else None,
-            "winrate_20d": float((x["return_20d"] > 0).mean()) if x["return_20d"].notna().any() else None,
-            "avg_return_5d": float(x["return_5d"].mean()) if x["return_5d".notna().any() else None,
-            "avg_return_20d": float(x["return_20d"].mean()) if x["return_20d".notna().any() else None,
+            **{f"winrate_{d}d": float((x[f"return_{d}d"] > 0).mean()) if x[f"return_{d}d"].notna().any() else None for d in HORIZONS},
+            "avg_return_5d": float(x["return_5d"].mean()) if x["return_5d"].notna().any() else None,
+            "avg_return_20d": float(x["return_20d"].mean()) if x["return_20d"].notna().any() else None,
+            "avg_return_30d": float(x["return_30d"].mean()) if x["return_30d"].notna().any() else None,
+            "avg_return_40d": float(x["return_40d"].mean()) if x["return_40d"].notna().any() else None,
             "median_return_20d": float(x["return_20d"].median()) if x["return_20d"].notna().any() else None,
-            "avg_max_gain_20d": float(x["max_gain_20d"].mean()) if x["max_gain_20d"].notna().any() else None,
-            "avg_max_drawdown_20d": float(x["max_drawdown_20d"].mean()) if x["max_drawdown_20d"].notna().any() else None,
+            "median_return_40d": float(x["return_40d"].median()) if x["return_40d"].notna().any() else None,
+            "avg_max_gain_40d": float(x["max_gain_40d"].mean()) if x["max_gain_40d"].notna().any() else None,
+            "avg_max_drawdown_40d": float(x["max_drawdown_40d"].mean()) if x["max_drawdown_40d"].notna().any() else None,
         }
     Path(summary_json).write_text(json.dumps(summary, indent=2), encoding="utf-8")
     return summary
