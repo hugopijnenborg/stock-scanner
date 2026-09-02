@@ -1,7 +1,7 @@
 import './globals.css';
 
 export const metadata = {
-  title: 'Trader Scanner',
+  title: 'Stock Scanner',
   description: 'Data-driven stock opportunity scanner',
 };
 
