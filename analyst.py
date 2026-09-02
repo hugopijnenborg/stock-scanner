@@ -13,7 +13,7 @@ CACHE_PATH = Path(__file__).resolve().parent / "data" / "analyst_cache.json"
 CACHE_TTL_HOURS = 12
 
 RATING_WEIGHTS = {"strongbuy": 100.0, "buy": 75.0, "hold": 50.0, "sell": 25.0, "strongsell": 0.0}
-BULLISH_ACTIONS = {"up", "upgrade", "upgraded", "init", "initiated", "reiterated"}
+BULLISH_ACTIONS = {"up", "upgrade", "upgraded", "init", "initiated"}
 BEARISH_ACTIONS = {"down", "downgrade", "downgraded"}
 
 
@@ -51,7 +51,8 @@ def _parse_recommendations(df):
     counts = {k: 0 for k in RATING_WEIGHTS}
     if not isinstance(df, pd.DataFrame) or df.empty:
         return counts, None
-    row = df.iloc[-1]
+    # Yahoo presents the current recommendation period first (typically 0m).
+    row = df.iloc[0]
     for key in counts:
         if key in row.index:
             counts[key] = int(_num(row[key]) or 0)
@@ -71,7 +72,8 @@ def _parse_changes(df):
     cutoff = now - timedelta(days=30)
     changes = []
     bullish = bearish = target_changes = 0
-    for idx, row in d.head(20).iterrows():
+    recent_count = 0
+    for idx, row in d.head(30).iterrows():
         try:
             ts = pd.Timestamp(idx)
             if ts.tzinfo is None:
@@ -84,7 +86,9 @@ def _parse_changes(df):
         to_grade = _clean_text(row.get("toGrade"))
         from_grade = _clean_text(row.get("fromGrade"))
         action_l = (action or "").lower().replace(" ", "")
-        if ts is not None and ts.to_pydatetime() >= cutoff:
+        is_recent = ts is not None and ts.to_pydatetime() >= cutoff
+        if is_recent:
+            recent_count += 1
             if any(x in action_l for x in BULLISH_ACTIONS):
                 bullish += 1
             if any(x in action_l for x in BEARISH_ACTIONS):
@@ -99,7 +103,7 @@ def _parse_changes(df):
                 "from_grade": from_grade,
                 "to_grade": to_grade,
             })
-    return changes, bullish, bearish, target_changes
+    return changes, recent_count, bullish, bearish, target_changes
 
 
 def _one(ticker):
@@ -110,8 +114,7 @@ def _one(ticker):
         consensus_score = None
         recommendation_key = None
         try:
-            summary = t.recommendations_summary
-            counts, consensus_score = _parse_recommendations(summary)
+            counts, consensus_score = _parse_recommendations(t.recommendations_summary)
         except Exception:
             pass
         try:
@@ -128,9 +131,9 @@ def _one(ticker):
         except Exception:
             pass
 
-        changes, bullish_30d, bearish_30d, target_changes_30d = [], 0, 0, 0
+        changes, recent_count, bullish_30d, bearish_30d, target_changes_30d = [], 0, 0, 0, 0
         try:
-            changes, bullish_30d, bearish_30d, target_changes_30d = _parse_changes(t.upgrades_downgrades)
+            changes, recent_count, bullish_30d, bearish_30d, target_changes_30d = _parse_changes(t.upgrades_downgrades)
         except Exception:
             pass
 
@@ -141,15 +144,10 @@ def _one(ticker):
         high = targets.get("high")
         upside = (mean / current - 1) if current and mean else None
         total_ratings = sum(counts.values())
-        usable = 0
-        if total_ratings:
-            usable += 1
-        if mean is not None:
-            usable += 1
-        if changes:
-            usable += 1
+        usable = int(bool(total_ratings)) + int(mean is not None) + int(bool(changes))
+        fallback_rating = _rating_key(max(counts, key=counts.get)) if total_ratings else None
         out.update({
-            "analyst_recommendation": _rating_key(recommendation_key) or _rating_key(max(counts, key=counts.get)) if total_ratings else _rating_key(recommendation_key),
+            "analyst_recommendation": _rating_key(recommendation_key) or fallback_rating,
             "analyst_consensus_score": round(consensus_score, 1) if consensus_score is not None else None,
             "analyst_strong_buy": counts["strongbuy"],
             "analyst_buy": counts["buy"],
@@ -163,7 +161,7 @@ def _one(ticker):
             "analyst_target_low": low,
             "analyst_target_high": high,
             "analyst_target_upside": upside,
-            "analyst_changes_30d": len([x for x in changes if x.get("date")]),
+            "analyst_changes_30d": recent_count,
             "analyst_bullish_changes_30d": bullish_30d,
             "analyst_bearish_changes_30d": bearish_30d,
             "analyst_target_changes_30d": target_changes_30d,
