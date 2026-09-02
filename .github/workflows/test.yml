@@ -47,7 +47,7 @@ jobs:
         id: market_window
         shell: bash
         run: |
-          if [ "$GITHUB_EVENT_NAME" = "workflow_dispatch" ]; then
+          if [ "$GITHUB_EVENT_NAME" = "workflow_dispatch" ] || [[ "${{ github.event.head_commit.message }}" == *"RUN_SCAN_NOW"* ]]; then
             echo 'run=true' >> "$GITHUB_OUTPUT"
           elif python scripts/market_hours_guard.py; then
             echo 'run=true' >> "$GITHUB_OUTPUT"
