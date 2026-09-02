@@ -30,6 +30,7 @@ FEATURES = [
 EVAL_START = pd.Timestamp("2025-01-01")
 THRESHOLDS = [80, 85, 90]
 TRADING_HORIZONS = [1, 5, 10, 20, 30]
+SCORE_BANDS = [(50, 60), (60, 65), (65, 70), (70, 75), (75, 80), (80, 85), (85, 90), (90, float("inf"))]
 
 
 def vector(row: pd.Series) -> np.ndarray:
@@ -96,7 +97,7 @@ def forward_metrics(close: pd.Series, date: pd.Timestamp) -> dict[str, float | N
     for days in TRADING_HORIZONS:
         out[f"return_{days}d"] = float(future.iloc[days - 1] / entry - 1) if len(future) >= days else None
 
-    # 60D is intentionally a calendar-day horizon, not 40 trading days.
+    # 60D is explicitly 60 calendar days. Use the first available trading session on or after that date.
     target_date = day + pd.Timedelta(days=60)
     target_positions = np.flatnonzero(index_dates >= target_date)
     if len(target_positions):
@@ -112,17 +113,6 @@ def forward_metrics(close: pd.Series, date: pd.Timestamp) -> dict[str, float | N
     return out
 
 
-def sector_relative_strength(stock_close: pd.Series, sector_close: pd.Series | None, date: pd.Timestamp) -> float | None:
-    if sector_close is None:
-        return None
-    day = pd.Timestamp(date).normalize()
-    stock = stock_close[stock_close.index.normalize() <= day]
-    sector = sector_close[sector_close.index.normalize() <= day]
-    if len(stock) < 21 or len(sector) < 21:
-        return None
-    return float((stock.iloc[-1] / stock.iloc[-21]) - (sector.iloc[-1] / sector.iloc[-21]))
-
-
 def _summary_horizon(x: pd.DataFrame, horizon: str) -> dict[str, float | int | None]:
     values = pd.to_numeric(x[f"return_{horizon}"], errors="coerce").dropna()
     return {
@@ -133,11 +123,16 @@ def _summary_horizon(x: pd.DataFrame, horizon: str) -> dict[str, float | int | N
     }
 
 
+def _band_key(lo: int, hi: float) -> str:
+    return f"{lo}+" if hi == float("inf") else f"{lo}-{int(hi) - 1}"
+
+
 def run(output_csv: str = "walk_forward_validation.csv", summary_json: str = "walk_forward_validation.json") -> dict:
     universe = load_top_us_stocks()
     tickers = universe["ticker"].tolist()
     entries = load_entries()
     entries["date"] = pd.to_datetime(entries["date"]).dt.tz_localize(None).dt.normalize()
+    entry_dates = set(entries["date"])
 
     benchmarks = download_benchmarks(DEFAULT_START)
     spy = benchmarks.get("SPY")
@@ -162,8 +157,7 @@ def run(output_csv: str = "walk_forward_validation.csv", summary_json: str = "wa
     for ticker, df in prices.items():
         if df.empty or "Close" not in df.columns:
             continue
-        features = add_indicators(df, spy_close)
-        features = features.copy()
+        features = add_indicators(df, spy_close).copy()
         features.index = pd.DatetimeIndex(features.index).tz_localize(None)
         close = pd.to_numeric(features["Close"], errors="coerce").dropna()
         close_by_ticker[ticker] = close
@@ -189,15 +183,12 @@ def run(output_csv: str = "walk_forward_validation.csv", summary_json: str = "wa
             if row.isna().all():
                 continue
             row = row.copy()
-            if sector_rs_series is not None and pd.notna(sector_rs_series.get(date)):
-                row["sector_relative_strength_20d"] = float(sector_rs_series.loc[date])
-            else:
-                row["sector_relative_strength_20d"] = None
-            feature_rows.setdefault(pd.Timestamp(date), {})[ticker] = row
-            if pd.Timestamp(date) in set(entries["date"]):
-                snapshots.setdefault(pd.Timestamp(date), {})[ticker] = vector(row)
+            row["sector_relative_strength_20d"] = float(sector_rs_series.loc[date]) if sector_rs_series is not None and pd.notna(sector_rs_series.get(date)) else None
+            date = pd.Timestamp(date)
+            feature_rows.setdefault(date, {})[ticker] = row
+            if date in entry_dates:
+                snapshots.setdefault(date, {})[ticker] = vector(row)
 
-    eval_set = set(eval_dates)
     results = []
     model_counts = []
     evaluated_dates = 0
@@ -211,8 +202,6 @@ def run(output_csv: str = "walk_forward_validation.csv", summary_json: str = "wa
             trader_score = probability(pipe, row)
             technical = float(technical_opportunity_score(row)["technical_opportunity_score"])
             score = 0.70 * trader_score + 0.30 * technical
-            if score < 80:
-                continue
             metrics = forward_metrics(close_by_ticker[ticker], pd.Timestamp(date))
             results.append({
                 "date": pd.Timestamp(date).date().isoformat(),
@@ -221,21 +210,23 @@ def run(output_csv: str = "walk_forward_validation.csv", summary_json: str = "wa
                 "trader_score": round(trader_score, 2),
                 "technical_score": round(technical, 2),
                 "sector_relative_strength_20d": row.get("sector_relative_strength_20d"),
+                "training_positive_observations": positives,
                 **metrics,
             })
 
     df = pd.DataFrame(results)
     if df.empty:
-        raise RuntimeError("Walk-forward produced no 80+ observations")
+        raise RuntimeError("Walk-forward produced no scenarios")
     df.to_csv(output_csv, index=False)
 
     summary: dict[str, object] = {
-        "method": "Daily walk-forward logistic trader-pattern validation across the full curated universe. Each evaluation day trains only on trader entries before that day, then scores every available ticker. Fundamentals are excluded from historical scoring because point-in-time fundamentals are unavailable.",
+        "method": "Daily walk-forward logistic trader-pattern validation across the full curated universe. Each evaluation day trains only on trader entries before that day, then scores every available ticker. All scored scenarios are retained for calibration; 80+/85+/90+ are reported as alert thresholds. Fundamentals are excluded from historical scoring because point-in-time fundamentals are unavailable.",
         "evaluation_start": EVAL_START.date().isoformat(),
-        "observations": int(len(df)),
+        "scenarios": int(len(df)),
+        "alerts_80_plus": int((df["score"] >= 80).sum()),
         "unique_dates": int(df["date"].nunique()),
         "unique_tickers": int(df["ticker"].nunique()),
-        "evaluated_universe_rows": int(sum(len(feature_rows.get(d, {})) for d in eval_dates if d in feature_rows)),
+        "evaluated_universe_rows": int(len(df)),
         "evaluated_dates": evaluated_dates,
         "market_days_available": len(eval_dates),
         "horizons": {
@@ -247,8 +238,10 @@ def run(output_csv: str = "walk_forward_validation.csv", summary_json: str = "wa
             "60d": "60 calendar days",
         },
         "thresholds": {},
+        "score_bands": {},
         "average_positive_training_observations": float(np.mean(model_counts)) if model_counts else None,
     }
+
     for threshold in THRESHOLDS:
         x = df[df["score"] >= threshold]
         threshold_summary: dict[str, object] = {"alerts": int(len(x))}
@@ -261,6 +254,17 @@ def run(output_csv: str = "walk_forward_validation.csv", summary_json: str = "wa
         threshold_summary["avg_max_gain_60d"] = float(x["max_gain_60d"].mean()) if x["max_gain_60d"].notna().any() else None
         threshold_summary["avg_max_drawdown_60d"] = float(x["max_drawdown_60d"].mean()) if x["max_drawdown_60d"].notna().any() else None
         summary["thresholds"][str(threshold)] = threshold_summary
+
+    for lo, hi in SCORE_BANDS:
+        x = df[(df["score"] >= lo) & (df["score"] < hi)]
+        key = _band_key(lo, hi)
+        summary["score_bands"][key] = {"scenarios": int(len(x))}
+        for horizon in ["5d", "20d", "30d", "60d"]:
+            stats = _summary_horizon(x, horizon)
+            summary["score_bands"][key][f"n_{horizon}"] = stats["n"]
+            summary["score_bands"][key][f"winrate_{horizon}"] = stats["winrate"]
+            summary["score_bands"][key][f"avg_return_{horizon}"] = stats["avg_return"]
+            summary["score_bands"][key][f"median_return_{horizon}"] = stats["median_return"]
 
     Path(summary_json).write_text(json.dumps(summary, indent=2), encoding="utf-8")
     return summary
