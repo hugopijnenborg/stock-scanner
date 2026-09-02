@@ -8,6 +8,20 @@ import yfinance as yf
 
 from config import DEFAULT_START, BENCHMARKS
 
+SECTOR_ETFS = {
+    "Communication Services": "XLC",
+    "Consumer Cyclical": "XLY",
+    "Consumer Defensive": "XLP",
+    "Energy": "XLE",
+    "Financial Services": "XLF",
+    "Healthcare": "XLV",
+    "Industrials": "XLI",
+    "Basic Materials": "XLB",
+    "Real Estate": "XLRE",
+    "Technology": "XLK",
+    "Utilities": "XLU",
+}
+
 
 def _flatten_columns(df: pd.DataFrame) -> pd.DataFrame:
     if isinstance(df.columns, pd.MultiIndex):
@@ -46,11 +60,7 @@ def download_ohlcv(tickers: Iterable[str], start: str = DEFAULT_START, end: str 
 
 
 def download_intraday(tickers: Iterable[str], period: str = "10d", interval: str = "15m") -> dict[str, pd.DataFrame]:
-    """Download recent intraday bars for live confirmation.
-
-    Yahoo's intraday retention is limited, so this intentionally uses a short
-    rolling window. Daily data remains the source for long-term indicators.
-    """
+    """Download recent intraday bars for live confirmation."""
     symbols = list(dict.fromkeys(tickers))
     if not symbols:
         return {}
@@ -81,3 +91,8 @@ def download_benchmarks(start: str = DEFAULT_START, end: str | None = None) -> d
 
 def download_intraday_benchmarks(period: str = "10d", interval: str = "15m") -> dict[str, pd.DataFrame]:
     return download_intraday(BENCHMARKS, period=period, interval=interval)
+
+
+def download_sector_benchmarks(start: str = DEFAULT_START, end: str | None = None) -> dict[str, pd.DataFrame]:
+    """Download daily sector ETF prices used for sector-relative momentum."""
+    return download_ohlcv(dict.fromkeys(SECTOR_ETFS.values()), start=start, end=end)
