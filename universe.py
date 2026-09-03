@@ -49,6 +49,19 @@ CURATED_UNIVERSE = {
     "FI": "Fiserv",
     "PYPL": "PayPal",
     "XYZ": "Block",
+    "SNOW": "Snowflake",
+    "DDOG": "Datadog",
+    "WDAY": "Workday",
+    "HUBS": "HubSpot",
+    "MDB": "MongoDB",
+    "VEEV": "Veeva Systems",
+    "GTLB": "GitLab",
+    "PATH": "UiPath",
+    "TXN": "Texas Instruments",
+    "ON": "ON Semiconductor",
+    "TER": "Teradyne",
+    "TSM": "Taiwan Semiconductor",
+    "MSCI": "MSCI",
 
     # Consumer and internet
     "TSLA": "Tesla",
@@ -73,6 +86,10 @@ CURATED_UNIVERSE = {
     "CMG": "Chipotle Mexican Grill",
     "GM": "General Motors",
     "F": "Ford",
+    "CELH": "Celsius Holdings",
+    "BABA": "Alibaba",
+    "HIMS": "Hims & Hers Health",
+    "ZETA": "Zeta Global",
 
     # Financial
     "JPM": "JPMorgan Chase",
@@ -109,6 +126,10 @@ CURATED_UNIVERSE = {
     "AEP": "American Electric Power",
     "DUK": "Duke Energy",
     "SO": "Southern Company",
+    "WULF": "TeraWulf",
+    "PCG": "PG&E",
+    "FLNC": "Fluence Energy",
+    "APLD": "Applied Digital",
 
     # Healthcare
     "LLY": "Eli Lilly",
@@ -157,7 +178,6 @@ CURATED_UNIVERSE = {
     "IREN": "IREN",
     "NBIS": "Nebius",
     "AAOI": "Applied Optoelectronics",
-    "APLD": "Applied Digital",
     "AMKR": "Amkor Technology",
     "NVTS": "Navitas Semiconductor",
     "ASML": "ASML",
@@ -169,6 +189,7 @@ CURATED_UNIVERSE = {
     "IONQ": "IonQ",
     "TEM": "Tempus AI",
     "RDDT": "Reddit",
+    "ONDS": "Ondas Holdings",
 
     # Final additions agreed
     "ARM": "Arm Holdings",
