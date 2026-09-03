@@ -24,11 +24,23 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+
       - uses: actions/setup-python@v5
         with:
           python-version: '3.12'
           cache: pip
+
       - run: pip install -r requirements.txt
+
+      - name: Restore scanner data cache
+        uses: actions/cache@v4
+        with:
+          path: |
+            data/fundamentals_cache.json
+            data/analyst_cache.json
+          key: scanner-data-v1-${{ github.run_id }}
+          restore-keys: |
+            scanner-data-v1-
 
       - name: Check requested market window
         id: market_window
@@ -42,10 +54,6 @@ jobs:
             echo 'run=false' >> "$GITHUB_OUTPUT"
           fi
 
-      - name: Learn trader pattern
-        if: steps.market_window.outputs.run == 'true'
-        run: python learn_model.py
-
       - name: Run market scan
         if: steps.market_window.outputs.run == 'true'
         run: python main.py scan --limit 1000 --top 1000 --output scan_results.csv --web-output public/data/latest_scan.json
@@ -57,13 +65,6 @@ jobs:
           SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
         run: python scripts/save_alerts_supabase.py
 
-      - name: Evaluate historical alerts
-        if: steps.market_window.outputs.run == 'true'
-        env:
-          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
-          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
-        run: python scripts/evaluate_alerts.py
-
       - name: Send Discord alerts when configured
         if: steps.market_window.outputs.run == 'true'
         continue-on-error: true
@@ -71,32 +72,18 @@ jobs:
           DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
         run: python notify_discord.py
 
-      - name: Upload scanner results
-        if: steps.market_window.outputs.run == 'true'
-        uses: actions/upload-artifact@v4
-        with:
-          name: market-scan-results
-          path: |
-            scan_results.csv
-            learned_model.json
-            public/data/alert_history.json
-
-      - name: Publish latest scan, cache and alert history
+      - name: Publish latest scan and alert history
         if: steps.market_window.outputs.run == 'true'
         run: |
           cp public/data/latest_scan.json /tmp/latest_scan.json
-          cp learned_model.json /tmp/learned_model.json
           cp public/data/alert_history.json /tmp/alert_history.json
-          cp data/fundamentals_cache.json /tmp/fundamentals_cache.json
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
           git fetch origin main
           git reset --hard origin/main
           cp /tmp/latest_scan.json public/data/latest_scan.json
-          cp /tmp/learned_model.json learned_model.json
           cp /tmp/alert_history.json public/data/alert_history.json
-          cp /tmp/fundamentals_cache.json data/fundamentals_cache.json
-          git add public/data/latest_scan.json learned_model.json public/data/alert_history.json data/fundamentals_cache.json
+          git add public/data/latest_scan.json public/data/alert_history.json
           git diff --cached --quiet && exit 0
           git commit -m 'Update scheduled market scan [skip ci]'
           git push origin HEAD:main
