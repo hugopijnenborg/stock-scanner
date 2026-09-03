@@ -59,7 +59,7 @@ jobs:
         run: python learn_model.py
       - name: Run market scan
         if: steps.market_window.outputs.run == 'true'
-        run: python main.py scan --limit 1000 --top 50 --output scan_results.csv --web-output public/data/latest_scan.json
+        run: python main.py scan --limit 1000 --top 1000 --output scan_results.csv --web-output public/data/latest_scan.json
       - name: Save own 80+ alerts to Supabase
         if: steps.market_window.outputs.run == 'true'
         env:
