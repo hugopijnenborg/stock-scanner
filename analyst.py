@@ -10,7 +10,7 @@ import pandas as pd
 import yfinance as yf
 
 CACHE_PATH = Path(__file__).resolve().parent / "data" / "analyst_cache.json"
-CACHE_TTL_HOURS = 12
+CACHE_TTL_HOURS = 24
 
 RATING_WEIGHTS = {"strongbuy": 100.0, "buy": 75.0, "hold": 50.0, "sell": 25.0, "strongsell": 0.0}
 BULLISH_ACTIONS = {"up", "upgrade", "upgraded", "init", "initiated"}
