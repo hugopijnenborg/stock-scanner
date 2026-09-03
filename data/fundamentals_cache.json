@@ -1,7 +1,7 @@
 {
   "AVGO": {
     "ticker": "AVGO",
-    "fundamental_score": 86.2,
+    "fundamental_score": 89.0,
     "fundamental_completeness": 100.0,
     "revenue": 63887000000.0,
     "revenue_growth": 0.23874432853763516,
@@ -15,15 +15,16 @@
     "roe": 0.2844806377011268,
     "debt_equity": 0.8012596565467697,
     "cash": 16178000000.0,
-    "pe": 60.88391,
-    "forward_pe": 18.757153,
+    "pe": 44.037083,
+    "forward_pe": 17.760395,
     "peg": 0.42,
-    "market_cap": 1746650529792.0,
-    "_cached_at": "2026-09-02T13:58:33.319658+00:00"
+    "market_cap": 1638367887360.0,
+    "sector": "Technology",
+    "_cached_at": "2026-09-03T14:42:47.189911+00:00"
   },
   "META": {
     "ticker": "META",
-    "fundamental_score": 75.6,
+    "fundamental_score": 75.5,
     "fundamental_completeness": 100.0,
     "revenue": 200966000000.0,
     "revenue_growth": 0.22167038498246217,
@@ -37,15 +38,16 @@
     "roe": 0.2782966539773433,
     "debt_equity": 0.38618965858508675,
     "cash": 81592000000.0,
-    "pe": 22.331451,
-    "forward_pe": 16.959547,
-    "peg": 0.85,
-    "market_cap": 1510416449536.0,
-    "_cached_at": "2026-09-02T13:58:33.319658+00:00"
+    "pe": 23.003202,
+    "forward_pe": 17.476286,
+    "peg": 0.77,
+    "market_cap": 1556437139456.0,
+    "sector": "Communication Services",
+    "_cached_at": "2026-09-03T14:42:47.189911+00:00"
   },
   "AAPL": {
     "ticker": "AAPL",
-    "fundamental_score": 66.8,
+    "fundamental_score": 66.7,
     "fundamental_completeness": 100.0,
     "revenue": 416161000000.0,
     "revenue_growth": 0.06425511782832749,
@@ -59,15 +61,16 @@
     "roe": 1.5191298333175105,
     "debt_equity": 1.3380304612588665,
     "cash": 54697000000.0,
-    "pe": 37.361656,
-    "forward_pe": 34.11065,
-    "peg": 2.54,
-    "market_cap": 4749238206464.0,
-    "_cached_at": "2026-09-02T13:58:33.319658+00:00"
+    "pe": 37.70271,
+    "forward_pe": 34.422028,
+    "peg": 2.56,
+    "market_cap": 4792591581184.0,
+    "sector": "Technology",
+    "_cached_at": "2026-09-03T14:42:47.189911+00:00"
   },
   "NVDA": {
     "ticker": "NVDA",
-    "fundamental_score": 97.7,
+    "fundamental_score": 97.6,
     "fundamental_completeness": 100.0,
     "revenue": 215938000000.0,
     "revenue_growth": 0.6547353579009478,
@@ -81,11 +84,12 @@
     "roe": 0.7633333969089534,
     "debt_equity": 0.07018748450344262,
     "cash": 62556000000.0,
-    "pe": 27.829306,
-    "forward_pe": 14.290199,
+    "pe": 28.69367,
+    "forward_pe": 14.715419,
     "peg": 0.56,
-    "market_cap": 5315474489344.0,
-    "_cached_at": "2026-09-02T13:58:33.319658+00:00"
+    "market_cap": 5473641693184.0,
+    "sector": "Technology",
+    "_cached_at": "2026-09-03T14:42:47.189911+00:00"
   },
   "AMD": {
     "ticker": "AMD",
@@ -103,15 +107,16 @@
     "roe": 0.06881061604152447,
     "debt_equity": 0.0610644613406562,
     "cash": 10552000000.0,
-    "pe": 115.8622,
-    "forward_pe": 29.320375,
+    "pe": 116.11054,
+    "forward_pe": 29.232924,
     "peg": 0.48,
-    "market_cap": 739545776128.0,
-    "_cached_at": "2026-09-02T13:58:33.319658+00:00"
+    "market_cap": 737340030976.0,
+    "sector": "Technology",
+    "_cached_at": "2026-09-03T14:42:47.189911+00:00"
   },
   "AMZN": {
     "ticker": "AMZN",
-    "fundamental_score": 61.6,
+    "fundamental_score": 61.2,
     "fundamental_completeness": 100.0,
     "revenue": 716924000000.0,
     "revenue_growth": 0.12377754683294695,
@@ -125,15 +130,16 @@
     "roe": 0.1889482198679041,
     "debt_equity": 0.37217228418863196,
     "cash": 123029000000.0,
-    "pe": 20.522509,
-    "forward_pe": 24.562769,
-    "peg": 1.36,
-    "market_cap": 2753745911808.0,
-    "_cached_at": "2026-09-02T13:58:33.319658+00:00"
+    "pe": 20.760878,
+    "forward_pe": 24.792515,
+    "peg": 1.49,
+    "market_cap": 2781251895296.0,
+    "sector": "Consumer Cyclical",
+    "_cached_at": "2026-09-03T14:42:47.189911+00:00"
   },
   "MSFT": {
     "ticker": "MSFT",
-    "fundamental_score": 84.4,
+    "fundamental_score": 84.3,
     "fundamental_completeness": 100.0,
     "revenue": 331839000000.0,
     "revenue_growth": 0.17788686799846665,
@@ -147,15 +153,16 @@
     "roe": 0.30233483352811,
     "debt_equity": 0.12845314170624364,
     "cash": 76651000000.0,
-    "pe": 27.757803,
-    "forward_pe": 21.124554,
+    "pe": 28.400223,
+    "forward_pe": 21.613453,
     "peg": 1.63,
-    "market_cap": 3697736155136.0,
-    "_cached_at": "2026-09-02T13:58:33.319658+00:00"
+    "market_cap": 3783315423232.0,
+    "sector": "Technology",
+    "_cached_at": "2026-09-03T14:42:47.189911+00:00"
   },
   "GOOGL": {
     "ticker": "GOOGL",
-    "fundamental_score": 87.3,
+    "fundamental_score": 86.5,
     "fundamental_completeness": 100.0,
     "revenue": 402836000000.0,
     "revenue_growth": 0.1509008108154437,
@@ -169,15 +176,16 @@
     "roe": 0.3182786895115167,
     "debt_equity": 0.14277870757227312,
     "cash": 126843000000.0,
-    "pe": 16.883091,
-    "forward_pe": 22.692709,
-    "peg": 0.92,
-    "market_cap": 4115128647680.0,
-    "_cached_at": "2026-09-02T13:58:33.319658+00:00"
+    "pe": 17.205322,
+    "forward_pe": 23.11422,
+    "peg": 1.24,
+    "market_cap": 4191565905920.0,
+    "sector": "Communication Services",
+    "_cached_at": "2026-09-03T14:42:47.189911+00:00"
   },
   "LRCX": {
     "ticker": "LRCX",
-    "fundamental_score": 84.0,
+    "fundamental_score": 84.5,
     "fundamental_completeness": 100.0,
     "revenue": 23232690000.0,
     "revenue_growth": 0.26020858240997,
@@ -191,11 +199,12 @@
     "roe": 0.5825869637054072,
     "debt_equity": 0.29946168370403436,
     "cash": 5579171000.0,
-    "pe": 49.770435,
-    "forward_pe": 24.72908,
-    "peg": 1.48,
-    "market_cap": 358103023616.0,
-    "_cached_at": "2026-09-02T13:58:33.319658+00:00"
+    "pe": 49.102253,
+    "forward_pe": 24.481945,
+    "peg": 1.35,
+    "market_cap": 354524266496.0,
+    "sector": "Technology",
+    "_cached_at": "2026-09-03T14:42:47.189911+00:00"
   },
   "MU": {
     "ticker": "MU",
@@ -213,15 +222,16 @@
     "roe": 0.1576479276285424,
     "debt_equity": 0.28206406350964647,
     "cash": 10307000000.0,
-    "pe": 21.182373,
-    "forward_pe": 6.0462413,
+    "pe": 21.078157,
+    "forward_pe": 6.0192137,
     "peg": 0.14,
-    "market_cap": 1058602811392.0,
-    "_cached_at": "2026-09-02T13:58:33.319658+00:00"
+    "market_cap": 1053870653440.0,
+    "sector": "Technology",
+    "_cached_at": "2026-09-03T14:42:47.189911+00:00"
   },
   "KLAC": {
     "ticker": "KLAC",
-    "fundamental_score": 72.5,
+    "fundamental_score": 72.8,
     "fundamental_completeness": 100.0,
     "revenue": 13579476000.0,
     "revenue_growth": 0.1170858038910636,
@@ -235,11 +245,12 @@
     "roe": 0.7607729037988479,
     "debt_equity": 0.9688011628676089,
     "cash": 4902408000.0,
-    "pe": 46.00273,
-    "forward_pe": 25.224573,
-    "peg": 1.76,
-    "market_cap": 219983282176.0,
-    "_cached_at": "2026-09-02T13:58:33.319658+00:00"
+    "pe": 46.3,
+    "forward_pe": 25.2628,
+    "peg": 1.63,
+    "market_cap": 220799877120.0,
+    "sector": "Technology",
+    "_cached_at": "2026-09-03T14:42:47.189911+00:00"
   },
   "QCOM": {
     "ticker": "QCOM",
@@ -257,11 +268,12 @@
     "roe": 0.26129397340375365,
     "debt_equity": 0.6984344053569744,
     "cash": 10155000000.0,
-    "pe": 18.889143,
-    "forward_pe": 16.200825,
+    "pe": 19.014286,
+    "forward_pe": 16.308157,
     "peg": 0.74,
-    "market_cap": 176529031168.0,
-    "_cached_at": "2026-09-02T13:58:33.319658+00:00"
+    "market_cap": 177698570240.0,
+    "sector": "Technology",
+    "_cached_at": "2026-09-03T14:42:47.189911+00:00"
   },
   "INTC": {
     "ticker": "INTC",
@@ -280,14 +292,15 @@
     "debt_equity": 0.4076355649670549,
     "cash": 37416000000.0,
     "pe": null,
-    "forward_pe": 43.075687,
+    "forward_pe": 43.869804,
     "peg": 1.36,
-    "market_cap": 464542892032.0,
-    "_cached_at": "2026-09-02T13:58:33.319658+00:00"
+    "market_cap": 473106939904.0,
+    "sector": "Technology",
+    "_cached_at": "2026-09-03T14:42:47.189911+00:00"
   },
   "ANET": {
     "ticker": "ANET",
-    "fundamental_score": 83.7,
+    "fundamental_score": 84.9,
     "fundamental_completeness": 100.0,
     "revenue": 9005700000.0,
     "revenue_growth": 0.28595907526666764,
@@ -301,15 +314,16 @@
     "roe": 0.28385271411826524,
     "debt_equity": 0.003553938806030476,
     "cash": 10743000000.0,
-    "pe": 58.75949,
-    "forward_pe": 35.98254,
-    "peg": 1.9,
-    "market_cap": 234184196096.0,
-    "_cached_at": "2026-09-02T13:58:33.319658+00:00"
+    "pe": 60.686497,
+    "forward_pe": 36.574566,
+    "peg": 1.42,
+    "market_cap": 238037237760.0,
+    "sector": "Technology",
+    "_cached_at": "2026-09-03T14:42:47.189911+00:00"
   },
   "AMAT": {
     "ticker": "AMAT",
-    "fundamental_score": 65.4,
+    "fundamental_score": 65.5,
     "fundamental_completeness": 100.0,
     "revenue": 28368000000.0,
     "revenue_growth": 0.04386223138063006,
@@ -323,15 +337,16 @@
     "roe": 0.34278716629928974,
     "debt_equity": 0.3453343130051433,
     "cash": 8573000000.0,
-    "pe": 37.611355,
-    "forward_pe": 23.592693,
+    "pe": 37.098877,
+    "forward_pe": 23.27878,
     "peg": 0.88,
-    "market_cap": 345643024384.0,
-    "_cached_at": "2026-09-02T13:58:33.319658+00:00"
+    "market_cap": 340933443584.0,
+    "sector": "Technology",
+    "_cached_at": "2026-09-03T14:42:47.189911+00:00"
   },
   "CSCO": {
     "ticker": "CSCO",
-    "fundamental_score": 68.2,
+    "fundamental_score": 68.3,
     "fundamental_completeness": 100.0,
     "revenue": 56654000000.0,
     "revenue_growth": 0.05298961024478199,
@@ -345,15 +360,16 @@
     "roe": 0.21732169160813783,
     "debt_equity": 0.599726746792477,
     "cash": 16110000000.0,
-    "pe": 32.687687,
-    "forward_pe": 19.429659,
-    "peg": 1.03,
-    "market_cap": 429025165312.0,
-    "_cached_at": "2026-09-02T13:58:33.319658+00:00"
+    "pe": 32.630634,
+    "forward_pe": 19.395744,
+    "peg": 1.01,
+    "market_cap": 428276285440.0,
+    "sector": "Technology",
+    "_cached_at": "2026-09-03T14:42:47.189911+00:00"
   },
   "CRM": {
     "ticker": "CRM",
-    "fundamental_score": 74.7,
+    "fundamental_score": 74.6,
     "fundamental_completeness": 100.0,
     "revenue": 41525000000.0,
     "revenue_growth": 0.09579100145137875,
@@ -367,15 +383,16 @@
     "roe": 0.1260863684014744,
     "debt_equity": 0.29041966791789253,
     "cash": 9565000000.0,
-    "pe": 24.02152,
-    "forward_pe": 16.472095,
-    "peg": 1.05,
-    "market_cap": 215885250560.0,
-    "_cached_at": "2026-09-02T13:58:33.319658+00:00"
+    "pe": 24.285715,
+    "forward_pe": 16.564741,
+    "peg": 1.07,
+    "market_cap": 218259603456.0,
+    "sector": "Technology",
+    "_cached_at": "2026-09-03T14:42:47.189911+00:00"
   },
   "IBM": {
     "ticker": "IBM",
-    "fundamental_score": 65.5,
+    "fundamental_score": 66.1,
     "fundamental_completeness": 100.0,
     "revenue": 67536000000.0,
     "revenue_growth": 0.07621946361130139,
@@ -389,15 +406,16 @@
     "roe": 0.3244609164420485,
     "debt_equity": 1.978896103896104,
     "cash": 14417000000.0,
-    "pe": 20.526175,
-    "forward_pe": 17.575048,
-    "peg": 2.41,
-    "market_cap": 217943949312.0,
-    "_cached_at": "2026-09-02T13:58:33.319658+00:00"
+    "pe": 20.815338,
+    "forward_pe": 17.806824,
+    "peg": 2.19,
+    "market_cap": 220818128896.0,
+    "sector": "Technology",
+    "_cached_at": "2026-09-03T14:42:47.189911+00:00"
   },
   "DELL": {
     "ticker": "DELL",
-    "fundamental_score": 65.7,
+    "fundamental_score": 65.9,
     "fundamental_completeness": 100.0,
     "revenue": 113538000000.0,
     "revenue_growth": 0.1880460828528676,
@@ -411,15 +429,16 @@
     "roe": -2.403238866396761,
     "debt_equity": -12.75425101214575,
     "cash": 11528000000.0,
-    "pe": 35.952553,
-    "forward_pe": 17.095186,
-    "peg": 0.75,
-    "market_cap": 291310075904.0,
-    "_cached_at": "2026-09-02T13:58:33.319658+00:00"
+    "pe": 34.67941,
+    "forward_pe": 17.890097,
+    "peg": 0.7,
+    "market_cap": 325361795072.0,
+    "sector": "Technology",
+    "_cached_at": "2026-09-03T14:42:47.189911+00:00"
   },
   "ADSK": {
     "ticker": "ADSK",
-    "fundamental_score": 74.0,
+    "fundamental_score": 74.1,
     "fundamental_completeness": 100.0,
     "revenue": 7206000000.0,
     "revenue_growth": 0.1753384439732506,
@@ -433,11 +452,12 @@
     "roe": 0.3691297208538588,
     "debt_equity": 0.8978653530377668,
     "cash": 2597000000.0,
-    "pe": 31.927555,
-    "forward_pe": 17.395191,
-    "peg": 1.03,
-    "market_cap": 51581202432.0,
-    "_cached_at": "2026-09-02T13:58:33.319658+00:00"
+    "pe": 31.57782,
+    "forward_pe": 17.16013,
+    "peg": 0.95,
+    "market_cap": 50884186112.0,
+    "sector": "Technology",
+    "_cached_at": "2026-09-03T14:42:47.189911+00:00"
   },
   "ADBE": {
     "ticker": "ADBE",
@@ -455,15 +475,16 @@
     "roe": 0.6134388712036479,
     "debt_equity": 0.5719693710745934,
     "cash": 6595000000.0,
-    "pe": 16.37643,
-    "forward_pe": 10.4101515,
+    "pe": 16.363638,
+    "forward_pe": 10.407969,
     "peg": 0.7,
-    "market_cap": 113788354560.0,
-    "_cached_at": "2026-09-02T13:58:33.319658+00:00"
+    "market_cap": 113764507648.0,
+    "sector": "Technology",
+    "_cached_at": "2026-09-03T14:42:47.189911+00:00"
   },
   "ORCL": {
     "ticker": "ORCL",
-    "fundamental_score": 72.5,
+    "fundamental_score": 72.2,
     "fundamental_completeness": 100.0,
     "revenue": 67357000000.0,
     "revenue_growth": 0.1734873429850694,
@@ -477,15 +498,16 @@
     "roe": 0.4019713936200245,
     "debt_equity": 3.674343652959443,
     "cash": 31894000000.0,
-    "pe": 24.517122,
-    "forward_pe": 13.104364,
+    "pe": 26.245283,
+    "forward_pe": 14.004043,
     "peg": 0.8,
-    "market_cap": 412425814016.0,
-    "_cached_at": "2026-09-02T13:58:33.319658+00:00"
+    "market_cap": 440740872192.0,
+    "sector": "Technology",
+    "_cached_at": "2026-09-03T14:42:47.189911+00:00"
   },
   "PLTR": {
     "ticker": "PLTR",
-    "fundamental_score": 84.9,
+    "fundamental_score": 87.1,
     "fundamental_completeness": 100.0,
     "revenue": 4475446000.0,
     "revenue_growth": 0.5618339093221549,
@@ -499,15 +521,16 @@
     "roe": 0.21997753431985953,
     "debt_equity": 0.031045035864408873,
     "cash": 7177043000.0,
-    "pe": 150.71317,
-    "forward_pe": 76.19538,
-    "peg": 2.49,
-    "market_cap": 423741849600.0,
-    "_cached_at": "2026-09-02T13:58:33.319658+00:00"
+    "pe": 166.95453,
+    "forward_pe": 79.35651,
+    "peg": 1.73,
+    "market_cap": 441321652224.0,
+    "sector": "Technology",
+    "_cached_at": "2026-09-03T14:42:47.189911+00:00"
   },
   "NOW": {
     "ticker": "NOW",
-    "fundamental_score": 73.2,
+    "fundamental_score": 73.8,
     "fundamental_completeness": 100.0,
     "revenue": 13278000000.0,
     "revenue_growth": 0.20884923525127452,
@@ -521,11 +544,12 @@
     "roe": 0.13483492749151496,
     "debt_equity": 0.1853594569577291,
     "cash": 6284000000.0,
-    "pe": 88.06875,
-    "forward_pe": 28.15098,
-    "peg": 1.24,
-    "market_cap": 145681498112.0,
-    "_cached_at": "2026-09-02T13:58:33.319658+00:00"
+    "pe": 90.44063,
+    "forward_pe": 28.909143,
+    "peg": 1.03,
+    "market_cap": 149605007360.0,
+    "sector": "Technology",
+    "_cached_at": "2026-09-03T14:42:47.189911+00:00"
   },
   "PANW": {
     "ticker": "PANW",
@@ -543,15 +567,16 @@
     "roe": 0.14491846020142118,
     "debt_equity": 0.043223761566382086,
     "cash": 2903200000.0,
-    "pe": 282.47415,
-    "forward_pe": 67.533394,
-    "peg": 4.23,
-    "market_cap": 267051057152.0,
-    "_cached_at": "2026-09-02T13:58:33.319658+00:00"
+    "pe": 287.10663,
+    "forward_pe": 67.38601,
+    "peg": 4.01,
+    "market_cap": 269090668544.0,
+    "sector": "Technology",
+    "_cached_at": "2026-09-03T14:42:47.189911+00:00"
   },
   "FTNT": {
     "ticker": "FTNT",
-    "fundamental_score": 69.2,
+    "fundamental_score": 70.8,
     "fundamental_completeness": 100.0,
     "revenue": 6799600000.0,
     "revenue_growth": 0.14167702071929877,
@@ -565,11 +590,12 @@
     "roe": 1.4976969696969697,
     "debt_equity": 0.8050909090909091,
     "cash": 3582500000.0,
-    "pe": 54.68905,
-    "forward_pe": 41.05534,
-    "peg": 2.37,
-    "market_cap": 113556865024.0,
-    "_cached_at": "2026-09-02T13:58:33.319658+00:00"
+    "pe": 55.50177,
+    "forward_pe": 41.650978,
+    "peg": 1.78,
+    "market_cap": 115244408832.0,
+    "sector": "Technology",
+    "_cached_at": "2026-09-03T14:42:47.189911+00:00"
   },
   "CRWD": {
     "ticker": "CRWD",
@@ -587,15 +613,16 @@
     "roe": -0.0366955033319107,
     "debt_equity": 0.18518626408243177,
     "cash": 5230125000.0,
-    "pe": 5148.338,
-    "forward_pe": 129.0003,
-    "peg": 7.41,
-    "market_cap": 210862489600.0,
-    "_cached_at": "2026-09-02T13:58:33.319658+00:00"
+    "pe": 5273.25,
+    "forward_pe": 131.74478,
+    "peg": 6.88,
+    "market_cap": 215978573824.0,
+    "sector": "Technology",
+    "_cached_at": "2026-09-03T14:42:47.189911+00:00"
   },
   "MRVL": {
     "ticker": "MRVL",
-    "fundamental_score": 66.3,
+    "fundamental_score": 67.3,
     "fundamental_completeness": 100.0,
     "revenue": 8194600000.0,
     "revenue_growth": 0.42087285211450776,
@@ -609,15 +636,16 @@
     "roe": 0.1866106622683179,
     "debt_equity": 0.334789354505046,
     "cash": 2638800000.0,
-    "pe": 67.41419,
-    "forward_pe": 30.472076,
-    "peg": 1.43,
-    "market_cap": 183573905408.0,
-    "_cached_at": "2026-09-02T13:58:33.319658+00:00"
+    "pe": 68.78738,
+    "forward_pe": 30.830051,
+    "peg": 1.12,
+    "market_cap": 186076790784.0,
+    "sector": "Technology",
+    "_cached_at": "2026-09-03T14:42:47.189911+00:00"
   },
   "INTU": {
     "ticker": "INTU",
-    "fundamental_score": 86.1,
+    "fundamental_score": 86.0,
     "fundamental_completeness": 100.0,
     "revenue": 18831000000.0,
     "revenue_growth": 0.1563401903592263,
@@ -631,11 +659,12 @@
     "roe": 0.1962962962962963,
     "debt_equity": 0.33683409436834094,
     "cash": 4552000000.0,
-    "pe": 21.056534,
-    "forward_pe": 12.673822,
-    "peg": 1.1,
-    "market_cap": 94747746304.0,
-    "_cached_at": "2026-09-02T13:58:33.319658+00:00"
+    "pe": 21.391197,
+    "forward_pe": 12.8048115,
+    "peg": 1.09,
+    "market_cap": 95727001600.0,
+    "sector": "Technology",
+    "_cached_at": "2026-09-03T14:42:47.189911+00:00"
   },
   "NET": {
     "ticker": "NET",
@@ -654,10 +683,11 @@
     "debt_equity": 2.41126142210081,
     "cash": 4101251000.0,
     "pe": null,
-    "forward_pe": 167.36496,
+    "forward_pe": 167.03624,
     "peg": 2.38,
-    "market_cap": 99709435904.0,
-    "_cached_at": "2026-09-02T13:58:33.319658+00:00"
+    "market_cap": 99513597952.0,
+    "sector": "Technology",
+    "_cached_at": "2026-09-03T14:42:47.189911+00:00"
   },
   "SMCI": {
     "ticker": "SMCI",
@@ -675,15 +705,16 @@
     "roe": 0.1540426391827536,
     "debt_equity": 0.6050583267930305,
     "cash": 7521474000.0,
-    "pe": 11.13184,
-    "forward_pe": 6.8138084,
+    "pe": 11.18865,
+    "forward_pe": 6.848582,
     "peg": 0.91,
-    "market_cap": 23474892800.0,
-    "_cached_at": "2026-09-02T13:58:33.319658+00:00"
+    "market_cap": 23962810368.0,
+    "sector": "Technology",
+    "_cached_at": "2026-09-03T14:42:47.189911+00:00"
   },
   "VRT": {
     "ticker": "VRT",
-    "fundamental_score": 81.7,
+    "fundamental_score": 81.9,
     "fundamental_completeness": 100.0,
     "revenue": 10229900000.0,
     "revenue_growth": 0.2768541401432887,
@@ -697,11 +728,12 @@
     "roe": 0.3381625352041205,
     "debt_equity": 0.8189937330322482,
     "cash": 1827900000.0,
-    "pe": 57.437904,
-    "forward_pe": 27.965246,
-    "peg": 1.21,
-    "market_cap": 97960198144.0,
-    "_cached_at": "2026-09-02T13:58:33.319658+00:00"
+    "pe": 59.544117,
+    "forward_pe": 28.925274,
+    "peg": 0.86,
+    "market_cap": 101323104256.0,
+    "sector": "Industrials",
+    "_cached_at": "2026-09-03T14:42:47.189911+00:00"
   },
   "WDC": {
     "ticker": "WDC",
@@ -719,11 +751,12 @@
     "roe": 1.048962093862816,
     "debt_equity": 0.11868231046931407,
     "cash": 1579000000.0,
-    "pe": 16.342056,
-    "forward_pe": 13.866505,
-    "peg": 0.88,
-    "market_cap": 158729945088.0,
-    "_cached_at": "2026-09-02T13:58:33.319658+00:00"
+    "pe": 16.165985,
+    "forward_pe": 13.712014,
+    "peg": 0.86,
+    "market_cap": 156961488896.0,
+    "sector": "Technology",
+    "_cached_at": "2026-09-03T14:42:47.189911+00:00"
   },
   "LITE": {
     "ticker": "LITE",
@@ -742,14 +775,15 @@
     "debt_equity": 0.35986993690647945,
     "cash": 2738400000.0,
     "pe": null,
-    "forward_pe": 25.791813,
+    "forward_pe": 25.127022,
     "peg": 0.63,
-    "market_cap": 77043179520.0,
-    "_cached_at": "2026-09-02T13:58:33.319658+00:00"
+    "market_cap": 75057373184.0,
+    "sector": "Technology",
+    "_cached_at": "2026-09-03T14:42:47.189911+00:00"
   },
   "NTAP": {
     "ticker": "NTAP",
-    "fundamental_score": 65.3,
+    "fundamental_score": 66.2,
     "fundamental_completeness": 100.0,
     "revenue": 6925000000.0,
     "revenue_growth": 0.053712720632988376,
@@ -763,11 +797,12 @@
     "roe": 0.9444855662472242,
     "debt_equity": 2.0229459659511475,
     "cash": 3584000000.0,
-    "pe": 29.142296,
-    "forward_pe": 18.377993,
-    "peg": 2.14,
-    "market_cap": 36312776704.0,
-    "_cached_at": "2026-09-02T13:58:33.319658+00:00"
+    "pe": 25.861776,
+    "forward_pe": 16.982338,
+    "peg": 2.06,
+    "market_cap": 35981516800.0,
+    "sector": "Technology",
+    "_cached_at": "2026-09-03T14:42:47.189911+00:00"
   },
   "COHR": {
     "ticker": "COHR",
@@ -785,15 +820,16 @@
     "roe": 0.07382935471607957,
     "debt_equity": 0.3245229167344966,
     "cash": 1987018000.0,
-    "pe": 64.37956,
-    "forward_pe": 18.960526,
+    "pe": 63.6399,
+    "forward_pe": 18.742687,
     "peg": 0.92,
-    "market_cap": 51817209856.0,
-    "_cached_at": "2026-09-02T13:58:33.319658+00:00"
+    "market_cap": 51221880832.0,
+    "sector": "Technology",
+    "_cached_at": "2026-09-03T14:42:47.189911+00:00"
   },
   "HPE": {
     "ticker": "HPE",
-    "fundamental_score": 25.0,
+    "fundamental_score": 25.4,
     "fundamental_completeness": 100.0,
     "revenue": 34296000000.0,
     "revenue_growth": 0.13838085438311154,
@@ -807,15 +843,16 @@
     "roe": 0.002308813998703824,
     "debt_equity": 0.975251134154245,
     "cash": 5773000000.0,
-    "pe": 47.429905,
-    "forward_pe": 12.433454,
+    "pe": 44.864483,
+    "forward_pe": 10.517956,
     "peg": 0.85,
-    "market_cap": 67203330048.0,
-    "_cached_at": "2026-09-02T13:58:33.319658+00:00"
+    "market_cap": 63568392192.0,
+    "sector": "Technology",
+    "_cached_at": "2026-09-03T14:42:47.189911+00:00"
   },
   "STX": {
     "ticker": "STX",
-    "fundamental_score": 85.4,
+    "fundamental_score": 85.7,
     "fundamental_completeness": 100.0,
     "revenue": 12195000000.0,
     "revenue_growth": 0.3405518302737167,
@@ -829,11 +866,12 @@
     "roe": 1.46931241347485,
     "debt_equity": 1.7803414859252422,
     "cash": 1704000000.0,
-    "pe": 57.980186,
-    "forward_pe": 14.533948,
-    "peg": 0.48,
-    "market_cap": 182681665536.0,
-    "_cached_at": "2026-09-02T13:58:33.319658+00:00"
+    "pe": 56.1291,
+    "forward_pe": 14.100345,
+    "peg": 0.47,
+    "market_cap": 176954015744.0,
+    "sector": "Technology",
+    "_cached_at": "2026-09-03T14:42:47.189911+00:00"
   },
   "CIEN": {
     "ticker": "CIEN",
@@ -851,11 +889,12 @@
     "roe": 0.04518996102696529,
     "debt_equity": 0.5955887229177346,
     "cash": 1308100000.0,
-    "pe": 117.95987,
-    "forward_pe": 36.47661,
-    "peg": 0.69,
-    "market_cap": 49925718016.0,
-    "_cached_at": "2026-09-02T13:58:33.319658+00:00"
+    "pe": 104.79402,
+    "forward_pe": 32.622105,
+    "peg": 0.61,
+    "market_cap": 44650037248.0,
+    "sector": "Technology",
+    "_cached_at": "2026-09-03T14:42:47.189911+00:00"
   },
   "FI": {
     "ticker": "FI",
@@ -877,11 +916,12 @@
     "forward_pe": null,
     "peg": null,
     "market_cap": null,
-    "_cached_at": "2026-09-02T13:58:33.319658+00:00"
+    "sector": null,
+    "_cached_at": "2026-09-03T14:42:47.189911+00:00"
   },
   "PYPL": {
     "ticker": "PYPL",
-    "fundamental_score": 71.8,
+    "fundamental_score": 72.1,
     "fundamental_completeness": 100.0,
     "revenue": 33172000000.0,
     "revenue_growth": 0.04324307324590371,
@@ -895,15 +935,16 @@
     "roe": 0.25834320695102686,
     "debt_equity": 0.49303909952606634,
     "cash": 10422000000.0,
-    "pe": 10.124783,
-    "forward_pe": 9.253214,
-    "peg": 1.13,
-    "market_cap": 46168805376.0,
-    "_cached_at": "2026-09-02T13:58:33.319658+00:00"
+    "pe": 9.798007,
+    "forward_pe": 9.343897,
+    "peg": 0.86,
+    "market_cap": 46267600896.0,
+    "sector": "Financial Services",
+    "_cached_at": "2026-09-03T14:42:47.189911+00:00"
   },
   "NFLX": {
     "ticker": "NFLX",
-    "fundamental_score": 86.7,
+    "fundamental_score": 87.6,
     "fundamental_completeness": 100.0,
     "revenue": 45183036000.0,
     "revenue_growth": 0.15851068919677536,
@@ -917,11 +958,12 @@
     "roe": 0.41258687422902035,
     "debt_equity": 0.5433992418249104,
     "cash": 9062359000.0,
-    "pe": 26.025126,
-    "forward_pe": 21.659737,
-    "peg": 1.79,
-    "market_cap": 344607227904.0,
-    "_cached_at": "2026-09-02T13:58:33.319658+00:00"
+    "pe": 25.836163,
+    "forward_pe": 21.502468,
+    "peg": 1.49,
+    "market_cap": 342105096192.0,
+    "sector": "Communication Services",
+    "_cached_at": "2026-09-03T14:42:47.189911+00:00"
   },
   "UBER": {
     "ticker": "UBER",
@@ -939,11 +981,12 @@
     "roe": 0.3717687955327096,
     "debt_equity": 0.44672904108575867,
     "cash": 7633000000.0,
-    "pe": 16.673246,
-    "forward_pe": 17.315514,
-    "peg": 8.54,
-    "market_cap": 155295842304.0,
-    "_cached_at": "2026-09-02T13:58:33.319658+00:00"
+    "pe": 16.669956,
+    "forward_pe": 17.350624,
+    "peg": 6.38,
+    "market_cap": 155265204224.0,
+    "sector": "Technology",
+    "_cached_at": "2026-09-03T14:42:47.189911+00:00"
   },
   "TSLA": {
     "ticker": "TSLA",
@@ -961,11 +1004,12 @@
     "roe": 0.04619111971462313,
     "debt_equity": 0.17920060386914546,
     "cash": 44059000000.0,
-    "pe": 329.19653,
-    "forward_pe": 163.18149,
+    "pe": 353.57007,
+    "forward_pe": 175.26337,
     "peg": 4.26,
-    "market_cap": 1391189819392.0,
-    "_cached_at": "2026-09-02T13:58:33.319658+00:00"
+    "market_cap": 1494192881664.0,
+    "sector": "Consumer Cyclical",
+    "_cached_at": "2026-09-03T14:42:47.189911+00:00"
   },
   "XYZ": {
     "ticker": "XYZ",
@@ -983,15 +1027,16 @@
     "roe": 0.05880110130128978,
     "debt_equity": 0.40381299495529643,
     "cash": 11963929000.0,
-    "pe": 142.05357,
-    "forward_pe": 15.431321,
+    "pe": 139.50848,
+    "forward_pe": 15.966713,
     "peg": 0.62,
-    "market_cap": 47793246208.0,
-    "_cached_at": "2026-09-02T13:58:33.319658+00:00"
+    "market_cap": 49451433984.0,
+    "sector": "Technology",
+    "_cached_at": "2026-09-03T14:42:47.189911+00:00"
   },
   "ABNB": {
     "ticker": "ABNB",
-    "fundamental_score": 62.8,
+    "fundamental_score": 63.5,
     "fundamental_completeness": 100.0,
     "revenue": 12241000000.0,
     "revenue_growth": 0.10259412718429117,
@@ -1005,22 +1050,23 @@
     "roe": 0.3062568605927552,
     "debt_equity": 0.25210391511159896,
     "cash": 11014000000.0,
-    "pe": 41.700912,
-    "forward_pe": 29.748184,
-    "peg": 1.96,
-    "market_cap": 109368197120.0,
-    "_cached_at": "2026-09-02T13:58:33.319658+00:00"
+    "pe": 42.103905,
+    "forward_pe": 30.035667,
+    "peg": 1.73,
+    "market_cap": 110425120768.0,
+    "sector": "Consumer Cyclical",
+    "_cached_at": "2026-09-03T14:42:47.189911+00:00"
   },
   "BKNG": {
     "ticker": "BKNG",
     "fundamental_score": null,
     "fundamental_completeness": 0.0,
     "fundamental_error": "unsupported operand type(s) for /: 'NoneType' and 'float'",
-    "_cached_at": "2026-09-02T13:58:33.319658+00:00"
+    "_cached_at": "2026-09-03T14:42:47.189911+00:00"
   },
   "SPOT": {
     "ticker": "SPOT",
-    "fundamental_score": 77.1,
+    "fundamental_score": 77.0,
     "fundamental_completeness": 100.0,
     "revenue": 17186000000.0,
     "revenue_growth": 0.0965354431187393,
@@ -1034,15 +1080,16 @@
     "roe": 0.2655781006123184,
     "debt_equity": 0.23484211790130868,
     "cash": 9467000000.0,
-    "pe": 30.596205,
-    "forward_pe": 31.401829,
+    "pe": 30.852655,
+    "forward_pe": 31.672895,
     "peg": 1.54,
-    "market_cap": 116072529920.0,
-    "_cached_at": "2026-09-02T13:58:33.319658+00:00"
+    "market_cap": 117088428032.0,
+    "sector": "Communication Services",
+    "_cached_at": "2026-09-03T14:42:47.189911+00:00"
   },
   "DASH": {
     "ticker": "DASH",
-    "fundamental_score": 61.3,
+    "fundamental_score": 61.8,
     "fundamental_completeness": 100.0,
     "revenue": 13717000000.0,
     "revenue_growth": 0.2793322141391532,
@@ -1056,15 +1103,16 @@
     "roe": 0.09319246486594239,
     "debt_equity": 0.3279178710256155,
     "cash": 5506000000.0,
-    "pe": 116.9401,
-    "forward_pe": 27.57222,
-    "peg": 5.05,
-    "market_cap": 97286217728.0,
-    "_cached_at": "2026-09-02T13:58:33.319658+00:00"
+    "pe": 118.19474,
+    "forward_pe": 27.574938,
+    "peg": 2.82,
+    "market_cap": 97305722880.0,
+    "sector": "Consumer Cyclical",
+    "_cached_at": "2026-09-03T14:42:47.189911+00:00"
   },
   "DUOL": {
     "ticker": "DUOL",
-    "fundamental_score": 99.3,
+    "fundamental_score": 99.2,
     "fundamental_completeness": 94.0,
     "revenue": 1037589000.0,
     "revenue_growth": 0.38710656342577243,
@@ -1078,15 +1126,16 @@
     "roe": 0.30739655205693217,
     "debt_equity": 0.06962032834300663,
     "cash": 1140467000.0,
-    "pe": 18.439716,
-    "forward_pe": 20.421387,
+    "pe": 19.016548,
+    "forward_pe": 21.060211,
     "peg": null,
-    "market_cap": 7298657792.0,
-    "_cached_at": "2026-09-02T13:58:33.319658+00:00"
+    "market_cap": 7495900672.0,
+    "sector": "Technology",
+    "_cached_at": "2026-09-03T14:42:47.189911+00:00"
   },
   "APP": {
     "ticker": "APP",
-    "fundamental_score": 92.0,
+    "fundamental_score": 91.8,
     "fundamental_completeness": 100.0,
     "revenue": 5480717000.0,
     "revenue_growth": 0.6999436734698941,
@@ -1100,11 +1149,12 @@
     "roe": 1.5617226261095971,
     "debt_equity": 1.6605561231683945,
     "cash": 2487096000.0,
-    "pe": 23.963076,
-    "forward_pe": 14.850699,
-    "peg": 0.88,
-    "market_cap": 104250327040.0,
-    "_cached_at": "2026-09-02T13:58:33.319658+00:00"
+    "pe": 24.58602,
+    "forward_pe": 15.2602,
+    "peg": 0.67,
+    "market_cap": 107537596416.0,
+    "sector": "Communication Services",
+    "_cached_at": "2026-09-03T14:42:47.189911+00:00"
   },
   "SBUX": {
     "ticker": "SBUX",
@@ -1122,15 +1172,16 @@
     "roe": -0.22928142677173136,
     "debt_equity": -3.2867499938245683,
     "cash": 3467000000.0,
-    "pe": 61.543354,
-    "forward_pe": 34.17363,
+    "pe": 61.052025,
+    "forward_pe": 33.900806,
     "peg": 1.29,
-    "market_cap": 121375801344.0,
-    "_cached_at": "2026-09-02T13:58:33.319658+00:00"
+    "market_cap": 120406802432.0,
+    "sector": "Consumer Cyclical",
+    "_cached_at": "2026-09-03T14:42:47.189911+00:00"
   },
   "HOOD": {
     "ticker": "HOOD",
-    "fundamental_score": 74.2,
+    "fundamental_score": 74.8,
     "fundamental_completeness": 100.0,
     "revenue": 4473000000.0,
     "revenue_growth": 0.515757370382921,
@@ -1144,15 +1195,16 @@
     "roe": 0.20601750547045952,
     "debt_equity": 1.2719912472647703,
     "cash": 10451000000.0,
-    "pe": 46.19469,
-    "forward_pe": 31.829659,
-    "peg": 2.49,
-    "market_cap": 93864189952.0,
-    "_cached_at": "2026-09-02T13:58:33.319658+00:00"
+    "pe": 54.325222,
+    "forward_pe": 37.43186,
+    "peg": 1.81,
+    "market_cap": 110384832512.0,
+    "sector": "Financial Services",
+    "_cached_at": "2026-09-03T14:42:47.189911+00:00"
   },
   "NKE": {
     "ticker": "NKE",
-    "fundamental_score": 43.4,
+    "fundamental_score": 43.5,
     "fundamental_completeness": 100.0,
     "revenue": 46398000000.0,
     "revenue_growth": 0.0019218726381480256,
@@ -1166,15 +1218,16 @@
     "roe": 0.20908173562058527,
     "debt_equity": 0.7422132526067945,
     "cash": 9027000000.0,
-    "pe": 18.35,
-    "forward_pe": 16.81921,
-    "peg": 1.49,
-    "market_cap": 57166622720.0,
-    "_cached_at": "2026-09-02T13:58:33.319658+00:00"
+    "pe": 18.169048,
+    "forward_pe": 16.653353,
+    "peg": 1.48,
+    "market_cap": 56602894336.0,
+    "sector": "Consumer Cyclical",
+    "_cached_at": "2026-09-03T14:42:47.189911+00:00"
   },
   "WMT": {
     "ticker": "WMT",
-    "fundamental_score": 46.8,
+    "fundamental_score": 46.6,
     "fundamental_completeness": 100.0,
     "revenue": 713163000000.0,
     "revenue_growth": 0.047252142117667706,
@@ -1188,15 +1241,16 @@
     "roe": 0.21977172570946726,
     "debt_equity": 0.6735296184386199,
     "cash": 10727000000.0,
-    "pe": 38.038925,
-    "forward_pe": 32.84729,
-    "peg": 3.91,
-    "market_cap": 841997352960.0,
-    "_cached_at": "2026-09-02T13:58:33.319658+00:00"
+    "pe": 39.057972,
+    "forward_pe": 33.364594,
+    "peg": 4.04,
+    "market_cap": 857880920064.0,
+    "sector": "Consumer Defensive",
+    "_cached_at": "2026-09-03T14:42:47.189911+00:00"
   },
   "MCD": {
     "ticker": "MCD",
-    "fundamental_score": 60.2,
+    "fundamental_score": 60.9,
     "fundamental_completeness": 100.0,
     "revenue": 26885000000.0,
     "revenue_growth": 0.037229938271605034,
@@ -1210,15 +1264,16 @@
     "roe": -4.783798882681564,
     "debt_equity": -30.622346368715085,
     "cash": 774000000.0,
-    "pe": 21.285366,
-    "forward_pe": 18.72716,
-    "peg": 2.43,
-    "market_cap": 185267634176.0,
-    "_cached_at": "2026-09-02T13:58:33.319658+00:00"
+    "pe": 20.835667,
+    "forward_pe": 18.361315,
+    "peg": 2.25,
+    "market_cap": 181648326656.0,
+    "sector": "Consumer Cyclical",
+    "_cached_at": "2026-09-03T14:42:47.189911+00:00"
   },
   "HD": {
     "ticker": "HD",
-    "fundamental_score": 42.1,
+    "fundamental_score": 42.3,
     "fundamental_completeness": 100.0,
     "revenue": 164683000000.0,
     "revenue_growth": 0.032404679213109855,
@@ -1232,15 +1287,16 @@
     "roe": 1.1048154218371966,
     "debt_equity": 5.100288769218762,
     "cash": 1389000000.0,
-    "pe": 22.424072,
-    "forward_pe": 19.980371,
-    "peg": 1.83,
-    "market_cap": 319699648512.0,
-    "_cached_at": "2026-09-02T13:58:33.319658+00:00"
+    "pe": 22.121328,
+    "forward_pe": 19.724411,
+    "peg": 1.78,
+    "market_cap": 315604140032.0,
+    "sector": "Consumer Cyclical",
+    "_cached_at": "2026-09-03T14:42:47.189911+00:00"
   },
   "COST": {
     "ticker": "COST",
-    "fundamental_score": 49.7,
+    "fundamental_score": 49.9,
     "fundamental_completeness": 100.0,
     "revenue": 275235000000.0,
     "revenue_growth": 0.08167323631476142,
@@ -1254,15 +1310,16 @@
     "roe": 0.27770539020710466,
     "debt_equity": 0.2802427650528048,
     "cash": 15284000000.0,
-    "pe": 47.1649,
-    "forward_pe": 41.274982,
-    "peg": 4.53,
-    "market_cap": 414776885248.0,
-    "_cached_at": "2026-09-02T13:58:33.319658+00:00"
+    "pe": 46.26673,
+    "forward_pe": 40.56519,
+    "peg": 4.56,
+    "market_cap": 407698964480.0,
+    "sector": "Consumer Defensive",
+    "_cached_at": "2026-09-03T14:42:47.189911+00:00"
   },
   "TGT": {
     "ticker": "TGT",
-    "fundamental_score": 33.4,
+    "fundamental_score": 33.5,
     "fundamental_completeness": 100.0,
     "revenue": 104780000000.0,
     "revenue_growth": -0.016759566841206386,
@@ -1276,15 +1333,16 @@
     "roe": 0.2291988864831426,
     "debt_equity": 1.2551809464893289,
     "cash": 5488000000.0,
-    "pe": 17.085062,
-    "forward_pe": 17.289377,
-    "peg": 2.61,
-    "market_cap": 74821804032.0,
-    "_cached_at": "2026-09-02T13:58:33.319658+00:00"
+    "pe": 16.994812,
+    "forward_pe": 17.19805,
+    "peg": 2.58,
+    "market_cap": 74427432960.0,
+    "sector": "Consumer Defensive",
+    "_cached_at": "2026-09-03T14:42:47.189911+00:00"
   },
   "LOW": {
     "ticker": "LOW",
-    "fundamental_score": 46.0,
+    "fundamental_score": 46.2,
     "fundamental_completeness": 100.0,
     "revenue": 86286000000.0,
     "revenue_growth": 0.031216387408274926,
@@ -1298,15 +1356,16 @@
     "roe": -0.6709690430573763,
     "debt_equity": -4.505092265806192,
     "cash": 982000000.0,
-    "pe": 17.00677,
-    "forward_pe": 15.390199,
-    "peg": 1.4,
-    "market_cap": 112783081472.0,
-    "_cached_at": "2026-09-02T13:58:33.319658+00:00"
+    "pe": 16.91885,
+    "forward_pe": 15.32359,
+    "peg": 1.35,
+    "market_cap": 112294961152.0,
+    "sector": "Consumer Cyclical",
+    "_cached_at": "2026-09-03T14:42:47.189911+00:00"
   },
   "CMG": {
     "ticker": "CMG",
-    "fundamental_score": 50.4,
+    "fundamental_score": 51.6,
     "fundamental_completeness": 100.0,
     "revenue": 11925601000.0,
     "revenue_growth": 0.05407070429499128,
@@ -1320,15 +1379,16 @@
     "roe": 0.5425553600340846,
     "debt_equity": 1.79318923467652,
     "cash": 1044607000.0,
-    "pe": 35.5787,
-    "forward_pe": 28.053793,
-    "peg": 2.0,
-    "market_cap": 48623685632.0,
-    "_cached_at": "2026-09-02T13:58:33.319658+00:00"
+    "pe": 34.935184,
+    "forward_pe": 27.54638,
+    "peg": 1.66,
+    "market_cap": 47744221184.0,
+    "sector": "Consumer Cyclical",
+    "_cached_at": "2026-09-03T14:42:47.189911+00:00"
   },
   "TJX": {
     "ticker": "TJX",
-    "fundamental_score": 56.5,
+    "fundamental_score": 56.6,
     "fundamental_completeness": 100.0,
     "revenue": 60372000000.0,
     "revenue_growth": 0.07118523775727459,
@@ -1342,15 +1402,16 @@
     "roe": 0.5391560353287537,
     "debt_equity": 1.3237487733071638,
     "cash": 6230000000.0,
-    "pe": 24.38426,
-    "forward_pe": 22.869972,
-    "peg": 2.86,
-    "market_cap": 145461952512.0,
-    "_cached_at": "2026-09-02T13:58:33.319658+00:00"
+    "pe": 24.545113,
+    "forward_pe": 22.617052,
+    "peg": 2.83,
+    "market_cap": 143634612224.0,
+    "sector": "Consumer Cyclical",
+    "_cached_at": "2026-09-03T14:42:47.189911+00:00"
   },
   "GM": {
     "ticker": "GM",
-    "fundamental_score": 22.5,
+    "fundamental_score": 22.6,
     "fundamental_completeness": 100.0,
     "revenue": 185019000000.0,
     "revenue_growth": -0.012926665315137531,
@@ -1364,11 +1425,12 @@
     "roe": 0.04412703087419624,
     "debt_equity": 2.1484644709501137,
     "cash": 27669000000.0,
-    "pe": 38.535713,
-    "forward_pe": 5.8135386,
-    "peg": 0.34,
-    "market_cap": 78072258560.0,
-    "_cached_at": "2026-09-02T13:58:33.319658+00:00"
+    "pe": 38.366074,
+    "forward_pe": 5.787946,
+    "peg": 0.3,
+    "market_cap": 77728563200.0,
+    "sector": "Consumer Cyclical",
+    "_cached_at": "2026-09-03T14:42:47.189911+00:00"
   },
   "F": {
     "ticker": "F",
@@ -1387,49 +1449,50 @@
     "debt_equity": 4.6099799732977305,
     "cash": 38487000000.0,
     "pe": null,
-    "forward_pe": 7.311974,
+    "forward_pe": 7.447686,
     "peg": 8.48,
-    "market_cap": 55786463232.0,
-    "_cached_at": "2026-09-02T13:58:33.319658+00:00"
+    "market_cap": 56883056640.0,
+    "sector": "Consumer Cyclical",
+    "_cached_at": "2026-09-03T14:42:47.189911+00:00"
   },
   "JPM": {
     "ticker": "JPM",
     "fundamental_score": null,
     "fundamental_completeness": 0.0,
     "fundamental_error": "unsupported operand type(s) for /: 'NoneType' and 'float'",
-    "_cached_at": "2026-09-02T13:58:33.319658+00:00"
+    "_cached_at": "2026-09-03T14:42:47.189911+00:00"
   },
   "GS": {
     "ticker": "GS",
     "fundamental_score": null,
     "fundamental_completeness": 0.0,
     "fundamental_error": "unsupported operand type(s) for /: 'NoneType' and 'float'",
-    "_cached_at": "2026-09-02T13:58:33.319658+00:00"
+    "_cached_at": "2026-09-03T14:42:47.189911+00:00"
   },
   "MS": {
     "ticker": "MS",
     "fundamental_score": null,
     "fundamental_completeness": 0.0,
     "fundamental_error": "unsupported operand type(s) for /: 'NoneType' and 'float'",
-    "_cached_at": "2026-09-02T13:58:33.319658+00:00"
+    "_cached_at": "2026-09-03T14:42:47.189911+00:00"
   },
   "BAC": {
     "ticker": "BAC",
     "fundamental_score": null,
     "fundamental_completeness": 0.0,
     "fundamental_error": "unsupported operand type(s) for /: 'NoneType' and 'float'",
-    "_cached_at": "2026-09-02T13:58:33.319658+00:00"
+    "_cached_at": "2026-09-03T14:42:47.189911+00:00"
   },
   "SCHW": {
     "ticker": "SCHW",
     "fundamental_score": null,
     "fundamental_completeness": 0.0,
     "fundamental_error": "unsupported operand type(s) for /: 'NoneType' and 'float'",
-    "_cached_at": "2026-09-02T13:58:33.319658+00:00"
+    "_cached_at": "2026-09-03T14:42:47.189911+00:00"
   },
   "BLK": {
     "ticker": "BLK",
-    "fundamental_score": 59.9,
+    "fundamental_score": 60.4,
     "fundamental_completeness": 100.0,
     "revenue": 24216000000.0,
     "revenue_growth": 0.1866516391434312,
@@ -1443,22 +1506,23 @@
     "roe": 0.09935943315201833,
     "debt_equity": 0.26832235900372176,
     "cash": 14257000000.0,
-    "pe": 27.225203,
-    "forward_pe": 17.670923,
-    "peg": 1.13,
-    "market_cap": 184634703872.0,
-    "_cached_at": "2026-09-02T13:58:33.319658+00:00"
+    "pe": 26.71011,
+    "forward_pe": 17.336596,
+    "peg": 0.95,
+    "market_cap": 181141454848.0,
+    "sector": "Financial Services",
+    "_cached_at": "2026-09-03T14:42:47.189911+00:00"
   },
   "AXP": {
     "ticker": "AXP",
     "fundamental_score": null,
     "fundamental_completeness": 0.0,
     "fundamental_error": "unsupported operand type(s) for /: 'NoneType' and 'float'",
-    "_cached_at": "2026-09-02T13:58:33.319658+00:00"
+    "_cached_at": "2026-09-03T14:42:47.189911+00:00"
   },
   "V": {
     "ticker": "V",
-    "fundamental_score": 73.3,
+    "fundamental_score": 73.4,
     "fundamental_completeness": 100.0,
     "revenue": 40000000000.0,
     "revenue_growth": 0.11339976618604908,
@@ -1472,15 +1536,16 @@
     "roe": 0.5291091825160252,
     "debt_equity": 0.6639848057189586,
     "cash": 18997000000.0,
-    "pe": 32.198044,
-    "forward_pe": 25.193111,
+    "pe": 31.690435,
+    "forward_pe": 25.176115,
     "peg": 1.69,
-    "market_cap": 705753251840.0,
-    "_cached_at": "2026-09-02T13:58:33.319658+00:00"
+    "market_cap": 705277132800.0,
+    "sector": "Financial Services",
+    "_cached_at": "2026-09-03T14:42:47.189911+00:00"
   },
   "MA": {
     "ticker": "MA",
-    "fundamental_score": 75.0,
+    "fundamental_score": 75.9,
     "fundamental_completeness": 100.0,
     "revenue": 32791000000.0,
     "revenue_growth": 0.16416373770724602,
@@ -1494,22 +1559,23 @@
     "roe": 1.9345999741501874,
     "debt_equity": 2.455732195941579,
     "cash": 10898000000.0,
-    "pe": 32.357338,
-    "forward_pe": 25.56175,
-    "peg": 1.81,
-    "market_cap": 515601924096.0,
-    "_cached_at": "2026-09-02T13:58:33.319658+00:00"
+    "pe": 32.17721,
+    "forward_pe": 25.391504,
+    "peg": 1.52,
+    "market_cap": 512167936000.0,
+    "sector": "Financial Services",
+    "_cached_at": "2026-09-03T14:42:47.189911+00:00"
   },
   "SOFI": {
     "ticker": "SOFI",
     "fundamental_score": null,
     "fundamental_completeness": 0.0,
     "fundamental_error": "unsupported operand type(s) for /: 'NoneType' and 'float'",
-    "_cached_at": "2026-09-02T13:58:33.319658+00:00"
+    "_cached_at": "2026-09-03T14:42:47.189911+00:00"
   },
   "SPGI": {
     "ticker": "SPGI",
-    "fundamental_score": 69.2,
+    "fundamental_score": 69.9,
     "fundamental_completeness": 100.0,
     "revenue": 15336000000.0,
     "revenue_growth": 0.07939189189189189,
@@ -1523,15 +1589,16 @@
     "roe": 0.1436373566357182,
     "debt_equity": 0.4363414399074758,
     "cash": 1801000000.0,
-    "pe": 26.754568,
-    "forward_pe": 21.73199,
-    "peg": 2.16,
-    "market_cap": 129508589568.0,
-    "_cached_at": "2026-09-02T13:58:33.319658+00:00"
+    "pe": 26.865652,
+    "forward_pe": 21.862093,
+    "peg": 1.94,
+    "market_cap": 130283913216.0,
+    "sector": "Financial Services",
+    "_cached_at": "2026-09-03T14:42:47.189911+00:00"
   },
   "MCO": {
     "ticker": "MCO",
-    "fundamental_score": 69.4,
+    "fundamental_score": 70.3,
     "fundamental_completeness": 100.0,
     "revenue": 7718000000.0,
     "revenue_growth": 0.0888826185101581,
@@ -1545,15 +1612,16 @@
     "roe": 0.6065614208189443,
     "debt_equity": 1.8132708436112481,
     "cash": 2448000000.0,
-    "pe": 31.217999,
-    "forward_pe": 26.04621,
-    "peg": 2.14,
-    "market_cap": 85312421888.0,
-    "_cached_at": "2026-09-02T13:58:33.319658+00:00"
+    "pe": 31.680096,
+    "forward_pe": 26.180502,
+    "peg": 1.84,
+    "market_cap": 85752283136.0,
+    "sector": "Financial Services",
+    "_cached_at": "2026-09-03T14:42:47.189911+00:00"
   },
   "COIN": {
     "ticker": "COIN",
-    "fundamental_score": 46.3,
+    "fundamental_score": 52.8,
     "fundamental_completeness": 92.0,
     "revenue": 7181325000.0,
     "revenue_growth": 0.09404240810672948,
@@ -1568,10 +1636,11 @@
     "debt_equity": 0.5294009527982653,
     "cash": 11914066000.0,
     "pe": null,
-    "forward_pe": 62.157303,
-    "peg": 11.85,
-    "market_cap": 46836334592.0,
-    "_cached_at": "2026-09-02T13:58:33.319658+00:00"
+    "forward_pe": 69.61065,
+    "peg": 0.78,
+    "market_cap": 50283888640.0,
+    "sector": "Financial Services",
+    "_cached_at": "2026-09-03T14:42:47.189911+00:00"
   },
   "CME": {
     "ticker": "CME",
@@ -1589,15 +1658,16 @@
     "roe": 0.14174922201878293,
     "debt_equity": 0.11912685096873456,
     "cash": 4541900000.0,
-    "pe": 23.761017,
-    "forward_pe": 21.684155,
-    "peg": 4.93,
-    "market_cap": 100818837504.0,
-    "_cached_at": "2026-09-02T13:58:33.319658+00:00"
+    "pe": 23.823431,
+    "forward_pe": 21.735645,
+    "peg": 4.84,
+    "market_cap": 100912332800.0,
+    "sector": "Financial Services",
+    "_cached_at": "2026-09-03T14:42:47.189911+00:00"
   },
   "IBKR": {
     "ticker": "IBKR",
-    "fundamental_score": 72.4,
+    "fundamental_score": 73.5,
     "fundamental_completeness": 100.0,
     "revenue": 10222000000.0,
     "revenue_growth": 0.09725203950193206,
@@ -1611,15 +1681,16 @@
     "roe": 0.18347939586052583,
     "debt_equity": 0.0035427932127540555,
     "cash": 4963000000.0,
-    "pe": 35.8373,
-    "forward_pe": 28.394995,
-    "peg": 1.89,
-    "market_cap": 153871581184.0,
-    "_cached_at": "2026-09-02T13:58:33.319658+00:00"
+    "pe": 36.88294,
+    "forward_pe": 29.223484,
+    "peg": 1.46,
+    "market_cap": 158361141248.0,
+    "sector": "Financial Services",
+    "_cached_at": "2026-09-03T14:42:47.189911+00:00"
   },
   "XOM": {
     "ticker": "XOM",
-    "fundamental_score": 40.4,
+    "fundamental_score": 39.7,
     "fundamental_completeness": 100.0,
     "revenue": 323905000000.0,
     "revenue_growth": -0.045223686576447264,
@@ -1633,11 +1704,12 @@
     "roe": 0.11120106713546606,
     "debt_equity": 0.16784637567177874,
     "cash": 10681000000.0,
-    "pe": 20.975561,
-    "forward_pe": 15.313448,
-    "peg": 1.22,
-    "market_cap": 670159798272.0,
-    "_cached_at": "2026-09-02T13:58:33.319658+00:00"
+    "pe": 21.33634,
+    "forward_pe": 15.556793,
+    "peg": 1.41,
+    "market_cap": 680809267200.0,
+    "sector": "Energy",
+    "_cached_at": "2026-09-03T14:42:47.189911+00:00"
   },
   "CVX": {
     "ticker": "CVX",
@@ -1655,15 +1727,16 @@
     "roe": 0.06596406543309198,
     "debt_equity": 0.21860016090104586,
     "cash": 6297000000.0,
-    "pe": 20.302505,
-    "forward_pe": 15.915705,
+    "pe": 20.471636,
+    "forward_pe": 16.089844,
     "peg": 0.93,
-    "market_cap": 413388308480.0,
-    "_cached_at": "2026-09-02T13:58:33.319658+00:00"
+    "market_cap": 417635139584.0,
+    "sector": "Energy",
+    "_cached_at": "2026-09-03T14:42:47.189911+00:00"
   },
   "COP": {
     "ticker": "COP",
-    "fundamental_score": 53.3,
+    "fundamental_score": 52.9,
     "fundamental_completeness": 100.0,
     "revenue": 58944000000.0,
     "revenue_growth": 0.07670106859073877,
@@ -1677,15 +1750,16 @@
     "roe": 0.12386992727216338,
     "debt_equity": 0.36354614108269884,
     "cash": 6981000000.0,
-    "pe": 17.876984,
-    "forward_pe": 14.183407,
-    "peg": 1.01,
-    "market_cap": 162360754176.0,
-    "_cached_at": "2026-09-02T13:58:33.319658+00:00"
+    "pe": 18.15344,
+    "forward_pe": 14.432188,
+    "peg": 1.15,
+    "market_cap": 164871569408.0,
+    "sector": "Energy",
+    "_cached_at": "2026-09-03T14:42:47.189911+00:00"
   },
   "OXY": {
     "ticker": "OXY",
-    "fundamental_score": 45.9,
+    "fundamental_score": 45.2,
     "fundamental_completeness": 100.0,
     "revenue": 21593000000.0,
     "revenue_growth": -0.0193469276533903,
@@ -1699,15 +1773,16 @@
     "roe": 0.06455014708331021,
     "debt_equity": 0.6480268635177887,
     "cash": 1968000000.0,
-    "pe": 17.78466,
-    "forward_pe": 15.725091,
-    "peg": 0.83,
-    "market_cap": 60268138496.0,
-    "_cached_at": "2026-09-02T13:58:33.319658+00:00"
+    "pe": 18.08407,
+    "forward_pe": 15.978701,
+    "peg": 1.24,
+    "market_cap": 61282770944.0,
+    "sector": "Energy",
+    "_cached_at": "2026-09-03T14:42:47.189911+00:00"
   },
   "CEG": {
     "ticker": "CEG",
-    "fundamental_score": 38.7,
+    "fundamental_score": 38.6,
     "fundamental_completeness": 100.0,
     "revenue": 25533000000.0,
     "revenue_growth": 0.08337576374745415,
@@ -1721,15 +1796,16 @@
     "roe": 0.15974374870841082,
     "debt_equity": 0.6194117241854378,
     "cash": 3641000000.0,
-    "pe": 27.424242,
-    "forward_pe": 21.028133,
+    "pe": 28.069336,
+    "forward_pe": 21.543812,
     "peg": 3.74,
-    "market_cap": 99400933376.0,
-    "_cached_at": "2026-09-02T13:58:33.319658+00:00"
+    "market_cap": 101838569472.0,
+    "sector": "Utilities",
+    "_cached_at": "2026-09-03T14:42:47.189911+00:00"
   },
   "VST": {
     "ticker": "VST",
-    "fundamental_score": 36.8,
+    "fundamental_score": 36.9,
     "fundamental_completeness": 100.0,
     "revenue": 17738000000.0,
     "revenue_growth": 0.02984208081746398,
@@ -1743,15 +1819,16 @@
     "roe": 0.18520698450068668,
     "debt_equity": 3.9372179713556994,
     "cash": 785000000.0,
-    "pe": 23.416386,
-    "forward_pe": 13.373549,
-    "peg": 0.4,
-    "market_cap": 46527430656.0,
-    "_cached_at": "2026-09-02T13:58:33.319658+00:00"
+    "pe": 23.336586,
+    "forward_pe": 13.845784,
+    "peg": 0.34,
+    "market_cap": 48170364928.0,
+    "sector": "Utilities",
+    "_cached_at": "2026-09-03T14:42:47.189911+00:00"
   },
   "NEE": {
     "ticker": "NEE",
-    "fundamental_score": 52.0,
+    "fundamental_score": 52.4,
     "fundamental_completeness": 100.0,
     "revenue": 27412000000.0,
     "revenue_growth": 0.10742132266795945,
@@ -1765,15 +1842,16 @@
     "roe": 0.12516481101670085,
     "debt_equity": 1.751007178435394,
     "cash": 2812000000.0,
-    "pe": 18.47191,
-    "forward_pe": 18.730305,
-    "peg": 1.82,
-    "market_cap": 171436752896.0,
-    "_cached_at": "2026-09-02T13:58:33.319658+00:00"
+    "pe": 18.860676,
+    "forward_pe": 19.124508,
+    "peg": 1.67,
+    "market_cap": 175076147200.0,
+    "sector": "Utilities",
+    "_cached_at": "2026-09-03T14:42:47.189911+00:00"
   },
   "ETN": {
     "ticker": "ETN",
-    "fundamental_score": 56.5,
+    "fundamental_score": 58.3,
     "fundamental_completeness": 100.0,
     "revenue": 27448000000.0,
     "revenue_growth": 0.10330412412573353,
@@ -1787,15 +1865,16 @@
     "roe": 0.2103989703989704,
     "debt_equity": 0.5421879021879021,
     "cash": 803000000.0,
-    "pe": 39.425587,
-    "forward_pe": 24.071981,
-    "peg": 2.98,
-    "market_cap": 150180855808.0,
-    "_cached_at": "2026-09-02T13:58:33.319658+00:00"
+    "pe": 39.814472,
+    "forward_pe": 24.309422,
+    "peg": 2.37,
+    "market_cap": 151701274624.0,
+    "sector": "Industrials",
+    "_cached_at": "2026-09-03T14:42:47.189911+00:00"
   },
   "CAT": {
     "ticker": "CAT",
-    "fundamental_score": 44.6,
+    "fundamental_score": 44.5,
     "fundamental_completeness": 100.0,
     "revenue": 67589000000.0,
     "revenue_growth": 0.04289527689055528,
@@ -1809,15 +1888,16 @@
     "roe": 0.4167370297401257,
     "debt_equity": 2.03255464865372,
     "cash": 9980000000.0,
-    "pe": 33.308784,
-    "forward_pe": 23.888004,
+    "pe": 34.123222,
+    "forward_pe": 24.461554,
     "peg": 1.36,
-    "market_cap": 355526344704.0,
-    "_cached_at": "2026-09-02T13:58:33.319658+00:00"
+    "market_cap": 364062507008.0,
+    "sector": "Industrials",
+    "_cached_at": "2026-09-03T14:42:47.189911+00:00"
   },
   "PWR": {
     "ticker": "PWR",
-    "fundamental_score": 50.7,
+    "fundamental_score": 51.7,
     "fundamental_completeness": 100.0,
     "revenue": 28479697000.0,
     "revenue_growth": 0.2030559551586537,
@@ -1831,15 +1911,16 @@
     "roe": 0.11505363075027335,
     "debt_equity": 0.7181444598377155,
     "cash": 439508000.0,
-    "pe": 68.57723,
-    "forward_pe": 30.515545,
-    "peg": 1.71,
-    "market_cap": 90110566400.0,
-    "_cached_at": "2026-09-02T13:58:33.319658+00:00"
+    "pe": 70.2165,
+    "forward_pe": 31.209236,
+    "peg": 1.38,
+    "market_cap": 92158992384.0,
+    "sector": "Industrials",
+    "_cached_at": "2026-09-03T14:42:47.189911+00:00"
   },
   "GEV": {
     "ticker": "GEV",
-    "fundamental_score": 75.9,
+    "fundamental_score": 75.3,
     "fundamental_completeness": 100.0,
     "revenue": 38068000000.0,
     "revenue_growth": 0.08968083583798481,
@@ -1853,15 +1934,16 @@
     "roe": 0.4369296833064949,
     "debt_equity": 0.10484881016281983,
     "cash": 9314000000.0,
-    "pe": 25.384396,
-    "forward_pe": 35.2881,
-    "peg": 1.62,
-    "market_cap": 235678597120.0,
-    "_cached_at": "2026-09-02T13:58:33.319658+00:00"
+    "pe": 26.67848,
+    "forward_pe": 37.076435,
+    "peg": 1.75,
+    "market_cap": 247622320128.0,
+    "sector": "Industrials",
+    "_cached_at": "2026-09-03T14:42:47.189911+00:00"
   },
   "DE": {
     "ticker": "DE",
-    "fundamental_score": 32.3,
+    "fundamental_score": 31.9,
     "fundamental_completeness": 100.0,
     "revenue": 44665000000.0,
     "revenue_growth": -0.11585969357456749,
@@ -1875,15 +1957,16 @@
     "roe": 0.19371868978805395,
     "debt_equity": 2.4759152215799616,
     "cash": 9687000000.0,
-    "pe": 37.938267,
-    "forward_pe": 30.374979,
-    "peg": 1.44,
-    "market_cap": 183919575040.0,
-    "_cached_at": "2026-09-02T13:58:33.319658+00:00"
+    "pe": 38.422863,
+    "forward_pe": 30.520857,
+    "peg": 1.57,
+    "market_cap": 186683244544.0,
+    "sector": "Industrials",
+    "_cached_at": "2026-09-03T14:42:47.189911+00:00"
   },
   "WM": {
     "ticker": "WM",
-    "fundamental_score": 55.2,
+    "fundamental_score": 55.8,
     "fundamental_completeness": 100.0,
     "revenue": 25204000000.0,
     "revenue_growth": 0.14236504555137564,
@@ -1897,15 +1980,16 @@
     "roe": 0.2710710710710711,
     "debt_equity": 2.292992992992993,
     "cash": 201000000.0,
-    "pe": 30.809322,
-    "forward_pe": 23.919758,
-    "peg": 2.24,
-    "market_cap": 87189880832.0,
-    "_cached_at": "2026-09-02T13:58:33.319658+00:00"
+    "pe": 31.068085,
+    "forward_pe": 24.01845,
+    "peg": 2.01,
+    "market_cap": 87549616128.0,
+    "sector": "Industrials",
+    "_cached_at": "2026-09-03T14:42:47.189911+00:00"
   },
   "RSG": {
     "ticker": "RSG",
-    "fundamental_score": 51.5,
+    "fundamental_score": 51.8,
     "fundamental_completeness": 100.0,
     "revenue": 16591000000.0,
     "revenue_growth": 0.034867764471057994,
@@ -1919,15 +2003,16 @@
     "roe": 0.17872660427807488,
     "debt_equity": 1.1535762032085561,
     "cash": 76000000.0,
-    "pe": 31.470255,
-    "forward_pe": 27.575882,
-    "peg": 3.15,
-    "market_cap": 68034400256.0,
-    "_cached_at": "2026-09-02T13:58:33.319658+00:00"
+    "pe": 31.56312,
+    "forward_pe": 27.618082,
+    "peg": 2.88,
+    "market_cap": 68138516480.0,
+    "sector": "Industrials",
+    "_cached_at": "2026-09-03T14:42:47.189911+00:00"
   },
   "AEP": {
     "ticker": "AEP",
-    "fundamental_score": 54.8,
+    "fundamental_score": 55.1,
     "fundamental_completeness": 100.0,
     "revenue": 21876000000.0,
     "revenue_growth": 0.1092743775670606,
@@ -1941,15 +2026,16 @@
     "roe": 0.11497205986254737,
     "debt_equity": 1.5899543965572611,
     "cash": 417000000.0,
-    "pe": 20.998291,
-    "forward_pe": 17.740736,
-    "peg": 2.09,
-    "market_cap": 66187886592.0,
-    "_cached_at": "2026-09-02T13:58:33.319658+00:00"
+    "pe": 21.456034,
+    "forward_pe": 18.14903,
+    "peg": 1.95,
+    "market_cap": 67747532800.0,
+    "sector": "Utilities",
+    "_cached_at": "2026-09-03T14:42:47.189911+00:00"
   },
   "SO": {
     "ticker": "SO",
-    "fundamental_score": 36.2,
+    "fundamental_score": 36.7,
     "fundamental_completeness": 100.0,
     "revenue": 29553000000.0,
     "revenue_growth": 0.1058599012123933,
@@ -1963,15 +2049,16 @@
     "roe": 0.1205297645490893,
     "debt_equity": 2.0567247889826743,
     "cash": 1639000000.0,
-    "pe": 21.015661,
-    "forward_pe": 17.709564,
-    "peg": 2.27,
-    "market_cap": 100328906752.0,
-    "_cached_at": "2026-09-02T13:58:33.319658+00:00"
+    "pe": 21.425325,
+    "forward_pe": 18.056356,
+    "peg": 2.08,
+    "market_cap": 102284640256.0,
+    "sector": "Utilities",
+    "_cached_at": "2026-09-03T14:42:47.189911+00:00"
   },
   "LLY": {
     "ticker": "LLY",
-    "fundamental_score": 83.9,
+    "fundamental_score": 84.0,
     "fundamental_completeness": 100.0,
     "revenue": 65179000000.0,
     "revenue_growth": 0.44703949559309986,
@@ -1985,15 +2072,16 @@
     "roe": 0.7778405879027699,
     "debt_equity": 1.6017712455247786,
     "cash": 7268000000.0,
-    "pe": 39.48105,
-    "forward_pe": 24.905684,
+    "pe": 38.7105,
+    "forward_pe": 24.419653,
     "peg": 1.12,
-    "market_cap": 1049064898560.0,
-    "_cached_at": "2026-09-02T13:58:33.319658+00:00"
+    "market_cap": 1029033820160.0,
+    "sector": "Healthcare",
+    "_cached_at": "2026-09-03T14:42:47.189911+00:00"
   },
   "DUK": {
     "ticker": "DUK",
-    "fundamental_score": 39.3,
+    "fundamental_score": 39.7,
     "fundamental_completeness": 100.0,
     "revenue": 32237000000.0,
     "revenue_growth": 0.06192970319860325,
@@ -2007,15 +2095,16 @@
     "roe": 0.09582963620230701,
     "debt_equity": 1.7528066046834614,
     "cash": 245000000.0,
-    "pe": 17.959398,
-    "forward_pe": 16.651516,
-    "peg": 2.4,
-    "market_cap": 93119832064.0,
-    "_cached_at": "2026-09-02T13:58:33.319658+00:00"
+    "pe": 18.29217,
+    "forward_pe": 16.93455,
+    "peg": 2.24,
+    "market_cap": 94702632960.0,
+    "sector": "Utilities",
+    "_cached_at": "2026-09-03T14:42:47.189911+00:00"
   },
   "UNH": {
     "ticker": "UNH",
-    "fundamental_score": 40.2,
+    "fundamental_score": 40.6,
     "fundamental_completeness": 100.0,
     "revenue": 447567000000.0,
     "revenue_growth": 0.11814039242726304,
@@ -2029,11 +2118,12 @@
     "roe": 0.12810540856444586,
     "debt_equity": 0.832950802252683,
     "cash": 28121000000.0,
-    "pe": 25.595375,
-    "forward_pe": 17.763023,
-    "peg": 1.22,
-    "market_cap": 357709479936.0,
-    "_cached_at": "2026-09-02T13:58:33.319658+00:00"
+    "pe": 25.77106,
+    "forward_pe": 17.861975,
+    "peg": 1.08,
+    "market_cap": 359702134784.0,
+    "sector": "Healthcare",
+    "_cached_at": "2026-09-03T14:42:47.189911+00:00"
   },
   "ABBV": {
     "ticker": "ABBV",
@@ -2051,11 +2141,12 @@
     "roe": -1.2923547400611621,
     "debt_equity": -20.64097859327217,
     "cash": 5257000000.0,
-    "pe": 72.17688,
-    "forward_pe": 15.914179,
+    "pe": 73.005646,
+    "forward_pe": 15.962398,
     "peg": 0.37,
-    "market_cap": 457886597120.0,
-    "_cached_at": "2026-09-02T13:58:33.319658+00:00"
+    "market_cap": 459273928704.0,
+    "sector": "Healthcare",
+    "_cached_at": "2026-09-03T14:42:47.189911+00:00"
   },
   "JNJ": {
     "ticker": "JNJ",
@@ -2073,11 +2164,12 @@
     "roe": 0.3287059746885117,
     "debt_equity": 0.5878176199352497,
     "cash": 20102000000.0,
-    "pe": 32.210556,
-    "forward_pe": 22.559822,
-    "peg": 4.66,
-    "market_cap": 669120331776.0,
-    "_cached_at": "2026-09-02T13:58:33.319658+00:00"
+    "pe": 32.14403,
+    "forward_pe": 22.48711,
+    "peg": 4.32,
+    "market_cap": 666963738624.0,
+    "sector": "Healthcare",
+    "_cached_at": "2026-09-03T14:42:47.189911+00:00"
   },
   "MRK": {
     "ticker": "MRK",
@@ -2095,15 +2187,16 @@
     "roe": 0.34699463939474584,
     "debt_equity": 0.9378968178534768,
     "cash": 14565000000.0,
-    "pe": 122.048386,
-    "forward_pe": 15.858977,
+    "pe": 121.298386,
+    "forward_pe": 15.761522,
     "peg": 2.92,
-    "market_cap": 373381726208.0,
-    "_cached_at": "2026-09-02T13:58:33.319658+00:00"
+    "market_cap": 371087278080.0,
+    "sector": "Healthcare",
+    "_cached_at": "2026-09-03T14:42:47.189911+00:00"
   },
   "PFE": {
     "ticker": "PFE",
-    "fundamental_score": 40.6,
+    "fundamental_score": 40.4,
     "fundamental_completeness": 100.0,
     "revenue": 62579000000.0,
     "revenue_growth": -0.01647099501783833,
@@ -2117,11 +2210,12 @@
     "roe": 0.0898630833988621,
     "debt_equity": 0.7396387436976734,
     "cash": 13596000000.0,
-    "pe": 38.046055,
-    "forward_pe": 9.98653,
-    "peg": 2.71,
-    "market_cap": 164806066176.0,
-    "_cached_at": "2026-09-02T13:58:33.319658+00:00"
+    "pe": 37.70395,
+    "forward_pe": 9.896733,
+    "peg": 2.8,
+    "market_cap": 163324149760.0,
+    "sector": "Healthcare",
+    "_cached_at": "2026-09-03T14:42:47.189911+00:00"
   },
   "NVO": {
     "ticker": "NVO",
@@ -2139,15 +2233,16 @@
     "roe": 0.5278824202383958,
     "debt_equity": 0.6748777358062737,
     "cash": 26962000000.0,
-    "pe": 11.481572,
-    "forward_pe": 13.668904,
+    "pe": 11.462009,
+    "forward_pe": 13.7099285,
     "peg": 3.19,
-    "market_cap": 206545682432.0,
-    "_cached_at": "2026-09-02T13:58:33.319658+00:00"
+    "market_cap": 206749466624.0,
+    "sector": "Healthcare",
+    "_cached_at": "2026-09-03T14:42:47.189911+00:00"
   },
   "AMGN": {
     "ticker": "AMGN",
-    "fundamental_score": 66.8,
+    "fundamental_score": 67.4,
     "fundamental_completeness": 100.0,
     "revenue": 36751000000.0,
     "revenue_growth": 0.09953925323121116,
@@ -2161,15 +2256,16 @@
     "roe": 0.8906213906213907,
     "debt_equity": 6.306768306768307,
     "cash": 9129000000.0,
-    "pe": 27.38059,
-    "forward_pe": 18.04604,
-    "peg": 2.29,
-    "market_cap": 238029406208.0,
-    "_cached_at": "2026-09-02T13:58:33.319658+00:00"
+    "pe": 27.455332,
+    "forward_pe": 18.14036,
+    "peg": 2.11,
+    "market_cap": 239272902656.0,
+    "sector": "Healthcare",
+    "_cached_at": "2026-09-03T14:42:47.189911+00:00"
   },
   "REGN": {
     "ticker": "REGN",
-    "fundamental_score": 68.1,
+    "fundamental_score": 68.6,
     "fundamental_completeness": 100.0,
     "revenue": 14342900000.0,
     "revenue_growth": 0.009921137867905827,
@@ -2183,15 +2279,16 @@
     "roe": 0.14412497720503312,
     "debt_equity": 0.0865696854134607,
     "cash": 8605200000.0,
-    "pe": 20.62806,
-    "forward_pe": 13.766297,
-    "peg": 1.33,
-    "market_cap": 85906161664.0,
-    "_cached_at": "2026-09-02T13:58:33.319658+00:00"
+    "pe": 20.828053,
+    "forward_pe": 13.879146,
+    "peg": 1.17,
+    "market_cap": 86610370560.0,
+    "sector": "Healthcare",
+    "_cached_at": "2026-09-03T14:42:47.189911+00:00"
   },
   "VRTX": {
     "ticker": "VRTX",
-    "fundamental_score": 59.7,
+    "fundamental_score": 60.3,
     "fundamental_completeness": 100.0,
     "revenue": 12001300000.0,
     "revenue_growth": 0.08903730456166459,
@@ -2205,15 +2302,16 @@
     "roe": 0.21178840446163572,
     "debt_equity": 0.10878183629954248,
     "cash": 6608100000.0,
-    "pe": 32.024128,
-    "forward_pe": 25.299425,
-    "peg": 1.9,
-    "market_cap": 139521441792.0,
-    "_cached_at": "2026-09-02T13:58:33.319658+00:00"
+    "pe": 32.527695,
+    "forward_pe": 25.622547,
+    "peg": 1.67,
+    "market_cap": 141393166336.0,
+    "sector": "Healthcare",
+    "_cached_at": "2026-09-03T14:42:47.189911+00:00"
   },
   "TMO": {
     "ticker": "TMO",
-    "fundamental_score": 51.2,
+    "fundamental_score": 52.0,
     "fundamental_completeness": 100.0,
     "revenue": 44557000000.0,
     "revenue_growth": 0.03913337531192429,
@@ -2227,15 +2325,16 @@
     "roe": 0.12552661636115117,
     "debt_equity": 0.7374501469844776,
     "cash": 10105000000.0,
-    "pe": 32.967674,
-    "forward_pe": 22.259556,
-    "peg": 2.06,
-    "market_cap": 226240970752.0,
-    "_cached_at": "2026-09-02T13:58:33.319658+00:00"
+    "pe": 32.81035,
+    "forward_pe": 22.15333,
+    "peg": 1.79,
+    "market_cap": 225161314304.0,
+    "sector": "Healthcare",
+    "_cached_at": "2026-09-03T14:42:47.189911+00:00"
   },
   "ISRG": {
     "ticker": "ISRG",
-    "fundamental_score": 80.9,
+    "fundamental_score": 81.8,
     "fundamental_completeness": 100.0,
     "revenue": 10064700000.0,
     "revenue_growth": 0.20505022688904595,
@@ -2249,11 +2348,12 @@
     "roe": 0.16023339317773788,
     "debt_equity": 0.004881059245960503,
     "cash": 5934900000.0,
-    "pe": 43.61194,
-    "forward_pe": 31.46925,
-    "peg": 1.8,
-    "market_cap": 136095490048.0,
-    "_cached_at": "2026-09-02T13:58:33.319658+00:00"
+    "pe": 41.659454,
+    "forward_pe": 30.301973,
+    "peg": 1.61,
+    "market_cap": 131047358464.0,
+    "sector": "Healthcare",
+    "_cached_at": "2026-09-03T14:42:47.189911+00:00"
   },
   "GILD": {
     "ticker": "GILD",
@@ -2272,10 +2372,11 @@
     "debt_equity": 1.0984054268346402,
     "cash": 9613000000.0,
     "pe": null,
-    "forward_pe": 15.261933,
+    "forward_pe": 15.126326,
     "peg": 2.01,
-    "market_cap": 187122761728.0,
-    "_cached_at": "2026-09-02T13:58:33.319658+00:00"
+    "market_cap": 185460113408.0,
+    "sector": "Healthcare",
+    "_cached_at": "2026-09-03T14:42:47.189911+00:00"
   },
   "MRNA": {
     "ticker": "MRNA",
@@ -2294,14 +2395,15 @@
     "debt_equity": 0.1508670520231214,
     "cash": 5799000000.0,
     "pe": null,
-    "forward_pe": -32.953552,
+    "forward_pe": -31.298382,
     "peg": null,
-    "market_cap": 60148883456.0,
-    "_cached_at": "2026-09-02T13:58:33.319658+00:00"
+    "market_cap": 57386172416.0,
+    "sector": "Healthcare",
+    "_cached_at": "2026-09-03T14:42:47.189911+00:00"
   },
   "DHR": {
     "ticker": "DHR",
-    "fundamental_score": 52.1,
+    "fundamental_score": 52.8,
     "fundamental_completeness": 100.0,
     "revenue": 24568000000.0,
     "revenue_growth": 0.02902617801047125,
@@ -2315,11 +2417,12 @@
     "roe": 0.06879354322914684,
     "debt_equity": 0.3749191000114212,
     "cash": 4615000000.0,
-    "pe": 37.784313,
-    "forward_pe": 22.802944,
-    "peg": 1.41,
-    "market_cap": 149011955712.0,
-    "_cached_at": "2026-09-02T13:58:33.319658+00:00"
+    "pe": 37.076786,
+    "forward_pe": 22.336063,
+    "peg": 1.24,
+    "market_cap": 145960992768.0,
+    "sector": "Healthcare",
+    "_cached_at": "2026-09-03T14:42:47.189911+00:00"
   },
   "MDT": {
     "ticker": "MDT",
@@ -2337,15 +2440,16 @@
     "roe": 0.09706245072074075,
     "debt_equity": 0.5652912277864263,
     "cash": 9220000000.0,
-    "pe": 25.096516,
-    "forward_pe": 14.628848,
-    "peg": 1.78,
-    "market_cap": 119819001856.0,
-    "_cached_at": "2026-09-02T13:58:33.319658+00:00"
+    "pe": 24.432976,
+    "forward_pe": 14.246433,
+    "peg": 1.82,
+    "market_cap": 116651048960.0,
+    "sector": "Healthcare",
+    "_cached_at": "2026-09-03T14:42:47.189911+00:00"
   },
   "ABT": {
     "ticker": "ABT",
-    "fundamental_score": 52.8,
+    "fundamental_score": 53.7,
     "fundamental_completeness": 100.0,
     "revenue": 44328000000.0,
     "revenue_growth": 0.05668653158522052,
@@ -2359,15 +2463,16 @@
     "roe": 0.12514866679455208,
     "debt_equity": 0.26587377709572224,
     "cash": 8939000000.0,
-    "pe": 35.911003,
-    "forward_pe": 18.296352,
-    "peg": 2.25,
-    "market_cap": 193280278528.0,
-    "_cached_at": "2026-09-02T13:58:33.319658+00:00"
+    "pe": 34.97738,
+    "forward_pe": 17.820679,
+    "peg": 2.0,
+    "market_cap": 187020001280.0,
+    "sector": "Healthcare",
+    "_cached_at": "2026-09-03T14:42:47.189911+00:00"
   },
   "BA": {
     "ticker": "BA",
-    "fundamental_score": 34.6,
+    "fundamental_score": 39.1,
     "fundamental_completeness": 100.0,
     "revenue": 89463000000.0,
     "revenue_growth": 0.3449644451794278,
@@ -2381,15 +2486,16 @@
     "roe": 0.4097909790979098,
     "debt_equity": 9.98038137147048,
     "cash": 29400000000.0,
-    "pe": 74.92806,
-    "forward_pe": 50.547947,
-    "peg": 89.29,
-    "market_cap": 164513775616.0,
-    "_cached_at": "2026-09-02T13:58:33.319658+00:00"
+    "pe": 74.44241,
+    "forward_pe": 50.220318,
+    "peg": 1.48,
+    "market_cap": 163567009792.0,
+    "sector": "Industrials",
+    "_cached_at": "2026-09-03T14:42:47.189911+00:00"
   },
   "LMT": {
     "ticker": "LMT",
-    "fundamental_score": 53.8,
+    "fundamental_score": 54.2,
     "fundamental_completeness": 100.0,
     "revenue": 75048000000.0,
     "revenue_growth": 0.0563743085173769,
@@ -2403,15 +2509,16 @@
     "roe": 0.746466299657789,
     "debt_equity": 3.228686207409612,
     "cash": 4121000000.0,
-    "pe": 19.689896,
-    "forward_pe": 16.321703,
-    "peg": 1.17,
-    "market_cap": 123239948288.0,
-    "_cached_at": "2026-09-02T13:58:33.319658+00:00"
+    "pe": 19.518995,
+    "forward_pe": 16.17407,
+    "peg": 1.04,
+    "market_cap": 122125230080.0,
+    "sector": "Industrials",
+    "_cached_at": "2026-09-03T14:42:47.189911+00:00"
   },
   "RTX": {
     "ticker": "RTX",
-    "fundamental_score": 60.8,
+    "fundamental_score": 60.7,
     "fundamental_completeness": 100.0,
     "revenue": 88603000000.0,
     "revenue_growth": 0.09741385716762863,
@@ -2425,11 +2532,12 @@
     "roe": 0.10318032033105985,
     "debt_equity": 0.6055023373438577,
     "cash": 7435000000.0,
-    "pe": 35.588028,
-    "forward_pe": 25.73111,
+    "pe": 36.103416,
+    "forward_pe": 25.552261,
     "peg": 2.38,
-    "market_cap": 272435822592.0,
-    "_cached_at": "2026-09-02T13:58:33.319658+00:00"
+    "market_cap": 270542225408.0,
+    "sector": "Industrials",
+    "_cached_at": "2026-09-03T14:42:47.189911+00:00"
   },
   "NOC": {
     "ticker": "NOC",
@@ -2447,15 +2555,16 @@
     "roe": 0.250809643756747,
     "debt_equity": 1.0206908960057575,
     "cash": 4403000000.0,
-    "pe": 16.719784,
-    "forward_pe": 17.26907,
-    "peg": 3.76,
-    "market_cap": 74678263808.0,
-    "_cached_at": "2026-09-02T13:58:33.319658+00:00"
+    "pe": 16.685198,
+    "forward_pe": 17.255274,
+    "peg": 3.53,
+    "market_cap": 74618601472.0,
+    "sector": "Industrials",
+    "_cached_at": "2026-09-03T14:42:47.189911+00:00"
   },
   "GE": {
     "ticker": "GE",
-    "fundamental_score": 75.6,
+    "fundamental_score": 75.7,
     "fundamental_completeness": 100.0,
     "revenue": 45855000000.0,
     "revenue_growth": 0.1848224897938091,
@@ -2469,15 +2578,16 @@
     "roe": 0.4660277346468919,
     "debt_equity": 1.09733897306848,
     "cash": 12392000000.0,
-    "pe": 39.543556,
-    "forward_pe": 36.514706,
-    "peg": 5.13,
-    "market_cap": 343822270464.0,
-    "_cached_at": "2026-09-02T13:58:33.319658+00:00"
+    "pe": 39.018887,
+    "forward_pe": 36.417187,
+    "peg": 4.23,
+    "market_cap": 342904012800.0,
+    "sector": "Industrials",
+    "_cached_at": "2026-09-03T14:42:47.189911+00:00"
   },
   "UNP": {
     "ticker": "UNP",
-    "fundamental_score": 58.6,
+    "fundamental_score": 59.1,
     "fundamental_completeness": 100.0,
     "revenue": 24510000000.0,
     "revenue_growth": 0.010721649484536133,
@@ -2491,11 +2601,12 @@
     "roe": 0.3865273190014621,
     "debt_equity": 1.7773325391238426,
     "cash": 1516000000.0,
-    "pe": 24.038527,
-    "forward_pe": 20.276976,
-    "peg": 3.4,
-    "market_cap": 170511548416.0,
-    "_cached_at": "2026-09-02T13:58:33.319658+00:00"
+    "pe": 23.309158,
+    "forward_pe": 20.320425,
+    "peg": 2.88,
+    "market_cap": 170876911616.0,
+    "sector": "Industrials",
+    "_cached_at": "2026-09-03T14:42:47.189911+00:00"
   },
   "HON": {
     "ticker": "HON",
@@ -2513,15 +2624,16 @@
     "roe": 0.3401179516685846,
     "debt_equity": 2.5577531645569622,
     "cash": 12930000000.0,
-    "pe": 8.034396,
-    "forward_pe": 20.894865,
-    "peg": 4.08,
-    "market_cap": 66257891328.0,
-    "_cached_at": "2026-09-02T13:58:33.319658+00:00"
+    "pe": 7.9133024,
+    "forward_pe": 20.57203,
+    "peg": 3.39,
+    "market_cap": 65234173952.0,
+    "sector": "Industrials",
+    "_cached_at": "2026-09-03T14:42:47.189911+00:00"
   },
   "GD": {
     "ticker": "GD",
-    "fundamental_score": 58.7,
+    "fundamental_score": 59.6,
     "fundamental_completeness": 100.0,
     "revenue": 52550000000.0,
     "revenue_growth": 0.10130773744655874,
@@ -2535,15 +2647,16 @@
     "roe": 0.16431191944422763,
     "debt_equity": 0.38205448442744516,
     "cash": 2333000000.0,
-    "pe": 22.156708,
-    "forward_pe": 19.591034,
-    "peg": 2.64,
-    "market_cap": 98312364032.0,
-    "_cached_at": "2026-09-02T13:58:33.319658+00:00"
+    "pe": 22.43131,
+    "forward_pe": 19.519669,
+    "peg": 2.31,
+    "market_cap": 98074271744.0,
+    "sector": "Industrials",
+    "_cached_at": "2026-09-03T14:42:47.189911+00:00"
   },
   "UPS": {
     "ticker": "UPS",
-    "fundamental_score": 40.0,
+    "fundamental_score": 40.6,
     "fundamental_completeness": 100.0,
     "revenue": 88661000000.0,
     "revenue_growth": -0.026452179642033613,
@@ -2557,11 +2670,12 @@
     "roe": 0.3433783200838109,
     "debt_equity": 1.7618783508966538,
     "cash": 5887000000.0,
-    "pe": 19.13104,
-    "forward_pe": 12.746288,
-    "peg": 1.64,
-    "market_cap": 87566696448.0,
-    "_cached_at": "2026-09-02T13:58:33.319658+00:00"
+    "pe": 19.103159,
+    "forward_pe": 12.727713,
+    "peg": 1.46,
+    "market_cap": 87439073280.0,
+    "sector": "Industrials",
+    "_cached_at": "2026-09-03T14:42:47.189911+00:00"
   },
   "FDX": {
     "ticker": "FDX",
@@ -2579,11 +2693,12 @@
     "roe": 0.14007646854362182,
     "debt_equity": 1.3569374664265175,
     "cash": 13311000000.0,
-    "pe": 17.392723,
-    "forward_pe": 15.480999,
+    "pe": 17.104584,
+    "forward_pe": 15.22453,
     "peg": 1.37,
-    "market_cap": 76358164480.0,
-    "_cached_at": "2026-09-02T13:58:33.319658+00:00"
+    "market_cap": 75093164032.0,
+    "sector": "Industrials",
+    "_cached_at": "2026-09-03T14:42:47.189911+00:00"
   },
   "DAL": {
     "ticker": "DAL",
@@ -2601,11 +2716,12 @@
     "roe": 0.24001342732460557,
     "debt_equity": 0.9722342109049058,
     "cash": 4310000000.0,
-    "pe": 12.85655,
-    "forward_pe": 8.916987,
+    "pe": 12.980928,
+    "forward_pe": 9.003253,
     "peg": 0.21,
-    "market_cap": 50982227968.0,
-    "_cached_at": "2026-09-02T13:58:33.319658+00:00"
+    "market_cap": 51475443712.0,
+    "sector": "Industrials",
+    "_cached_at": "2026-09-03T14:42:47.189911+00:00"
   },
   "AAL": {
     "ticker": "AAL",
@@ -2624,14 +2740,15 @@
     "debt_equity": -9.896431446203382,
     "cash": 5836000000.0,
     "pe": null,
-    "forward_pe": 5.670148,
+    "forward_pe": 5.6804295,
     "peg": 0.09,
-    "market_cap": 8698285056.0,
-    "_cached_at": "2026-09-02T13:58:33.319658+00:00"
+    "market_cap": 8612229120.0,
+    "sector": "Industrials",
+    "_cached_at": "2026-09-03T14:42:47.189911+00:00"
   },
   "EQIX": {
     "ticker": "EQIX",
-    "fundamental_score": 37.1,
+    "fundamental_score": 37.4,
     "fundamental_completeness": 100.0,
     "revenue": 9217000000.0,
     "revenue_growth": 0.05361225422953808,
@@ -2645,11 +2762,12 @@
     "roe": 0.09536592257699915,
     "debt_equity": 1.6053970048036168,
     "cash": 3227000000.0,
-    "pe": 65.03286,
-    "forward_pe": 53.994415,
-    "peg": 3.47,
-    "market_cap": 99590324224.0,
-    "_cached_at": "2026-09-02T13:58:33.319658+00:00"
+    "pe": 66.32229,
+    "forward_pe": 54.603737,
+    "peg": 2.89,
+    "market_cap": 100714192896.0,
+    "sector": "Real Estate",
+    "_cached_at": "2026-09-03T14:42:47.189911+00:00"
   },
   "DLR": {
     "ticker": "DLR",
@@ -2667,15 +2785,16 @@
     "roe": 0.05707965784893549,
     "debt_equity": 0.8573515191250958,
     "cash": 3451647000.0,
-    "pe": 87.79512,
-    "forward_pe": 62.248814,
-    "peg": 13.91,
-    "market_cap": 67971911680.0,
-    "_cached_at": "2026-09-02T13:58:33.319658+00:00"
+    "pe": 89.41263,
+    "forward_pe": 63.70491,
+    "peg": 11.84,
+    "market_cap": 69561876480.0,
+    "sector": "Real Estate",
+    "_cached_at": "2026-09-03T14:42:47.189911+00:00"
   },
   "PLD": {
     "ticker": "PLD",
-    "fundamental_score": 52.4,
+    "fundamental_score": 52.5,
     "fundamental_completeness": 100.0,
     "revenue": 8790127000.0,
     "revenue_growth": 0.07175627712119947,
@@ -2689,15 +2808,16 @@
     "roe": 0.06256875646722969,
     "debt_equity": 0.6707727445801415,
     "cash": 1145647000.0,
-    "pe": 30.71317,
-    "forward_pe": 40.40969,
-    "peg": 130.89,
-    "market_cap": 133754912768.0,
-    "_cached_at": "2026-09-02T13:58:33.319658+00:00"
+    "pe": 30.429846,
+    "forward_pe": 40.126286,
+    "peg": 121.59,
+    "market_cap": 132816855040.0,
+    "sector": "Real Estate",
+    "_cached_at": "2026-09-03T14:42:47.189911+00:00"
   },
   "AMT": {
     "ticker": "AMT",
-    "fundamental_score": 65.8,
+    "fundamental_score": 65.6,
     "fundamental_completeness": 100.0,
     "revenue": 10644600000.0,
     "revenue_growth": 0.051090133501856316,
@@ -2711,11 +2831,12 @@
     "roe": 0.692539356605065,
     "debt_equity": 12.310444900752909,
     "cash": 1474800000.0,
-    "pe": 23.903025,
-    "forward_pe": 24.789444,
-    "peg": 1.63,
-    "market_cap": 80972210176.0,
-    "_cached_at": "2026-09-02T13:58:33.319658+00:00"
+    "pe": 24.388428,
+    "forward_pe": 25.258059,
+    "peg": 1.66,
+    "market_cap": 82502885376.0,
+    "sector": "Real Estate",
+    "_cached_at": "2026-09-03T14:42:47.189911+00:00"
   },
   "ASTS": {
     "ticker": "ASTS",
@@ -2734,14 +2855,15 @@
     "debt_equity": 1.2161500970689256,
     "cash": 2335683000.0,
     "pe": null,
-    "forward_pe": -49.990017,
+    "forward_pe": -47.7571,
     "peg": null,
-    "market_cap": 23583510528.0,
-    "_cached_at": "2026-09-02T13:58:33.319658+00:00"
+    "market_cap": 23960070144.0,
+    "sector": "Technology",
+    "_cached_at": "2026-09-03T14:42:47.189911+00:00"
   },
   "CCI": {
     "ticker": "CCI",
-    "fundamental_score": 46.3,
+    "fundamental_score": 46.2,
     "fundamental_completeness": 100.0,
     "revenue": 4264000000.0,
     "revenue_growth": -0.04394618834080721,
@@ -2755,11 +2877,12 @@
     "roe": -0.27155963302752295,
     "debt_equity": -18.083180428134558,
     "cash": 99000000.0,
-    "pe": 30.571428,
-    "forward_pe": 25.940474,
-    "peg": 0.91,
-    "market_cap": 31866611712.0,
-    "_cached_at": "2026-09-02T13:58:33.319658+00:00"
+    "pe": 31.297958,
+    "forward_pe": 26.55695,
+    "peg": 0.6,
+    "market_cap": 33509160960.0,
+    "sector": "Real Estate",
+    "_cached_at": "2026-09-03T14:42:47.189911+00:00"
   },
   "RKLB": {
     "ticker": "RKLB",
@@ -2778,10 +2901,11 @@
     "debt_equity": 0.14748927609425655,
     "cash": 1016577000.0,
     "pe": null,
-    "forward_pe": 1245.0,
+    "forward_pe": 1409.991,
     "peg": null,
-    "market_cap": 39803334656.0,
-    "_cached_at": "2026-09-02T13:58:33.319658+00:00"
+    "market_cap": 40065495040.0,
+    "sector": "Industrials",
+    "_cached_at": "2026-09-03T14:42:47.189911+00:00"
   },
   "CRWV": {
     "ticker": "CRWV",
@@ -2800,10 +2924,11 @@
     "debt_equity": 8.942128935532233,
     "cash": 3161000000.0,
     "pe": null,
-    "forward_pe": -41.11639,
+    "forward_pe": -41.878784,
     "peg": null,
-    "market_cap": 44188778496.0,
-    "_cached_at": "2026-09-02T13:58:33.319658+00:00"
+    "market_cap": 45008142336.0,
+    "sector": "Technology",
+    "_cached_at": "2026-09-03T14:42:47.189911+00:00"
   },
   "IREN": {
     "ticker": "IREN",
@@ -2822,10 +2947,11 @@
     "debt_equity": 0.5305300502671819,
     "cash": 564526000.0,
     "pe": null,
-    "forward_pe": -140.68869,
+    "forward_pe": -152.5283,
     "peg": 3.11,
-    "market_cap": 14691491840.0,
-    "_cached_at": "2026-09-02T13:58:33.319658+00:00"
+    "market_cap": 15927849984.0,
+    "sector": "Financial Services",
+    "_cached_at": "2026-09-03T14:42:47.189911+00:00"
   },
   "NBIS": {
     "ticker": "NBIS",
@@ -2844,10 +2970,11 @@
     "debt_equity": 1.082520679146713,
     "cash": 3678100000.0,
     "pe": null,
-    "forward_pe": -65.83653,
+    "forward_pe": -68.40367,
     "peg": 0.48,
-    "market_cap": 50105540608.0,
-    "_cached_at": "2026-09-02T13:58:33.319658+00:00"
+    "market_cap": 55741194240.0,
+    "sector": "Communication Services",
+    "_cached_at": "2026-09-03T14:42:47.189911+00:00"
   },
   "AAOI": {
     "ticker": "AAOI",
@@ -2866,10 +2993,11 @@
     "debt_equity": 0.33802413893650246,
     "cash": 206140000.0,
     "pe": null,
-    "forward_pe": 22.06106,
+    "forward_pe": 21.619947,
     "peg": 0.78,
-    "market_cap": 8620110848.0,
-    "_cached_at": "2026-09-02T13:58:33.319658+00:00"
+    "market_cap": 8447751168.0,
+    "sector": "Technology",
+    "_cached_at": "2026-09-03T14:42:47.189911+00:00"
   },
   "NVTS": {
     "ticker": "NVTS",
@@ -2888,10 +3016,11 @@
     "debt_equity": 0.014587714493723812,
     "cash": 236857000.0,
     "pe": null,
-    "forward_pe": -87.5734,
+    "forward_pe": -89.03429,
     "peg": null,
-    "market_cap": 2881427712.0,
-    "_cached_at": "2026-09-02T13:58:33.319658+00:00"
+    "market_cap": 2929495040.0,
+    "sector": "Technology",
+    "_cached_at": "2026-09-03T14:42:47.189911+00:00"
   },
   "AMKR": {
     "ticker": "AMKR",
@@ -2909,11 +3038,12 @@
     "roe": 0.0836247228314426,
     "debt_equity": 0.3491263682856099,
     "cash": 1991385000.0,
-    "pe": 20.587444,
-    "forward_pe": 16.359327,
+    "pe": 20.789238,
+    "forward_pe": 16.519678,
     "peg": 0.76,
-    "market_cap": 11379826688.0,
-    "_cached_at": "2026-09-02T13:58:33.319658+00:00"
+    "market_cap": 11518257152.0,
+    "sector": "Technology",
+    "_cached_at": "2026-09-03T14:42:47.189911+00:00"
   },
   "APLD": {
     "ticker": "APLD",
@@ -2932,14 +3062,15 @@
     "debt_equity": 2.969424900260615,
     "cash": 1591988000.0,
     "pe": null,
-    "forward_pe": -95.76,
+    "forward_pe": -102.0404,
     "peg": 1.83,
-    "market_cap": 6806233088.0,
-    "_cached_at": "2026-09-02T13:58:33.319658+00:00"
+    "market_cap": 7252618240.0,
+    "sector": "Technology",
+    "_cached_at": "2026-09-03T14:42:47.189911+00:00"
   },
   "ASML": {
     "ticker": "ASML",
-    "fundamental_score": 81.0,
+    "fundamental_score": 82.8,
     "fundamental_completeness": 100.0,
     "revenue": 32667300000.0,
     "revenue_growth": 0.15583680372502462,
@@ -2953,11 +3084,12 @@
     "roe": 0.4899705285485565,
     "debt_equity": 0.22388615249691518,
     "cash": 13321900000.0,
-    "pe": 56.16661,
-    "forward_pe": 27.558018,
-    "peg": 2.07,
-    "market_cap": 635773845504.0,
-    "_cached_at": "2026-09-02T13:58:33.319658+00:00"
+    "pe": 55.713314,
+    "forward_pe": 27.307783,
+    "peg": 1.49,
+    "market_cap": 630000779264.0,
+    "sector": "Technology",
+    "_cached_at": "2026-09-03T14:42:47.189911+00:00"
   },
   "CCJ": {
     "ticker": "CCJ",
@@ -2975,11 +3107,12 @@
     "roe": 0.08540431670766842,
     "debt_equity": 0.14432791669799197,
     "cash": 1214463000.0,
-    "pe": 163.77966,
-    "forward_pe": 51.27105,
+    "pe": 171.23729,
+    "forward_pe": 53.614952,
     "peg": 1.92,
-    "market_cap": 42085552128.0,
-    "_cached_at": "2026-09-02T13:58:33.319658+00:00"
+    "market_cap": 44001898496.0,
+    "sector": "Energy",
+    "_cached_at": "2026-09-03T14:42:47.189911+00:00"
   },
   "SMR": {
     "ticker": "SMR",
@@ -2998,10 +3131,11 @@
     "debt_equity": 0.0012790447973676487,
     "cash": 1254217000.0,
     "pe": null,
-    "forward_pe": -14.283917,
+    "forward_pe": -14.97208,
     "peg": null,
-    "market_cap": 3821301248.0,
-    "_cached_at": "2026-09-02T13:58:33.319658+00:00"
+    "market_cap": 4005401856.0,
+    "sector": "Industrials",
+    "_cached_at": "2026-09-03T14:42:47.189911+00:00"
   },
   "OKLO": {
     "ticker": "OKLO",
@@ -3020,10 +3154,11 @@
     "debt_equity": 0.0009822450735328984,
     "cash": 1227971000.0,
     "pe": null,
-    "forward_pe": -38.421017,
+    "forward_pe": -40.231434,
     "peg": null,
-    "market_cap": 7176932864.0,
-    "_cached_at": "2026-09-02T13:58:33.319658+00:00"
+    "market_cap": 7515113472.0,
+    "sector": "Utilities",
+    "_cached_at": "2026-09-03T14:42:47.189911+00:00"
   },
   "ITCI": {
     "ticker": "ITCI",
@@ -3045,7 +3180,8 @@
     "forward_pe": null,
     "peg": null,
     "market_cap": null,
-    "_cached_at": "2026-09-02T13:58:33.319658+00:00"
+    "sector": null,
+    "_cached_at": "2026-09-03T14:42:47.189911+00:00"
   },
   "RGTI": {
     "ticker": "RGTI",
@@ -3064,14 +3200,15 @@
     "debt_equity": 0.0131215912149235,
     "cash": 443511000.0,
     "pe": null,
-    "forward_pe": -71.38349,
+    "forward_pe": -74.02913,
     "peg": null,
-    "market_cap": 4908069376.0,
-    "_cached_at": "2026-09-02T13:58:33.319658+00:00"
+    "market_cap": 5089973248.0,
+    "sector": "Technology",
+    "_cached_at": "2026-09-03T14:42:47.189911+00:00"
   },
   "RDDT": {
     "ticker": "RDDT",
-    "fundamental_score": 77.9,
+    "fundamental_score": 77.7,
     "fundamental_completeness": 100.0,
     "revenue": 2202506000.0,
     "revenue_growth": 0.6939682588514888,
@@ -3085,11 +3222,12 @@
     "roe": 0.18085152872717936,
     "debt_equity": 0.007925469044785353,
     "cash": 2476811000.0,
-    "pe": 35.46046,
-    "forward_pe": 15.739886,
-    "peg": 0.99,
-    "market_cap": 29336619008.0,
-    "_cached_at": "2026-09-02T13:58:33.319658+00:00"
+    "pe": 36.652325,
+    "forward_pe": 16.268919,
+    "peg": 0.72,
+    "market_cap": 30322651136.0,
+    "sector": "Communication Services",
+    "_cached_at": "2026-09-03T14:42:47.189911+00:00"
   },
   "TEM": {
     "ticker": "TEM",
@@ -3108,10 +3246,11 @@
     "debt_equity": 2.701119012631125,
     "cash": 754998000.0,
     "pe": null,
-    "forward_pe": -4377.6313,
+    "forward_pe": -2600.9155,
     "peg": null,
-    "market_cap": 12006128640.0,
-    "_cached_at": "2026-09-02T13:58:33.319658+00:00"
+    "market_cap": 11277171712.0,
+    "sector": "Healthcare",
+    "_cached_at": "2026-09-03T14:42:47.189911+00:00"
   },
   "IONQ": {
     "ticker": "IONQ",
@@ -3130,14 +3269,15 @@
     "debt_equity": 0.007901267450573323,
     "cash": 2392156000.0,
     "pe": null,
-    "forward_pe": -30.69818,
+    "forward_pe": -32.583374,
     "peg": null,
-    "market_cap": 15107508224.0,
-    "_cached_at": "2026-09-02T13:58:33.319658+00:00"
+    "market_cap": 16035269632.0,
+    "sector": "Technology",
+    "_cached_at": "2026-09-03T14:42:47.189911+00:00"
   },
   "ARM": {
     "ticker": "ARM",
-    "fundamental_score": 75.5,
+    "fundamental_score": 76.0,
     "fundamental_completeness": 100.0,
     "revenue": 4920000000.0,
     "revenue_growth": 0.22785126029448466,
@@ -3151,11 +3291,12 @@
     "roe": 0.10909968621771662,
     "debt_equity": 0.05515327057687666,
     "cash": 3601000000.0,
-    "pe": 233.54546,
-    "forward_pe": 75.53809,
-    "peg": 2.1,
-    "market_cap": 246931963904.0,
-    "_cached_at": "2026-09-02T13:58:33.319658+00:00"
+    "pe": 234.98485,
+    "forward_pe": 76.00365,
+    "peg": 1.93,
+    "market_cap": 248453840896.0,
+    "sector": "Technology",
+    "_cached_at": "2026-09-03T14:42:47.189911+00:00"
   },
   "ALAB": {
     "ticker": "ALAB",
@@ -3173,11 +3314,12 @@
     "roe": 0.1606985452108117,
     "debt_equity": 0.0030404052700358014,
     "cash": 1188816000.0,
-    "pe": 132.06863,
-    "forward_pe": 42.13981,
+    "pe": 136.07635,
+    "forward_pe": 43.205734,
     "peg": null,
-    "market_cap": 46740357120.0,
-    "_cached_at": "2026-09-02T13:58:33.319658+00:00"
+    "market_cap": 47922655232.0,
+    "sector": "Technology",
+    "_cached_at": "2026-09-03T14:42:47.189911+00:00"
   },
   "CRDO": {
     "ticker": "CRDO",
@@ -3195,15 +3337,16 @@
     "roe": 0.22886036716204403,
     "debt_equity": 0.012331775546953593,
     "cash": 1443286000.0,
-    "pe": 68.47,
-    "forward_pe": 18.297037,
+    "pe": 66.05179,
+    "forward_pe": 17.223091,
     "peg": null,
-    "market_cap": 32169717760.0,
-    "_cached_at": "2026-09-02T13:58:33.319658+00:00"
+    "market_cap": 31157688320.0,
+    "sector": "Technology",
+    "_cached_at": "2026-09-03T14:42:47.189911+00:00"
   },
   "CLS": {
     "ticker": "CLS",
-    "fundamental_score": 79.7,
+    "fundamental_score": 79.5,
     "fundamental_completeness": 100.0,
     "revenue": 12390900000.0,
     "revenue_growth": 0.2845635496578893,
@@ -3217,11 +3360,12 @@
     "roe": 0.3756260434056761,
     "debt_equity": 0.35035870595136037,
     "cash": 595600000.0,
-    "pe": 29.442368,
-    "forward_pe": 14.50699,
+    "pe": 30.578318,
+    "forward_pe": 15.082348,
     "peg": 1.0,
-    "market_cap": 35756285952.0,
-    "_cached_at": "2026-09-02T13:58:33.319658+00:00"
+    "market_cap": 37174403072.0,
+    "sector": "Technology",
+    "_cached_at": "2026-09-03T14:42:47.189911+00:00"
   },
   "BE": {
     "ticker": "BE",
@@ -3239,10 +3383,11 @@
     "roe": -0.11505241068327086,
     "debt_equity": 3.8925219966148044,
     "cash": 2454108000.0,
-    "pe": 271.24677,
-    "forward_pe": 42.4501,
-    "peg": 0.91,
-    "market_cap": 61514985472.0,
-    "_cached_at": "2026-09-02T13:58:33.319658+00:00"
+    "pe": 281.7949,
+    "forward_pe": 44.67362,
+    "peg": 0.48,
+    "market_cap": 64737116160.0,
+    "sector": "Industrials",
+    "_cached_at": "2026-09-03T14:42:47.189911+00:00"
   }
 }
