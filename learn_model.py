@@ -39,7 +39,7 @@ def build_training_data(limit: int = 1000, negatives_per_positive: int = 20):
     tickers = universe["ticker"].dropna().astype(str).str.upper().tolist()
     entries = load_entries()
     entries["date"] = pd.to_datetime(entries["date"]).dt.tz_localize(None).dt.normalize()
-    dates = sorted(entries["date"].unique())
+    entry_dates = sorted(entries["date"].unique())
     positive_keys = {(str(t).upper(), d) for t, d in zip(entries["ticker"], entries["date"])}
     positive_by_date = {}
     for ticker, date in positive_keys:
@@ -50,6 +50,18 @@ def build_training_data(limit: int = 1000, negatives_per_positive: int = 20):
     spy_close = spy["Close"] if spy is not None and "Close" in spy.columns else None
     prices = download_ohlcv(tickers, DEFAULT_START)
 
+    prior_dates = set()
+    for ticker, entry_date in positive_keys:
+        df = prices.get(ticker)
+        if df is None or df.empty:
+            continue
+        idx = pd.DatetimeIndex(df.index).tz_localize(None).normalize()
+        prior = idx[idx < entry_date]
+        if len(prior):
+            prior_dates.add(prior[-1])
+            positive_by_date.setdefault(prior[-1], set()).add(ticker)
+
+    dates = sorted(set(entry_dates) | prior_dates)
     snapshots: dict[pd.Timestamp, dict[str, np.ndarray]] = {d: {} for d in dates}
     positive_vectors = []
     rng = np.random.default_rng(42)
@@ -67,8 +79,10 @@ def build_training_data(limit: int = 1000, negatives_per_positive: int = 20):
             if vector is None:
                 continue
             snapshots[date][ticker] = vector
-            if (ticker, date) in positive_keys:
+            if (ticker, date) in positive_keys or ticker in positive_by_date.get(date, set()):
                 positive_vectors.append(vector)
+
+    positive_vectors = list({vector.tobytes(): vector for vector in positive_vectors}.values())
 
     negative_vectors = []
     for date in dates:
@@ -101,7 +115,7 @@ def train(limit: int = 1000, negatives_per_positive: int = 20, output: str = "le
     importance = pd.Series(clf.coef_[0], index=FEATURES).sort_values(key=np.abs, ascending=False)
 
     payload = {
-        "version": 1,
+        "version": 2,
         "features": FEATURES,
         "mean": scaler.mean_.tolist(),
         "scale": scaler.scale_.tolist(),
@@ -111,7 +125,7 @@ def train(limit: int = 1000, negatives_per_positive: int = 20, output: str = "le
         "training_observations": int(len(y)),
         "negative_observations": int((y == 0).sum()),
         "top_feature_importance": [{"feature": k, "standardized_coefficient": float(v)} for k, v in importance.head(15).items()],
-        "method": "balanced logistic regression on trader entries vs sampled same-date non-entries",
+        "method": "balanced logistic regression on trader entries plus one trading day pre-entry vs sampled same-date non-entries",
         "warning": "Research prototype. It uses the current top-1000 universe for historical controls and is not a guarantee of future returns.",
     }
     Path(output).write_text(json.dumps(payload, indent=2), encoding="utf-8")
