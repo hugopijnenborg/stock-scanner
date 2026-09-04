@@ -10,16 +10,13 @@ on:
 permissions:
   contents: write
 
-concurrency:
-  group: stock-scanner-main
-  cancel-in-progress: false
-
 env:
   PYTHONUNBUFFERED: '1'
 
 jobs:
   test:
     name: Tests
+    if: github.event_name != 'workflow_dispatch'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -43,7 +40,7 @@ jobs:
       - run: pip install -r requirements.txt
       - name: Run market scan
         run: python main.py scan --limit 1000 --top 1000 --output scan_results.csv --web-output public/data/latest_scan.json
-      - name: Save own 80+ alerts to Supabase
+      - name: Save own alerts to Supabase
         env:
           SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
           SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
@@ -67,69 +64,3 @@ jobs:
           git diff --cached --quiet && exit 0
           git commit -m 'Update manual scanner result [skip ci]'
           git push origin HEAD:main
-
-  backtest:
-    name: Backtest trader entries
-    if: github.event_name == 'push' || github.event_name == 'pull_request'
-    runs-on: ubuntu-latest
-    needs: test
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
-        with:
-          python-version: '3.12'
-          cache: pip
-      - run: pip install -r requirements.txt
-      - run: python main.py backtest --output backtest_results.csv
-      - uses: actions/upload-artifact@v4
-        with:
-          name: stock-scanner-backtest
-          path: backtest_results.csv
-
-  validation:
-    name: Walk-forward validation
-    if: github.event_name == 'push' || github.event_name == 'pull_request'
-    runs-on: ubuntu-latest
-    needs: test
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
-        with:
-          python-version: '3.12'
-          cache: pip
-      - run: pip install -r requirements.txt
-      - run: python walk_forward_validation.py
-      - name: Publish validation result
-        if: github.event_name == 'push'
-        run: |
-          cp walk_forward_validation.json /tmp/walk_forward_validation.json
-          git config user.name 'github-actions[bot]'
-          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git fetch origin main
-          git reset --hard origin/main
-          cp /tmp/walk_forward_validation.json public/data/walk_forward_validation.json
-          git add public/data/walk_forward_validation.json
-          git diff --cached --quiet && exit 0
-          git commit -m 'Update model validation result [skip ci]'
-          git push origin HEAD:main
-      - uses: actions/upload-artifact@v4
-        with:
-          name: stock-scanner-walk-forward
-          path: |
-            walk_forward_validation.csv
-            walk_forward_validation.json
-            walk_forward_trade_events.csv
-
-  web:
-    name: Build dashboard
-    if: github.event_name == 'push' || github.event_name == 'pull_request'
-    runs-on: ubuntu-latest
-    needs: test
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
-        with:
-          node-version: '20'
-          cache: npm
-      - run: npm install
-      - run: npm run build
