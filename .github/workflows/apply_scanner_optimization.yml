@@ -1,6 +1,8 @@
 name: Apply Scanner Optimization
 
 on:
+  push:
+    branches: [main]
   workflow_dispatch:
 
 permissions:
@@ -8,6 +10,7 @@ permissions:
 
 jobs:
   optimize:
+    if: github.event_name == 'workflow_dispatch' || github.event.head_commit.message != 'Fix manual scan and speed up scanner'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
