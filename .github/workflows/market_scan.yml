@@ -2,9 +2,9 @@ name: Market Scanner
 
 on:
   schedule:
-    - cron: '30 15-21 * * 1-5'
-      timezone: 'Europe/Amsterdam'
-    - cron: '0 16-22 * * 1-5'
+    # Run every 30 minutes during the requested Dutch market window.
+    # Offset by 5 minutes to avoid GitHub's busiest :00/:30 schedule times.
+    - cron: '5,35 15-21 * * 1-5'
       timezone: 'Europe/Amsterdam'
   workflow_dispatch:
 
