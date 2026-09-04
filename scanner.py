@@ -4,7 +4,7 @@ from datetime import datetime, timedelta, timezone
 import numpy as np
 import pandas as pd
 
-from config import ALERT_THRESHOLD, MIN_AVG_DOLLAR_VOLUME, MIN_PRICE, REBOUND_WEIGHTS, QUALITY_WEIGHTS, CYCLICAL_WEIGHTS
+from config import ALERT_THRESHOLD, MIN_AVG_DOLLAR_VOLUME, MIN_PRICE, WATCH_THRESHOLD, REBOUND_WEIGHTS, QUALITY_WEIGHTS, CYCLICAL_WEIGHTS
 from data import download_benchmarks, download_ohlcv, download_intraday, download_intraday_benchmarks, download_sector_benchmarks, SECTOR_ETFS
 from fundamentals import download_fundamentals
 from analyst import download_analyst_data
@@ -101,10 +101,8 @@ def _alert_summary(row):
     r1 = row.get("return_1d")
     r5 = row.get("return_5d")
     r10 = row.get("return_10d")
-    news = row.get("recent_news") or []
     earnings_date = row.get("last_earnings_date")
     earnings_surprise = row.get("last_earnings_surprise_pct")
-    news_text = " ".join(str(x.get("title", "")) for x in news if isinstance(x, dict)).lower()
     sentences = []
     recent_move = r5 if r5 is not None else r10
     if recent_move is not None and recent_move <= -0.06:
@@ -192,6 +190,15 @@ def scan(limit: int = 1000, top_n: int = 25) -> pd.DataFrame:
         if combined_score is None:
             continue
         signal = _signal_label(combined_score)
+        dip = scores.get("dip_score")
+        watch_candidate = bool(
+            signal != "ALERT"
+            and combined_score >= WATCH_THRESHOLD
+            and trader_similarity >= 65.0
+            and technical_score >= 60.0
+            and dip >= 55.0
+        )
+        setup_type = "watch" if watch_candidate else scores.get("setup_type")
         result = {
             "ticker": ticker,
             "company_name": company_map.get(ticker, ticker),
@@ -216,8 +223,11 @@ def scan(limit: int = 1000, top_n: int = 25) -> pd.DataFrame:
             "overall_score": round(float(combined_score), 1),
             "signal": signal,
             "alert_tier": "BUY ALERT" if signal == "ALERT" else "",
+            "watch_candidate": watch_candidate,
+            "dip_score": round(float(dip), 1) if pd.notna(dip) else None,
+            "setup_type": setup_type,
         }
-        result.update({k: float(v) if isinstance(v, (int, float)) else v for k, v in scores.items() if k not in {"overall_score", "trader_similarity_score", "technical_opportunity_score"}})
+        result.update({k: float(v) if isinstance(v, (int, float)) else v for k, v in scores.items() if k not in {"overall_score", "trader_similarity_score", "technical_opportunity_score", "watch_candidate", "setup_type"}})
         result.update({k: float(row[k]) if pd.notna(row[k]) else None for k in FEATURE_COLUMNS if k in row})
         result.update({k: f.get(k) for k in FUNDAMENTAL_COLUMNS})
         result.update({k: a.get(k) for k in ANALYST_COLUMNS})
