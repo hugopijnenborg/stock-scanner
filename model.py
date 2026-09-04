@@ -128,34 +128,34 @@ def weighted_score(components: dict[str, float], weights: dict[str, float]) -> f
 
 
 def technical_opportunity_score(r: pd.Series) -> dict[str, float]:
-    """Return a 0..100 technical setup score focused on early dip/rebound setups."""
+    """Return a 0..100 technical score explicitly focused on beaten-down/oversold setups."""
     c = {
-        "drawdown_5d": _neutral_centered_low(r.get("return_5d", np.nan), -0.05, -0.30),
-        "rsi_14": _neutral_centered_low(r.get("rsi_14", np.nan), 45, 20),
+        "drawdown_5d": _neutral_centered_low(r.get("return_5d", np.nan), -0.04, -0.30),
+        "rsi_14": _neutral_centered_low(r.get("rsi_14", np.nan), 43, 20),
+        "drawdown_20d": _neutral_centered_low(r.get("return_20d", np.nan), -0.05, -0.40),
         "distance_sma20": _neutral_centered_low(r.get("distance_sma20", np.nan), -0.03, -0.25),
         "distance_sma50": _neutral_centered_low(r.get("distance_sma50", np.nan), -0.03, -0.30),
-        "drawdown_20d": _neutral_centered_low(r.get("return_20d", np.nan), -0.05, -0.40),
         "z_score": _neutral_centered_low(r.get("z_score", np.nan), -0.5, -3.0),
+        "distance_52w_high": _neutral_centered_low(r.get("distance_52w_high", np.nan), -0.05, -0.45),
         "volume_ratio": _neutral_centered_high(r.get("volume_ratio", np.nan), 1.0, 4.0),
         "support": _technical_support_component(r),
         "intraday_reversal": _neutral_centered_high(r.get("close_location", np.nan), 0.50, 1.00),
-        "relative_strength_20d": _neutral_centered_low(r.get("relative_strength_20d", np.nan), -0.02, -0.25),
         "sector_relative_strength_20d": _neutral_centered_high(r.get("sector_relative_strength_20d", np.nan), 0.0, 0.20),
         "market_regime": float(r.get("market_regime_score", 0.5)) if pd.notna(r.get("market_regime_score", np.nan)) else 0.5,
     }
     weights = {
-        "drawdown_5d": 0.20,
-        "rsi_14": 0.20,
+        "drawdown_5d": 0.18,
+        "rsi_14": 0.18,
+        "drawdown_20d": 0.12,
         "distance_sma20": 0.10,
-        "distance_sma50": 0.10,
-        "drawdown_20d": 0.10,
-        "z_score": 0.10,
-        "volume_ratio": 0.08,
-        "support": 0.07,
-        "intraday_reversal": 0.03,
-        "relative_strength_20d": 0.02,
-        "sector_relative_strength_20d": 0.03,
-        "market_regime": 0.07,
+        "distance_sma50": 0.08,
+        "z_score": 0.08,
+        "distance_52w_high": 0.10,
+        "volume_ratio": 0.06,
+        "support": 0.05,
+        "intraday_reversal": 0.02,
+        "sector_relative_strength_20d": 0.01,
+        "market_regime": 0.02,
     }
     return {"technical_opportunity_score": weighted_score(c, weights)}
 
@@ -239,13 +239,11 @@ def score_row(row: pd.Series, rebound_weights: dict, quality_weights: dict, cycl
         if learned is not None else scores["technical_opportunity_score"]
     )
 
-    # A watch candidate is not an alert. It is a near-threshold setup with
-    # meaningful trader-pattern similarity and a genuine beaten-down profile.
     scores["watch_candidate"] = bool(
-        scores["overall_score"] >= 70.0
-        and scores["trader_similarity_score"] >= 70.0
-        and scores["technical_opportunity_score"] >= 65.0
-        and scores["dip_score"] >= 60.0
+        scores["overall_score"] >= 65.0
+        and scores["trader_similarity_score"] >= 65.0
+        and scores["technical_opportunity_score"] >= 60.0
+        and scores["dip_score"] >= 55.0
     )
     scores["setup_type"] = "watch" if scores["watch_candidate"] else setup_key.replace("_score", "")
     return scores
