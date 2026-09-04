@@ -10,6 +10,7 @@ import requests
 SCAN_FILE = Path("public/data/latest_scan.json")
 TABLE = "stock_scanner_alerts"
 ACTIVE_DAYS = 60
+EXCLUDED_TICKERS = {"FLNC"}
 
 
 def _headers(key: str, prefer: str | None = None) -> dict[str, str]:
@@ -50,7 +51,7 @@ def main() -> None:
     active_by_ticker = {}
     for item in existing:
         ticker = item.get("ticker")
-        if not ticker or ticker in active_by_ticker:
+        if not ticker or ticker in active_by_ticker or ticker.upper() in EXCLUDED_TICKERS:
             continue
         if item.get("status") == "PENDING":
             active_by_ticker[ticker] = item
@@ -60,7 +61,9 @@ def main() -> None:
     alerts = []
     for row in payload.get("results", []):
         ticker = row.get("ticker")
-        if row.get("signal") != "ALERT" or not ticker:
+        if not ticker or ticker.upper() in EXCLUDED_TICKERS:
+            continue
+        if row.get("signal") != "ALERT":
             continue
         current_score = row.get("overall_score")
         if ticker in active_by_ticker:
