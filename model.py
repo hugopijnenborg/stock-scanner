@@ -160,6 +160,33 @@ def technical_opportunity_score(r: pd.Series) -> dict[str, float]:
     return {"technical_opportunity_score": weighted_score(c, weights)}
 
 
+def dip_score(r: pd.Series) -> float:
+    """Measure how close the current setup is to the desired beaten-down/oversold zone."""
+    components = {
+        "drawdown_5d": low_is_good(r.get("return_5d", np.nan), -0.04, -0.25),
+        "drawdown_20d": low_is_good(r.get("return_20d", np.nan), -0.05, -0.35),
+        "rsi_14": low_is_good(r.get("rsi_14", np.nan), 40, 22),
+        "z_score": low_is_good(r.get("z_score", np.nan), -0.5, -2.5),
+        "distance_sma20": low_is_good(r.get("distance_sma20", np.nan), -0.02, -0.20),
+        "distance_sma50": low_is_good(r.get("distance_sma50", np.nan), -0.02, -0.25),
+        "distance_52w_high": low_is_good(r.get("distance_52w_high", np.nan), -0.05, -0.40),
+        "volume": high_is_good(r.get("volume_ratio", np.nan), 1.0, 3.0),
+        "support": _technical_support_component(r),
+    }
+    weights = {
+        "drawdown_5d": 0.18,
+        "drawdown_20d": 0.15,
+        "rsi_14": 0.18,
+        "z_score": 0.12,
+        "distance_sma20": 0.08,
+        "distance_sma50": 0.08,
+        "distance_52w_high": 0.10,
+        "volume": 0.06,
+        "support": 0.05,
+    }
+    return weighted_score(components, weights)
+
+
 def reversal_trigger(r: pd.Series) -> float:
     signals = []
     if pd.notna(r.get("close_location")):
@@ -201,9 +228,9 @@ def score_row(row: pd.Series, rebound_weights: dict, quality_weights: dict, cycl
         "cyclical_score": weighted_score(cy, cyclical_weights),
     }
     scores.update(technical_opportunity_score(row))
+    scores["dip_score"] = dip_score(row)
     scores["reversal_trigger"] = reversal_trigger(row) * 100.0
     setup_key = max(["rebound_score", "quality_score", "cyclical_score"], key=lambda k: scores[k])
-    scores["setup_type"] = setup_key.replace("_score", "")
 
     learned = _learned_score(row)
     scores["trader_similarity_score"] = learned if learned is not None else scores["technical_opportunity_score"]
@@ -211,4 +238,14 @@ def score_row(row: pd.Series, rebound_weights: dict, quality_weights: dict, cycl
         0.50 * scores["trader_similarity_score"] + 0.50 * scores["technical_opportunity_score"]
         if learned is not None else scores["technical_opportunity_score"]
     )
+
+    # A watch candidate is not an alert. It is a near-threshold setup with
+    # meaningful trader-pattern similarity and a genuine beaten-down profile.
+    scores["watch_candidate"] = bool(
+        scores["overall_score"] >= 70.0
+        and scores["trader_similarity_score"] >= 70.0
+        and scores["technical_opportunity_score"] >= 65.0
+        and scores["dip_score"] >= 60.0
+    )
+    scores["setup_type"] = "watch" if scores["watch_candidate"] else setup_key.replace("_score", "")
     return scores
