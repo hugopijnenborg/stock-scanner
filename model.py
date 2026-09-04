@@ -128,7 +128,7 @@ def weighted_score(components: dict[str, float], weights: dict[str, float]) -> f
 
 
 def technical_opportunity_score(r: pd.Series) -> dict[str, float]:
-    """Return a 0..100 technical setup score with market and sector context."""
+    """Return a 0..100 technical setup score focused on early dip/rebound setups."""
     c = {
         "drawdown_5d": _neutral_centered_low(r.get("return_5d", np.nan), -0.05, -0.30),
         "rsi_14": _neutral_centered_low(r.get("rsi_14", np.nan), 45, 20),
@@ -144,11 +144,18 @@ def technical_opportunity_score(r: pd.Series) -> dict[str, float]:
         "market_regime": float(r.get("market_regime_score", 0.5)) if pd.notna(r.get("market_regime_score", np.nan)) else 0.5,
     }
     weights = {
-        "drawdown_5d": 0.15, "rsi_14": 0.15, "distance_sma20": 0.05,
-        "distance_sma50": 0.05, "drawdown_20d": 0.10, "z_score": 0.10,
-        "volume_ratio": 0.10, "support": 0.10, "intraday_reversal": 0.05,
-        "relative_strength_20d": 0.03, "sector_relative_strength_20d": 0.07,
-        "market_regime": 0.05,
+        "drawdown_5d": 0.20,
+        "rsi_14": 0.20,
+        "distance_sma20": 0.10,
+        "distance_sma50": 0.10,
+        "drawdown_20d": 0.10,
+        "z_score": 0.10,
+        "volume_ratio": 0.08,
+        "support": 0.07,
+        "intraday_reversal": 0.03,
+        "relative_strength_20d": 0.02,
+        "sector_relative_strength_20d": 0.03,
+        "market_regime": 0.07,
     }
     return {"technical_opportunity_score": weighted_score(c, weights)}
 
@@ -201,7 +208,7 @@ def score_row(row: pd.Series, rebound_weights: dict, quality_weights: dict, cycl
     learned = _learned_score(row)
     scores["trader_similarity_score"] = learned if learned is not None else scores["technical_opportunity_score"]
     scores["overall_score"] = (
-        0.70 * scores["trader_similarity_score"] + 0.30 * scores["technical_opportunity_score"]
+        0.50 * scores["trader_similarity_score"] + 0.50 * scores["technical_opportunity_score"]
         if learned is not None else scores["technical_opportunity_score"]
     )
     return scores
