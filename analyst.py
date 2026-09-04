@@ -243,7 +243,7 @@ def _save_cache(cache):
     CACHE_PATH.write_text(json.dumps(cache, indent=2, allow_nan=False), encoding="utf-8")
 
 
-def download_analyst_data(tickers, workers=8, refresh_hours=CACHE_TTL_HOURS):
+def download_analyst_data(tickers, workers=16, refresh_hours=CACHE_TTL_HOURS):
     cache = _load_cache()
     now = datetime.now(timezone.utc)
     cutoff = now - timedelta(hours=refresh_hours)
