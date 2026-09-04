@@ -191,12 +191,20 @@ def scan(limit: int = 1000, top_n: int = 25) -> pd.DataFrame:
             continue
         signal = _signal_label(combined_score)
         dip = scores.get("dip_score")
+        # WATCH is an early warning for a stock that has had a hard
+        # recent sell-off but has not yet reached the real BUY ALERT
+        # threshold. It is intentionally independent of dip_score and
+        # trader/technical minimums so every stock in the universe can qualify.
+        recent_selloff = bool(
+            (pd.notna(row.get("return_5d")) and float(row.get("return_5d")) <= -0.08)
+            or (pd.notna(row.get("return_3d")) and float(row.get("return_3d")) <= -0.07)
+            or (pd.notna(row.get("return_1d")) and float(row.get("return_1d")) <= -0.05)
+        )
         watch_candidate = bool(
             signal != "ALERT"
             and combined_score >= WATCH_THRESHOLD
-            and trader_similarity >= 65.0
-            and technical_score >= 60.0
-            and dip >= 55.0
+            and combined_score < ALERT_THRESHOLD
+            and recent_selloff
         )
         setup_type = "watch" if watch_candidate else scores.get("setup_type")
         result = {
@@ -250,7 +258,8 @@ def scan(limit: int = 1000, top_n: int = 25) -> pd.DataFrame:
         rows.append(result)
     if not rows:
         return pd.DataFrame()
-    return pd.DataFrame(rows).sort_values(["overall_score", "trader_similarity_score", "reversal_trigger"], ascending=[False, False, False]).head(top_n).reset_index(drop=True)
+    # Return the full curated universe so WATCH candidates are not lost just because they fall outside the top N.
+    return pd.DataFrame(rows).sort_values(["overall_score", "trader_similarity_score", "reversal_trigger"], ascending=[False, False, False]).reset_index(drop=True)
 
 
 if __name__ == "__main__":
