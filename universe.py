@@ -128,7 +128,6 @@ CURATED_UNIVERSE = {
     "SO": "Southern Company",
     "WULF": "TeraWulf",
     "PCG": "PG&E",
-    "FLNC": "Fluence Energy",
     "APLD": "Applied Digital",
 
     # Healthcare
