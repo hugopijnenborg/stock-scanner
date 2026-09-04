@@ -11,6 +11,9 @@ from market_validation import run_market_validation
 from scanner import scan
 from universe import load_top_us_stocks
 
+ALERT_THRESHOLD = 80.0
+WATCH_MIN_SCORE = 70.0
+
 
 def _json_safe(value):
     """Convert pandas/numpy values to strict JSON-safe Python values."""
@@ -30,6 +33,38 @@ def _json_safe(value):
     return value
 
 
+def apply_watch_candidates(result):
+    """Mark early-warning candidates: near-alert score plus a sharp recent selloff."""
+    if result.empty:
+        return result
+
+    result = result.copy()
+    result["watch_candidate"] = False
+    if "setup_type" not in result.columns:
+        result["setup_type"] = None
+
+    for idx, row in result.iterrows():
+        score = row.get("overall_score")
+        if score is None or not math.isfinite(float(score)):
+            continue
+        if not (WATCH_MIN_SCORE <= float(score) < ALERT_THRESHOLD):
+            continue
+
+        return_1d = row.get("return_1d")
+        return_3d = row.get("return_3d")
+        return_5d = row.get("return_5d")
+        hard_selloff = (
+            (return_5d is not None and float(return_5d) <= -0.08)
+            or (return_3d is not None and float(return_3d) <= -0.07)
+            or (return_1d is not None and float(return_1d) <= -0.05)
+        )
+        if hard_selloff:
+            result.at[idx, "watch_candidate"] = True
+            result.at[idx, "setup_type"] = "watch"
+
+    return result
+
+
 def write_web_output(result, universe_size: int, path: str) -> None:
     rows = result.where(result.notna(), None).to_dict(orient="records")
     rows = [_json_safe(row) for row in rows]
@@ -42,6 +77,7 @@ def write_web_output(result, universe_size: int, path: str) -> None:
         "generated_at": datetime.now(timezone.utc).isoformat(),
         "universe_size": int(universe_size),
         "alert_count": int((result["signal"] == "ALERT").sum()) if not result.empty and "signal" in result else 0,
+        "watch_count": int(result["watch_candidate"].sum()) if not result.empty and "watch_candidate" in result else 0,
         "top_score": top_score,
         "results": rows,
     }
@@ -77,6 +113,7 @@ def main() -> None:
     elif args.command == "scan":
         universe = load_top_us_stocks(args.limit)
         result = scan(args.limit, args.top)
+        result = apply_watch_candidates(result)
         print(result.to_string(index=False))
         if args.output:
             result.to_csv(args.output, index=False)
