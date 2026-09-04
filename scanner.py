@@ -4,7 +4,7 @@ from datetime import datetime, timedelta, timezone
 import numpy as np
 import pandas as pd
 
-from config import ALERT_THRESHOLD, STRONG_ALERT_THRESHOLD, EXCEPTIONAL_ALERT_THRESHOLD, WATCH_THRESHOLD, MIN_AVG_DOLLAR_VOLUME, MIN_PRICE, REBOUND_WEIGHTS, QUALITY_WEIGHTS, CYCLICAL_WEIGHTS
+from config import ALERT_THRESHOLD, MIN_AVG_DOLLAR_VOLUME, MIN_PRICE, REBOUND_WEIGHTS, QUALITY_WEIGHTS, CYCLICAL_WEIGHTS
 from data import download_benchmarks, download_ohlcv, download_intraday, download_intraday_benchmarks, download_sector_benchmarks, SECTOR_ETFS
 from fundamentals import download_fundamentals
 from analyst import download_analyst_data
@@ -18,29 +18,31 @@ ANALYST_COLUMNS = ["analyst_recommendation", "analyst_consensus_score", "analyst
 LIVE_HISTORY_DAYS = 450
 
 
-def _signal_label(score: float, fundamental_score) -> str:
-    if fundamental_score is None:
-        return "DATA_INCOMPLETE"
-    if score >= ALERT_THRESHOLD:
-        return "ALERT"
-    if score >= WATCH_THRESHOLD:
-        return "WATCH"
-    return "NO_SIGNAL"
+def _signal_label(score: float) -> str:
+    return "ALERT" if score >= ALERT_THRESHOLD else "NO_SIGNAL"
 
 
-def _alert_tier(score: float, signal: str) -> str:
-    if signal != "ALERT":
-        return ""
-    if score >= EXCEPTIONAL_ALERT_THRESHOLD:
-        return "EXCEPTIONAL"
-    if score >= STRONG_ALERT_THRESHOLD:
-        return "STRONG"
-    return "EARLY"
-
-
-def _combined_score(trader_similarity, technical_score, fundamental_score, analyst_score):
+def _analyst_score(row):
+    """Analyst component: 60% rating consensus + 40% target upside."""
+    consensus = row.get("analyst_consensus_score")
+    mean_target = row.get("analyst_target_mean")
+    price = row.get("price")
     parts = []
-    for value, weight in ((trader_similarity, 0.40), (technical_score, 0.25), (fundamental_score, 0.25), (analyst_score, 0.10)):
+    if pd.notna(consensus):
+        parts.append((float(consensus), 0.60))
+    if pd.notna(mean_target) and pd.notna(price) and float(price) > 0:
+        upside = float(mean_target) / float(price) - 1.0
+        target_score = float(np.clip((upside + 0.10) / 0.60, 0.0, 1.0) * 100.0)
+        parts.append((target_score, 0.40))
+    if not parts:
+        return None
+    total = sum(weight for _, weight in parts)
+    return sum(value * weight for value, weight in parts) / total
+
+
+def _combined_score(trader_similarity, technical_score, analyst_score):
+    parts = []
+    for value, weight in ((trader_similarity, 0.50), (technical_score, 0.30), (analyst_score, 0.20)):
         if pd.notna(value):
             parts.append((float(value), weight))
     if not parts:
@@ -96,17 +98,13 @@ def _fmt_pct(v):
 
 
 def _alert_summary(row):
-    """Explain the current market situation, not the internal component scores."""
-    price = row.get("price")
     r1 = row.get("return_1d")
     r5 = row.get("return_5d")
     r10 = row.get("return_10d")
-    r20 = row.get("return_20d")
     news = row.get("recent_news") or []
     earnings_date = row.get("last_earnings_date")
     earnings_surprise = row.get("last_earnings_surprise_pct")
     news_text = " ".join(str(x.get("title", "")) for x in news if isinstance(x, dict)).lower()
-
     sentences = []
     recent_move = r5 if r5 is not None else r10
     if recent_move is not None and recent_move <= -0.06:
@@ -114,8 +112,7 @@ def _alert_summary(row):
     elif recent_move is not None and recent_move >= 0.06:
         sentences.append(f"Het aandeel heeft de afgelopen periode duidelijk momentum opgebouwd ({_fmt_pct(recent_move)}), waardoor de huidige beweging meer is dan een kleine dagfluctuatie.")
     elif r1 is not None and abs(r1) >= 0.025:
-        sentences.append(f"De koers beweegt vandaag opvallend sterk ({_fmt_pct(r1)}), na een bredere beweging van {_fmt_pct(recent_move)} over de afgelopen periode.") if recent_move is not None else sentences.append(f"De koers beweegt vandaag opvallend sterk ({_fmt_pct(r1)}).")
-
+        sentences.append(f"De koers beweegt vandaag opvallend sterk ({_fmt_pct(r1)}).")
     earnings_recent = False
     if earnings_date:
         try:
@@ -125,54 +122,22 @@ def _alert_summary(row):
             earnings_recent = (pd.Timestamp.now(tz="UTC") - dt).days <= 10
         except Exception:
             pass
-    if earnings_recent and ("earnings" in news_text or "quarter" in news_text or "results" in news_text or "revenue" in news_text):
-        if earnings_surprise is not None:
-            direction = "positief" if earnings_surprise >= 0 else "negatief"
-            sentences.append(f"De recente koersreactie valt samen met de kwartaalcijfers, waarbij de winstverrassing {direction} was ({earnings_surprise:+.1f}%).")
-        else:
-            sentences.append("De recente koersreactie valt samen met de publicatie van de kwartaalcijfers.")
-    elif earnings_recent and earnings_surprise is not None:
+    if earnings_recent and earnings_surprise is not None:
         direction = "positief" if earnings_surprise >= 0 else "negatief"
         sentences.append(f"De recente koersreactie volgt kort op de kwartaalcijfers, met een {direction} winstverrassing van {earnings_surprise:+.1f}%.")
-
-    revenue_growth = row.get("revenue_growth")
-    fcf = row.get("fcf")
-    fcf_growth = row.get("fcf_growth")
-    margin = row.get("net_margin")
-    roe = row.get("roe")
-    debt = row.get("debt_equity")
-    quality_bits = []
-    if revenue_growth is not None and revenue_growth > 0.05:
-        quality_bits.append(f"omzet groeit met {_fmt_pct(revenue_growth)}")
-    if fcf is not None and fcf > 0:
-        if fcf_growth is not None and fcf_growth > 0.05:
-            quality_bits.append(f"vrije kasstroom is positief en groeit met {_fmt_pct(fcf_growth)}")
-        else:
-            quality_bits.append("vrije kasstroom blijft positief")
-    if margin is not None and margin > 0.08:
-        quality_bits.append(f"nettomarge ligt rond {margin * 100:.1f}%")
-    if roe is not None and roe > 0.12:
-        quality_bits.append(f"ROE ligt rond {roe * 100:.1f}%")
-    if debt is not None and debt < 1.0:
-        quality_bits.append(f"schuld/eigen vermogen is {debt:.2f}")
-    if quality_bits:
-        sentences.append("De koersdaling staat niet automatisch gelijk aan verslechterende bedrijfsfundamentals: " + ", ".join(quality_bits[:3]) + ".")
-
     analyst = row.get("analyst_recommendation")
     upside = row.get("analyst_target_upside")
     target = row.get("analyst_target_mean")
-    if analyst and analyst not in {"HOLD", "SELL", "STRONG SELL"}:
-        if upside is not None and upside > 0.08 and target is not None:
-            sentences.append(f"Ook analisten blijven overwegend positief, met een consensus van {analyst.replace('_', ' ').title()} en een gemiddeld koersdoel van ${target:.2f} ({upside * 100:+.1f}% vanaf de huidige koers).")
+    if analyst:
+        if upside is not None and target is not None:
+            sentences.append(f"Analistenconsensus: {analyst.replace('_', ' ').title()}, met een gemiddeld koersdoel van ${target:.2f} ({upside * 100:+.1f}% vanaf de koers waarop de analyst-data is gebaseerd).")
         else:
-            sentences.append(f"De analistenconsensus blijft {analyst.replace('_', ' ').lower()}.")
-
+            sentences.append(f"Analistenconsensus: {analyst.replace('_', ' ').title()}.")
     rs = row.get("sector_relative_strength_20d")
     if rs is not None and rs > 0.03:
-        sentences.append("Tegelijk houdt het aandeel relatief goed stand tegenover de eigen sector.")
-
+        sentences.append("Het aandeel houdt relatief goed stand tegenover de eigen sector.")
     if not sentences:
-        sentences.append("De huidige koersbeweging en onderliggende bedrijfsdata komen samen op een niveau waarop de scanner een kansrijke setup ziet.")
+        sentences.append("De huidige technische situatie en overeenkomst met historische trader-setups vormen samen het actieve signaal.")
     return " ".join(sentences[:4])
 
 
@@ -213,7 +178,6 @@ def scan(limit: int = 1000, top_n: int = 25) -> pd.DataFrame:
                 row["Close"] = current_price
         if current_price is None:
             current_price = float(row["Close"])
-
         avg_dollar_volume = (features["Close"] * features["Volume"]).rolling(20).mean().iloc[-1]
         if row.get("Close", 0) < MIN_PRICE or (pd.notna(avg_dollar_volume) and avg_dollar_volume < MIN_AVG_DOLLAR_VOLUME):
             continue
@@ -222,12 +186,12 @@ def scan(limit: int = 1000, top_n: int = 25) -> pd.DataFrame:
         live_score = live.get("intraday_score")
         technical_score = 0.85 * float(daily_technical) + 0.15 * float(live_score) if live_score is not None and pd.notna(daily_technical) else daily_technical
         trader_similarity = scores.get("trader_similarity_score")
-        fundamental_score = f.get("fundamental_score")
-        analyst_score = a.get("analyst_consensus_score")
-        combined_score = _combined_score(trader_similarity, technical_score, fundamental_score, analyst_score)
+        analyst_consensus = a.get("analyst_consensus_score")
+        analyst_score = _analyst_score({**a, "price": current_price})
+        combined_score = _combined_score(trader_similarity, technical_score, analyst_score)
         if combined_score is None:
             continue
-        signal = _signal_label(combined_score, fundamental_score)
+        signal = _signal_label(combined_score)
         result = {
             "ticker": ticker,
             "company_name": company_map.get(ticker, ticker),
@@ -241,15 +205,17 @@ def scan(limit: int = 1000, top_n: int = 25) -> pd.DataFrame:
             "intraday_volume_ratio": live.get("intraday_volume_ratio"),
             "intraday_vwap_distance": live.get("intraday_vwap_distance"),
             "trader_similarity_score": round(float(trader_similarity), 1) if pd.notna(trader_similarity) else None,
-            "fundamental_score": round(float(fundamental_score), 1) if pd.notna(fundamental_score) else None,
+            "fundamental_score": round(float(f.get("fundamental_score")), 1) if pd.notna(f.get("fundamental_score")) else None,
             "fundamental_completeness": f.get("fundamental_completeness"),
-            "analyst_consensus_score": round(float(analyst_score), 1) if pd.notna(analyst_score) else None,
+            "analyst_consensus_score": round(float(analyst_consensus), 1) if pd.notna(analyst_consensus) else None,
+            "analyst_score": round(float(analyst_score), 1) if pd.notna(analyst_score) else None,
+            "analyst_target_upside_live": ((float(a.get("analyst_target_mean")) / current_price) - 1.0) if pd.notna(a.get("analyst_target_mean")) and current_price > 0 else None,
             "market_regime_score": round(float(row.get("market_regime_score", 0.5)) * 100, 1),
             "sector": sector,
             "sector_relative_strength_20d": round(float(sector_rs), 4) if sector_rs is not None else None,
             "overall_score": round(float(combined_score), 1),
             "signal": signal,
-            "alert_tier": _alert_tier(float(combined_score), signal),
+            "alert_tier": "BUY ALERT" if signal == "ALERT" else "",
         }
         result.update({k: float(v) if isinstance(v, (int, float)) else v for k, v in scores.items() if k not in {"overall_score", "trader_similarity_score", "technical_opportunity_score"}})
         result.update({k: float(row[k]) if pd.notna(row[k]) else None for k in FEATURE_COLUMNS if k in row})
