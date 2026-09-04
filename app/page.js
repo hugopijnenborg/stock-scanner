@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { RefreshCw, Bell, Search, Activity, ArrowUpRight, Database, BarChart3, X, TrendingUp, ShieldCheck, LineChart, History, LayoutDashboard, Target, ChevronRight, CircleDot } from 'lucide-react';
 import Link from 'next/link';
 
@@ -101,7 +101,7 @@ function Sidebar({ alerts }) {
 }
 
 export default function Home() {
-  const [data, setData] = useState(null), [loading, setLoading] = useState(true), [error, setError] = useState(''), [query, setQuery] = useState(''), [showAll, setShowAll] = useState(false), [selected, setSelected] = useState(null), [scanMessage, setScanMessage] = useState('');
+  const [data, setData] = useState(null), [loading, setLoading] = useState(true), [scanning, setScanning] = useState(false), [error, setError] = useState(''), [query, setQuery] = useState(''), [showAll, setShowAll] = useState(false), [selected, setSelected] = useState(null), [scanMessage, setScanMessage] = useState('');
 
   async function load() {
     setLoading(true); setError(''); setScanMessage('');
@@ -111,9 +111,9 @@ export default function Home() {
   }
 
   async function startScan() {
-    if (loading) return;
+    if (scanning) return;
     const previous = data?.generated_at || '';
-    setLoading(true); setError(''); setScanMessage('Scan wordt gestart...');
+    setScanning(true); setError(''); setScanMessage('Scan wordt gestart...');
     try {
       const trigger = await fetch('/api/trigger-scan', { method: 'POST' });
       const triggerBody = await trigger.json().catch(() => ({}));
@@ -129,7 +129,7 @@ export default function Home() {
       }
       throw Error('De scan duurt langer dan verwacht. Controleer over een paar minuten opnieuw.');
     } catch (e) { setError(e.message); setScanMessage(''); }
-    finally { setLoading(false); }
+    finally { setScanning(false); }
   }
 
   useEffect(() => { load(); }, []);
@@ -145,7 +145,7 @@ export default function Home() {
   return <div className="appShell">
     <Sidebar alerts={alerts} />
     <main className="dashboard">
-      <header className="topbar"><div><div className="eyebrow">MARKET INTELLIGENCE / LIVE SCANNER</div><h1>Market intelligence</h1><p>Trader pattern, technische setup en analistenconsensus in één score.</p></div><div className="topActions"><div className="scanMeta"><span className="liveDot" /> LIVE DATA <b>{data?.generated_at ? new Date(data.generated_at).toLocaleTimeString('nl-NL', { hour: '2-digit', minute: '2-digit' }) : '—'}</b></div><Link href="/history" className="refresh secondary"><History size={15} /> Historie</Link><button className="refresh primary" onClick={startScan} disabled={loading}><RefreshCw size={15} /> {loading ? (scanMessage ? 'Scannen...' : 'Laden...') : 'Nieuwe scan'}</button></div></header>
+      <header className="topbar"><div><div className="eyebrow">MARKET INTELLIGENCE / LIVE SCANNER</div><h1>Market intelligence</h1><p>Trader pattern, technische setup en analistenconsensus in één score.</p></div><div className="topActions"><div className="scanMeta"><span className="liveDot" /> LIVE DATA <b>{data?.generated_at ? new Date(data.generated_at).toLocaleTimeString('nl-NL', { hour: '2-digit', minute: '2-digit' }) : '—'}</b></div><Link href="/history" className="refresh secondary"><History size={15} /> Historie</Link><button className="refresh primary" onClick={startScan} disabled={loading || scanning}><RefreshCw size={15} /> {scanning ? 'Scannen...' : loading ? 'Laden...' : 'Nieuwe scan'}</button></div></header>
       {scanMessage && <div className="scanNotice">{scanMessage}</div>}
       {error && <div className="error">{error}</div>}
 

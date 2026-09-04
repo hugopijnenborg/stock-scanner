@@ -149,8 +149,8 @@ def scan(limit: int = 1000, top_n: int = 25) -> pd.DataFrame:
     benchmark_close = spy["Close"] if spy is not None and "Close" in spy else None
     market = download_ohlcv(tickers, live_start)
     sector_benchmarks = download_sector_benchmarks(live_start)
-    intraday = download_intraday(tickers, period="10d", interval="15m")
-    intraday_benchmarks = download_intraday_benchmarks(period="10d", interval="15m")
+    intraday = download_intraday(tickers, period="3d", interval="15m")
+    intraday_benchmarks = download_intraday_benchmarks(period="3d", interval="15m")
     fundamentals = download_fundamentals(tickers)
     analyst_data = download_analyst_data(tickers)
 
