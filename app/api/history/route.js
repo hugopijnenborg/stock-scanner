@@ -10,7 +10,7 @@ export async function GET() {
   }
 
   const response = await fetch(
-    `${url}/rest/v1/stock_scanner_alerts?select=*&order=alert_timestamp.desc&limit=1000`,
+    `${url}/rest/v1/stock_scanner_alerts?select=*&ticker=neq.FLNC&order=alert_timestamp.desc&limit=1000`,
     {
       headers: {
         apikey: key,
