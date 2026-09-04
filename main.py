@@ -6,6 +6,7 @@ import math
 from datetime import datetime, timezone
 from pathlib import Path
 
+import scanner as scanner_module
 from backtest import run_backtest
 from market_validation import run_market_validation
 from scanner import scan
@@ -13,6 +14,12 @@ from universe import load_top_us_stocks
 
 ALERT_THRESHOLD = 80.0
 WATCH_MIN_SCORE = 70.0
+EXCLUDED_TICKERS = {"FLNC"}
+
+
+def scanner_universe(limit: int | None = None):
+    frame = load_top_us_stocks(limit)
+    return frame[~frame["ticker"].isin(EXCLUDED_TICKERS)].reset_index(drop=True)
 
 
 def _json_safe(value):
@@ -109,9 +116,10 @@ def main() -> None:
 
     args = parser.parse_args()
     if args.command == "universe":
-        print(load_top_us_stocks(args.limit).to_string(index=False))
+        print(scanner_universe(args.limit).to_string(index=False))
     elif args.command == "scan":
-        universe = load_top_us_stocks(args.limit)
+        scanner_module.load_top_us_stocks = scanner_universe
+        universe = scanner_universe(args.limit)
         result = scan(args.limit, args.top)
         result = apply_watch_candidates(result)
         print(result.to_string(index=False))
