@@ -134,12 +134,6 @@ def _one(ticker: str) -> dict:
 
 
 def _apply_sector_relative_valuation(rows: dict[str, dict]) -> dict[str, dict]:
-    """Compare valuation with current sector peers when enough peers exist.
-
-    This is deliberately relative rather than a hard global P/E rule because
-    a P/E that is expensive for a utility can be cheap for a fast-growing
-    software company. Current sector medians are used for live scanning.
-    """
     by_sector: dict[str, list[dict]] = {}
     for row in rows.values():
         sector = row.get("sector")
@@ -155,20 +149,18 @@ def _apply_sector_relative_valuation(rows: dict[str, dict]) -> dict[str, dict]:
             values = [float(p[field]) for p in peers if p.get(field) is not None and float(p[field]) > 0]
             if not values or row.get(field) is None or float(row[field]) <= 0:
                 continue
-            median = sorted(values)[len(values) // 2] if len(values) % 2 else (sorted(values)[len(values)//2 - 1] + sorted(values)[len(values)//2]) / 2
+            values = sorted(values)
+            median = values[len(values) // 2] if len(values) % 2 else (values[len(values)//2 - 1] + values[len(values)//2]) / 2
             relative = float(row[field]) / median
             row[f"sector_median_{field}"] = median
             row[f"{field}_vs_sector"] = relative
 
-        # Replace the absolute valuation contribution with sector-relative
-        # valuation when peer data is available. Other quality metrics remain.
         replacements = {}
         if row.get("pe_vs_sector") is not None:
             replacements["pe"] = _score_low(row["pe_vs_sector"], 0.75, 1.75)
         if row.get("peg_vs_sector") is not None:
             replacements["peg"] = _score_low(row["peg_vs_sector"], 0.75, 1.75)
         if replacements:
-            # Reconstruct the score using the same weights as above.
             weights = {
                 "revenue_growth": 0.16, "eps_growth": 0.14, "net_margin": 0.12,
                 "fcf_margin": 0.12, "fcf_growth": 0.08, "roe": 0.10,
@@ -205,7 +197,7 @@ def _save_cache(cache: dict[str, dict]) -> None:
     CACHE_PATH.write_text(json.dumps(cache, indent=2, allow_nan=False), encoding="utf-8")
 
 
-def download_fundamentals(tickers: list[str], workers: int = 8, refresh_hours: int = CACHE_TTL_HOURS) -> dict[str, dict]:
+def download_fundamentals(tickers: list[str], workers: int = 16, refresh_hours: int = CACHE_TTL_HOURS) -> dict[str, dict]:
     """Return fundamentals from a persistent cache and refresh stale symbols."""
     cache = _load_cache()
     now = datetime.now(timezone.utc)
@@ -239,6 +231,5 @@ def download_fundamentals(tickers: list[str], workers: int = 8, refresh_hours: i
                 fresh[row["ticker"]] = {k: v for k, v in row.items() if k != "_cached_at"}
         _save_cache(cache)
 
-    # Sector-relative valuation is calculated from the complete live universe.
     fresh = _apply_sector_relative_valuation(fresh)
     return fresh
