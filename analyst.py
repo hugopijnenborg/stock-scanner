@@ -138,16 +138,31 @@ def _one(ticker):
         counts = {k: 0 for k in RATING_WEIGHTS}
         consensus_score = None
         recommendation_key = None
+        info = {}
+
         try:
             counts, consensus_score = _parse_recommendations(t.recommendations_summary)
         except Exception:
             pass
+
+        # yfinance exposes the same recommendation columns through
+        # get_recommendations(). Use it as a fallback when the summary endpoint
+        # is empty or temporarily unavailable.
+        if sum(counts.values()) == 0:
+            try:
+                counts, consensus_score = _parse_recommendations(t.recommendations)
+            except Exception:
+                pass
+
         try:
             info = t.info or {}
             recommendation_key = info.get("recommendationKey")
         except Exception:
             info = {}
 
+        # Yahoo sometimes exposes targets through info even when
+        # analyst_price_targets is unavailable. Prefer the dedicated endpoint,
+        # then fall back to the info fields.
         targets = {}
         try:
             raw_targets = t.analyst_price_targets or {}
@@ -155,6 +170,12 @@ def _one(ticker):
                 targets = {str(k): _num(v) for k, v in raw_targets.items()}
         except Exception:
             pass
+
+        current = targets.get("current") or _num(info.get("currentPrice")) or _num(info.get("regularMarketPrice"))
+        mean = targets.get("mean") or _num(info.get("targetMeanPrice"))
+        median = targets.get("median") or _num(info.get("targetMedianPrice"))
+        low = targets.get("low") or _num(info.get("targetLowPrice"))
+        high = targets.get("high") or _num(info.get("targetHighPrice"))
 
         changes, recent_count, bullish_30d, bearish_30d, target_changes_30d = [], 0, 0, 0, 0
         try:
@@ -191,24 +212,26 @@ def _one(ticker):
         except Exception:
             pass
 
-        current = targets.get("current")
-        mean = targets.get("mean")
-        median = targets.get("median")
-        low = targets.get("low")
-        high = targets.get("high")
         upside = (mean / current - 1) if current and mean else None
         total_ratings = sum(counts.values())
-        usable = int(bool(total_ratings)) + int(mean is not None) + int(bool(changes))
-        fallback_rating = _rating_key(max(counts, key=counts.get)) if total_ratings else None
+        info_analyst_count = _num(info.get("numberOfAnalystOpinions"))
+        analyst_count = total_ratings or (int(info_analyst_count) if info_analyst_count else None)
+        # If counts are unavailable, recommendationKey still gives a usable
+        # consensus direction and score without inventing a distribution.
+        if consensus_score is None and recommendation_key:
+            normalized = str(recommendation_key).replace(" ", "").replace("_", "").lower()
+            consensus_score = RATING_WEIGHTS.get(normalized)
+        fallback_rating = _rating_key(recommendation_key) or (_rating_key(max(counts, key=counts.get)) if total_ratings else None)
+        usable = int(consensus_score is not None) + int(mean is not None) + int(bool(changes))
         out.update({
-            "analyst_recommendation": _rating_key(recommendation_key) or fallback_rating,
+            "analyst_recommendation": fallback_rating,
             "analyst_consensus_score": round(consensus_score, 1) if consensus_score is not None else None,
             "analyst_strong_buy": counts["strongbuy"],
             "analyst_buy": counts["buy"],
             "analyst_hold": counts["hold"],
             "analyst_sell": counts["sell"],
             "analyst_strong_sell": counts["strongsell"],
-            "analyst_count": total_ratings or None,
+            "analyst_count": analyst_count,
             "analyst_target_current": current,
             "analyst_target_mean": mean,
             "analyst_target_median": median,
