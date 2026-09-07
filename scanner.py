@@ -4,7 +4,7 @@ from datetime import datetime, timedelta, timezone
 import numpy as np
 import pandas as pd
 
-from config import ALERT_THRESHOLD, MIN_AVG_DOLLAR_VOLUME, MIN_PRICE, WATCH_THRESHOLD, REBOUND_WEIGHTS, QUALITY_WEIGHTS, CYCLICAL_WEIGHTS
+from config import ALERT_THRESHOLD, WATCH_THRESHOLD, MIN_AVG_DOLLAR_VOLUME, MIN_PRICE, REBOUND_WEIGHTS, QUALITY_WEIGHTS, CYCLICAL_WEIGHTS
 from data import download_benchmarks, download_ohlcv, download_intraday, download_intraday_benchmarks, download_sector_benchmarks, SECTOR_ETFS
 from fundamentals import download_fundamentals
 from analyst import download_analyst_data
@@ -18,37 +18,33 @@ ANALYST_COLUMNS = ["analyst_recommendation", "analyst_consensus_score", "analyst
 LIVE_HISTORY_DAYS = 450
 
 
-def _signal_label(score: float) -> str:
-    return "ALERT" if score >= ALERT_THRESHOLD else "NO_SIGNAL"
+def _signal_label(score) -> str:
+    """Signal is driven only by the validated trader+technical score.
+
+    Fundamentals/analyst data are not required and do not gate the signal:
+    they were never out-of-sample tested (see walk_forward_validation.py),
+    so they stay informational context rather than part of the trigger.
+    """
+    if score is None or pd.isna(score):
+        return "DATA_INCOMPLETE"
+    if score >= ALERT_THRESHOLD:
+        return "ALERT"
+    if score >= WATCH_THRESHOLD:
+        return "WATCH"
+    return "NO_SIGNAL"
 
 
-def _analyst_score(row):
-    """Analyst component: 60% rating consensus + 40% target upside."""
-    consensus = row.get("analyst_consensus_score")
-    mean_target = row.get("analyst_target_mean")
-    price = row.get("price")
-    parts = []
-    if pd.notna(consensus):
-        parts.append((float(consensus), 0.60))
-    if pd.notna(mean_target) and pd.notna(price) and float(price) > 0:
-        upside = float(mean_target) / float(price) - 1.0
-        target_score = float(np.clip((upside + 0.10) / 0.60, 0.0, 1.0) * 100.0)
-        parts.append((target_score, 0.40))
+def _context_score(fundamental_score, analyst_score):
+    """Informational-only blend of fundamentals + analyst data.
+
+    Shown in the dashboard as extra context on an alert, never used to
+    decide ALERT/WATCH/NO_SIGNAL.
+    """
+    parts = [(float(v), w) for v, w in ((fundamental_score, 0.70), (analyst_score, 0.30)) if pd.notna(v)]
     if not parts:
         return None
-    total = sum(weight for _, weight in parts)
-    return sum(value * weight for value, weight in parts) / total
-
-
-def _combined_score(trader_similarity, technical_score, analyst_score):
-    parts = []
-    for value, weight in ((trader_similarity, 0.50), (technical_score, 0.30), (analyst_score, 0.20)):
-        if pd.notna(value):
-            parts.append((float(value), weight))
-    if not parts:
-        return None
-    total_weight = sum(weight for _, weight in parts)
-    return sum(value * weight for value, weight in parts) / total_weight
+    total_weight = sum(w for _, w in parts)
+    return sum(v * w for v, w in parts) / total_weight
 
 
 def _intraday_confirmation(intraday: pd.DataFrame, benchmark: pd.DataFrame | None = None) -> dict[str, float | None]:
@@ -98,19 +94,47 @@ def _fmt_pct(v):
 
 
 def _alert_summary(row):
+    """Explain the current market situation: technical move, whether
+    fundamentals justify the selloff, and what analysts are doing right now
+    (direction of revisions, not just the static consensus level)."""
+    price = row.get("price")
     r1 = row.get("return_1d")
     r5 = row.get("return_5d")
     r10 = row.get("return_10d")
+    r20 = row.get("return_20d")
+    high_52w = row.get("distance_52w_high")
+    volume_ratio = row.get("volume_ratio")
+    news = row.get("recent_news") or []
     earnings_date = row.get("last_earnings_date")
     earnings_surprise = row.get("last_earnings_surprise_pct")
-    sentences = []
+    next_earnings = row.get("next_earnings_date")
+    news_text = " ".join(str(x.get("title", "")) for x in news if isinstance(x, dict)).lower()
+
+    sections = []
+
+    # --- 1. Technical situation: what actually happened, with numbers ---
+    headline = None
     recent_move = r5 if r5 is not None else r10
     if recent_move is not None and recent_move <= -0.06:
-        sentences.append(f"Het aandeel is de afgelopen periode hard teruggevallen ({_fmt_pct(recent_move)}), terwijl de koers op korte termijn nog onder druk staat.")
+        headline = f"Het aandeel is de afgelopen periode {abs(recent_move) * 100:.1f}% gedaald"
+        if r1 is not None and abs(r1) >= 0.04:
+            headline += f", waarvan {abs(r1) * 100:.1f}% vandaag alleen al"
     elif recent_move is not None and recent_move >= 0.06:
-        sentences.append(f"Het aandeel heeft de afgelopen periode duidelijk momentum opgebouwd ({_fmt_pct(recent_move)}), waardoor de huidige beweging meer is dan een kleine dagfluctuatie.")
+        headline = f"Het aandeel heeft de afgelopen periode {_fmt_pct(recent_move)} momentum opgebouwd"
     elif r1 is not None and abs(r1) >= 0.025:
-        sentences.append(f"De koers beweegt vandaag opvallend sterk ({_fmt_pct(r1)}).")
+        headline = f"De koers beweegt vandaag opvallend sterk ({_fmt_pct(r1)})"
+    extra_bits = []
+    if high_52w is not None and high_52w <= -0.20:
+        extra_bits.append(f"staat {abs(high_52w) * 100:.1f}% onder de 52-weken high")
+    if volume_ratio is not None and volume_ratio >= 1.8:
+        extra_bits.append(f"handelsvolume ligt circa {volume_ratio:.1f}x boven het 20-daags gemiddelde")
+    if headline:
+        sections.append(headline + ((", " + " en ".join(extra_bits)) if extra_bits else "") + ".")
+    elif extra_bits:
+        sections.append(("De koers " + " en ".join(extra_bits) + ".").capitalize())
+
+    # --- 2. Does this look like a capitulation on a fine business, or a
+    # justified selloff? Earnings surprise + growth/margin trend as evidence.
     earnings_recent = False
     if earnings_date:
         try:
@@ -120,23 +144,61 @@ def _alert_summary(row):
             earnings_recent = (pd.Timestamp.now(tz="UTC") - dt).days <= 10
         except Exception:
             pass
+    fund_bits = []
     if earnings_recent and earnings_surprise is not None:
-        direction = "positief" if earnings_surprise >= 0 else "negatief"
-        sentences.append(f"De recente koersreactie volgt kort op de kwartaalcijfers, met een {direction} winstverrassing van {earnings_surprise:+.1f}%.")
+        direction = "boven" if earnings_surprise >= 0 else "onder"
+        fund_bits.append(f"De cijfers kwamen recent {abs(earnings_surprise):.1f}% {direction} verwachting uit")
+    revenue_growth = row.get("revenue_growth")
+    fcf = row.get("fcf")
+    margin = row.get("net_margin")
+    if revenue_growth is not None and revenue_growth > 0.05:
+        fund_bits.append(f"omzet groeit met {_fmt_pct(revenue_growth)}")
+    if fcf is not None and fcf > 0:
+        fund_bits.append("vrije kasstroom is positief")
+    if margin is not None and margin > 0.08:
+        fund_bits.append(f"nettomarge ligt rond {margin * 100:.1f}%")
+    if fund_bits:
+        justified = earnings_recent and earnings_surprise is not None and earnings_surprise < -5
+        lead = "De cijfers lijken de koersdaling te bevestigen: " if justified else "De koersdaling lijkt niet gedreven door verslechterende fundamentals: "
+        sections.append(lead + ", ".join(fund_bits[:3]) + ".")
+    elif earnings_recent and ("earnings" in news_text or "quarter" in news_text or "results" in news_text):
+        sections.append("De recente koersreactie valt samen met de publicatie van de kwartaalcijfers.")
+
+    # --- 3. Analyst direction: are targets moving with or against the price? ---
     analyst = row.get("analyst_recommendation")
     upside = row.get("analyst_target_upside")
     target = row.get("analyst_target_mean")
-    if analyst:
-        if upside is not None and target is not None:
-            sentences.append(f"Analistenconsensus: {analyst.replace('_', ' ').title()}, met een gemiddeld koersdoel van ${target:.2f} ({upside * 100:+.1f}% vanaf de koers waarop de analyst-data is gebaseerd).")
-        else:
-            sentences.append(f"Analistenconsensus: {analyst.replace('_', ' ').title()}.")
-    rs = row.get("sector_relative_strength_20d")
-    if rs is not None and rs > 0.03:
-        sentences.append("Het aandeel houdt relatief goed stand tegenover de eigen sector.")
-    if not sentences:
-        sentences.append("De huidige technische situatie en overeenkomst met historische trader-setups vormen samen het actieve signaal.")
-    return " ".join(sentences[:4])
+    bullish_30d = row.get("analyst_bullish_changes_30d") or 0
+    bearish_30d = row.get("analyst_bearish_changes_30d") or 0
+    target_changes_30d = row.get("analyst_target_changes_30d") or 0
+    analyst_bits = []
+    if analyst and target is not None and upside is not None:
+        analyst_bits.append(f"consensus {analyst.replace('_', ' ').title()}, gemiddeld koersdoel ${target:.2f} ({upside * 100:+.1f}% vanaf de huidige koers)")
+    if target_changes_30d > 0:
+        if bullish_30d > bearish_30d:
+            analyst_bits.append(f"targets zijn de afgelopen 30 dagen vaker verhoogd dan verlaagd ({bullish_30d} vs {bearish_30d})")
+        elif bearish_30d > bullish_30d:
+            analyst_bits.append(f"targets zijn de afgelopen 30 dagen vaker verlaagd dan verhoogd ({bearish_30d} vs {bullish_30d})")
+    if analyst_bits:
+        # The key divergence signal: price down, targets not falling (or rising).
+        divergent = recent_move is not None and recent_move <= -0.06 and bullish_30d >= bearish_30d and target_changes_30d > 0
+        lead = "Analisten bevestigen dit beeld: " if divergent else "Analisten: "
+        sections.append(lead + "; ".join(analyst_bits) + ".")
+
+    if next_earnings:
+        try:
+            dt = pd.Timestamp(next_earnings)
+            if dt.tzinfo is None:
+                dt = dt.tz_localize("UTC")
+            days_out = (dt - pd.Timestamp.now(tz="UTC")).days
+            if 0 <= days_out <= 45:
+                sections.append(f"Eerstvolgende kwartaalcijfers over ongeveer {days_out} dagen, een concrete katalysator binnen de horizon van deze alert.")
+        except Exception:
+            pass
+
+    if not sections:
+        sections.append("De huidige koersbeweging en onderliggende bedrijfsdata komen samen op een niveau waarop de scanner een kansrijke setup ziet.")
+    return " ".join(sections)
 
 
 def scan(limit: int = 1000, top_n: int = 25) -> pd.DataFrame:
@@ -149,8 +211,8 @@ def scan(limit: int = 1000, top_n: int = 25) -> pd.DataFrame:
     benchmark_close = spy["Close"] if spy is not None and "Close" in spy else None
     market = download_ohlcv(tickers, live_start)
     sector_benchmarks = download_sector_benchmarks(live_start)
-    intraday = download_intraday(tickers, period="3d", interval="15m")
-    intraday_benchmarks = download_intraday_benchmarks(period="3d", interval="15m")
+    intraday = download_intraday(tickers, period="10d", interval="15m")
+    intraday_benchmarks = download_intraday_benchmarks(period="10d", interval="15m")
     fundamentals = download_fundamentals(tickers)
     analyst_data = download_analyst_data(tickers)
 
@@ -176,37 +238,27 @@ def scan(limit: int = 1000, top_n: int = 25) -> pd.DataFrame:
                 row["Close"] = current_price
         if current_price is None:
             current_price = float(row["Close"])
+
         avg_dollar_volume = (features["Close"] * features["Volume"]).rolling(20).mean().iloc[-1]
         if row.get("Close", 0) < MIN_PRICE or (pd.notna(avg_dollar_volume) and avg_dollar_volume < MIN_AVG_DOLLAR_VOLUME):
             continue
         scores = score_row(row, REBOUND_WEIGHTS, QUALITY_WEIGHTS, CYCLICAL_WEIGHTS)
         daily_technical = scores.get("technical_opportunity_score")
         live_score = live.get("intraday_score")
+        # technical_score (daily+intraday blend) is shown for live confirmation
+        # context, but the signal itself is driven by scores["overall_score"]
+        # (70% trader + 30% daily technical) — the exact formula tested in
+        # walk_forward_validation.py / market_validation.py. Intraday data
+        # isn't available for historical backtests, so it stays informational.
         technical_score = 0.85 * float(daily_technical) + 0.15 * float(live_score) if live_score is not None and pd.notna(daily_technical) else daily_technical
         trader_similarity = scores.get("trader_similarity_score")
-        analyst_consensus = a.get("analyst_consensus_score")
-        analyst_score = _analyst_score({**a, "price": current_price})
-        combined_score = _combined_score(trader_similarity, technical_score, analyst_score)
-        if combined_score is None:
+        validated_score = scores.get("overall_score")
+        fundamental_score = f.get("fundamental_score")
+        analyst_score = a.get("analyst_consensus_score")
+        context_score = _context_score(fundamental_score, analyst_score)
+        if validated_score is None or pd.isna(validated_score):
             continue
-        signal = _signal_label(combined_score)
-        dip = scores.get("dip_score")
-        # WATCH is an early warning for a stock that has had a hard
-        # recent sell-off but has not yet reached the real BUY ALERT
-        # threshold. It is intentionally independent of dip_score and
-        # trader/technical minimums so every stock in the universe can qualify.
-        recent_selloff = bool(
-            (pd.notna(row.get("return_5d")) and float(row.get("return_5d")) <= -0.08)
-            or (pd.notna(row.get("return_3d")) and float(row.get("return_3d")) <= -0.07)
-            or (pd.notna(row.get("return_1d")) and float(row.get("return_1d")) <= -0.05)
-        )
-        watch_candidate = bool(
-            signal != "ALERT"
-            and combined_score >= WATCH_THRESHOLD
-            and combined_score < ALERT_THRESHOLD
-            and recent_selloff
-        )
-        setup_type = "watch" if watch_candidate else scores.get("setup_type")
+        signal = _signal_label(validated_score)
         result = {
             "ticker": ticker,
             "company_name": company_map.get(ticker, ticker),
@@ -220,22 +272,17 @@ def scan(limit: int = 1000, top_n: int = 25) -> pd.DataFrame:
             "intraday_volume_ratio": live.get("intraday_volume_ratio"),
             "intraday_vwap_distance": live.get("intraday_vwap_distance"),
             "trader_similarity_score": round(float(trader_similarity), 1) if pd.notna(trader_similarity) else None,
-            "fundamental_score": round(float(f.get("fundamental_score")), 1) if pd.notna(f.get("fundamental_score")) else None,
+            "fundamental_score": round(float(fundamental_score), 1) if pd.notna(fundamental_score) else None,
             "fundamental_completeness": f.get("fundamental_completeness"),
-            "analyst_consensus_score": round(float(analyst_consensus), 1) if pd.notna(analyst_consensus) else None,
-            "analyst_score": round(float(analyst_score), 1) if pd.notna(analyst_score) else None,
-            "analyst_target_upside_live": ((float(a.get("analyst_target_mean")) / current_price) - 1.0) if pd.notna(a.get("analyst_target_mean")) and current_price > 0 else None,
+            "analyst_consensus_score": round(float(analyst_score), 1) if pd.notna(analyst_score) else None,
+            "context_score": round(float(context_score), 1) if context_score is not None else None,
             "market_regime_score": round(float(row.get("market_regime_score", 0.5)) * 100, 1),
             "sector": sector,
             "sector_relative_strength_20d": round(float(sector_rs), 4) if sector_rs is not None else None,
-            "overall_score": round(float(combined_score), 1),
+            "overall_score": round(float(validated_score), 1),
             "signal": signal,
-            "alert_tier": "BUY ALERT" if signal == "ALERT" else "",
-            "watch_candidate": watch_candidate,
-            "dip_score": round(float(dip), 1) if pd.notna(dip) else None,
-            "setup_type": setup_type,
         }
-        result.update({k: float(v) if isinstance(v, (int, float)) else v for k, v in scores.items() if k not in {"overall_score", "trader_similarity_score", "technical_opportunity_score", "watch_candidate", "setup_type"}})
+        result.update({k: float(v) if isinstance(v, (int, float)) else v for k, v in scores.items() if k not in {"overall_score", "trader_similarity_score", "technical_opportunity_score"}})
         result.update({k: float(row[k]) if pd.notna(row[k]) else None for k in FEATURE_COLUMNS if k in row})
         result.update({k: f.get(k) for k in FUNDAMENTAL_COLUMNS})
         result.update({k: a.get(k) for k in ANALYST_COLUMNS})
@@ -258,8 +305,7 @@ def scan(limit: int = 1000, top_n: int = 25) -> pd.DataFrame:
         rows.append(result)
     if not rows:
         return pd.DataFrame()
-    # Return the full curated universe so WATCH candidates are not lost just because they fall outside the top N.
-    return pd.DataFrame(rows).sort_values(["overall_score", "trader_similarity_score", "reversal_trigger"], ascending=[False, False, False]).reset_index(drop=True)
+    return pd.DataFrame(rows).sort_values(["overall_score", "trader_similarity_score", "reversal_trigger"], ascending=[False, False, False]).head(top_n).reset_index(drop=True)
 
 
 if __name__ == "__main__":
