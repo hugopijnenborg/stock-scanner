@@ -11,7 +11,8 @@ import yfinance as yf
 
 CACHE_PATH = Path(__file__).resolve().parent / "data" / "analyst_cache.json"
 CACHE_TTL_HOURS = 24
-CACHE_VERSION = 2
+CACHE_VERSION = 3
+ANALYST_RETRY_MINUTES = 60
 
 RATING_WEIGHTS = {"strongbuy": 100.0, "buy": 75.0, "hold": 50.0, "sell": 25.0, "strongsell": 0.0}
 BULLISH_ACTIONS = {"up", "upgrade", "upgraded", "init", "initiated"}
@@ -61,7 +62,7 @@ def _parse_recommendations(df):
 
 def _parse_changes(df):
     if not isinstance(df, pd.DataFrame) or df.empty:
-        return [], 0, 0, 0
+        return [], 0, 0, 0, 0
     d = df.copy()
     if not isinstance(d.index, pd.DatetimeIndex):
         try:
@@ -130,6 +131,39 @@ def _parse_earnings_history(df):
     row = d.iloc[0]
     surprise = _num(row.get("surprisePercent"))
     return idx.isoformat() if idx is not None else None, surprise
+
+
+def _has_analyst_data(row):
+    """True when Yahoo returned meaningful analyst information.
+
+    An empty/partial Yahoo response must never replace a previously valid
+    cached response. Targets, consensus, ratings and revisions are treated
+    independently because Yahoo can return only some of them.
+    """
+    if not isinstance(row, dict):
+        return False
+    if row.get("analyst_consensus_score") is not None:
+        return True
+    if row.get("analyst_target_mean") is not None:
+        return True
+    if row.get("analyst_count") is not None and row.get("analyst_count", 0) > 0:
+        return True
+    if any((row.get(k) or 0) > 0 for k in (
+        "analyst_strong_buy", "analyst_buy", "analyst_hold", "analyst_sell", "analyst_strong_sell"
+    )):
+        return True
+    if (row.get("analyst_changes_30d") or 0) > 0:
+        return True
+    return False
+
+
+def _usable_fields(row):
+    return sum(bool(x) for x in (
+        row.get("analyst_consensus_score") is not None,
+        row.get("analyst_target_mean") is not None,
+        row.get("analyst_count") is not None,
+        bool(row.get("analyst_recent_changes")),
+    ))
 
 
 def _one(ticker):
@@ -214,7 +248,12 @@ def _one(ticker):
             normalized = str(recommendation_key).replace(" ", "").replace("_", "").lower()
             consensus_score = RATING_WEIGHTS.get(normalized)
         fallback_rating = _rating_key(recommendation_key) or (_rating_key(max(counts, key=counts.get)) if total_ratings else None)
-        usable = int(consensus_score is not None) + int(mean is not None) + int(bool(changes))
+        usable = _usable_fields({
+            "analyst_consensus_score": consensus_score,
+            "analyst_target_mean": mean,
+            "analyst_count": analyst_count,
+            "analyst_recent_changes": changes,
+        })
         out.update({
             "ticker": ticker,
             "analyst_recommendation": fallback_rating,
@@ -236,7 +275,7 @@ def _one(ticker):
             "analyst_bearish_changes_30d": bearish_30d,
             "analyst_target_changes_30d": target_changes_30d,
             "analyst_recent_changes": changes,
-            "analyst_completeness": round(min(100.0, usable / 3 * 100), 1),
+            "analyst_completeness": round(min(100.0, usable / 4 * 100), 1),
             "last_earnings_date": earnings_last_date,
             "last_earnings_surprise_pct": earnings_surprise,
             "next_earnings_date": next_earnings,
@@ -249,7 +288,8 @@ def _one(ticker):
 
 def _load_cache():
     try:
-        return json.loads(CACHE_PATH.read_text(encoding="utf-8"))
+        data = json.loads(CACHE_PATH.read_text(encoding="utf-8"))
+        return data if isinstance(data, dict) else {}
     except (FileNotFoundError, json.JSONDecodeError, OSError):
         return {}
 
@@ -259,31 +299,98 @@ def _save_cache(cache):
     CACHE_PATH.write_text(json.dumps(cache, indent=2, allow_nan=False), encoding="utf-8")
 
 
-def download_analyst_data(tickers, workers=16, refresh_hours=CACHE_TTL_HOURS):
+def _cached_timestamp(item):
+    try:
+        updated = datetime.fromisoformat(item.get("_cached_at", "")) if item else None
+        if updated and updated.tzinfo is None:
+            updated = updated.replace(tzinfo=timezone.utc)
+        return updated
+    except (TypeError, ValueError):
+        return None
+
+
+def download_analyst_data(tickers, workers=8, refresh_hours=CACHE_TTL_HOURS):
+    """Download analyst data without allowing bad Yahoo responses to erase good data.
+
+    Good cache entries are used for 24h. Stale entries are refreshed. If Yahoo
+    returns an empty/failed response, the last known good entry is retained and
+    marked stale. Empty failures are not cached as fresh for 24h, so the next
+    run can retry after a short cooldown.
+    """
     cache = _load_cache()
     now = datetime.now(timezone.utc)
     cutoff = now - timedelta(hours=refresh_hours)
+    retry_cutoff = now - timedelta(minutes=ANALYST_RETRY_MINUTES)
     fresh, stale = {}, []
+
     for ticker in dict.fromkeys(tickers):
-        item = cache.get(ticker)
-        try:
-            updated = datetime.fromisoformat(item.get("_cached_at", "")) if item else None
-            if updated and updated.tzinfo is None:
-                updated = updated.replace(tzinfo=timezone.utc)
-            if item and item.get("_cache_version") == CACHE_VERSION and updated and updated >= cutoff:
-                fresh[ticker] = {k: v for k, v in item.items() if k not in {"_cached_at", "_cache_version"}}
-            else:
-                stale.append(ticker)
-        except (TypeError, ValueError):
-            stale.append(ticker)
+        item = cache.get(ticker) or {}
+        updated = _cached_timestamp(item)
+        payload = {k: v for k, v in item.items() if not k.startswith("_")}
+        good = _has_analyst_data(payload)
+
+        if item.get("_cache_version") == CACHE_VERSION and updated and updated >= cutoff and good:
+            fresh[ticker] = payload
+            continue
+
+        last_attempt = _cached_timestamp({"_cached_at": item.get("_last_attempt_at")})
+        if item.get("_cache_version") == CACHE_VERSION and item.get("_refresh_failed") and last_attempt and last_attempt >= retry_cutoff:
+            if good:
+                payload["analyst_cache_stale"] = True
+                payload["analyst_refresh_failed"] = True
+                fresh[ticker] = payload
+            continue
+
+        stale.append(ticker)
+
     if stale:
-        with ThreadPoolExecutor(max_workers=workers) as pool:
+        with ThreadPoolExecutor(max_workers=max(1, min(int(workers), 8))) as pool:
             futures = {pool.submit(_one, ticker): ticker for ticker in stale}
             for future in as_completed(futures):
-                row = future.result()
-                row["_cached_at"] = now.isoformat()
-                row["_cache_version"] = CACHE_VERSION
-                cache[row["ticker"]] = row
-                fresh[row["ticker"]] = {k: v for k, v in row.items() if k not in {"_cached_at", "_cache_version"}}
+                ticker = futures[future]
+                old_item = cache.get(ticker) or {}
+                old_payload = {k: v for k, v in old_item.items() if not k.startswith("_")}
+                try:
+                    row = future.result()
+                except Exception as exc:
+                    row = {"ticker": ticker, "analyst_completeness": 0.0, "recent_news": [], "analyst_error": str(exc)[:160]}
+
+                row_good = _has_analyst_data(row)
+                if row_good:
+                    row["analyst_cache_stale"] = False
+                    row["analyst_refresh_failed"] = False
+                    row["_cached_at"] = now.isoformat()
+                    row["_last_attempt_at"] = now.isoformat()
+                    row["_cache_version"] = CACHE_VERSION
+                    cache[ticker] = row
+                    fresh[ticker] = {k: v for k, v in row.items() if not k.startswith("_")}
+                elif _has_analyst_data(old_payload):
+                    # Never destroy good historical analyst data because Yahoo
+                    # temporarily returned an empty response or rate-limited us.
+                    old_payload["analyst_cache_stale"] = True
+                    old_payload["analyst_refresh_failed"] = True
+                    old_payload["analyst_error"] = row.get("analyst_error") or "Yahoo Finance returned incomplete analyst data"
+                    cache[ticker] = {
+                        **old_payload,
+                        "_cached_at": old_item.get("_cached_at"),
+                        "_last_attempt_at": now.isoformat(),
+                        "_cache_version": CACHE_VERSION,
+                        "_refresh_failed": True,
+                    }
+                    fresh[ticker] = old_payload
+                else:
+                    # No usable historical data exists. Keep a short retry marker,
+                    # not a 24h fresh cache entry.
+                    cache[ticker] = {
+                        **row,
+                        "_cached_at": None,
+                        "_last_attempt_at": now.isoformat(),
+                        "_cache_version": CACHE_VERSION,
+                        "_refresh_failed": True,
+                    }
+                    if _has_analyst_data(row):
+                        fresh[ticker] = {k: v for k, v in row.items() if not k.startswith("_")}
+
         _save_cache(cache)
+
     return fresh
