@@ -65,11 +65,8 @@ CYCLICAL_WEIGHTS = {
     "market_regime": 0.05,
 }
 
-# 80+ is the only actual buy-alert threshold.
+# Single alert type: 80+ on the validated trader+technical score triggers
+# an ALERT. The score itself communicates strength; there are no separate
+# alert tiers.
 ALERT_THRESHOLD = 80.0
-STRONG_ALERT_THRESHOLD = 85.0
-EXCEPTIONAL_ALERT_THRESHOLD = 90.0
-
-# WATCH is an early-warning state, not an alert. The final watch logic
-# requires a 70-79.9 score plus a hard recent selloff.
-WATCH_THRESHOLD = 70.0
+WATCH_THRESHOLD = 65.0
