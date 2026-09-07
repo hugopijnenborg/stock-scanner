@@ -11,6 +11,7 @@ import yfinance as yf
 
 CACHE_PATH = Path(__file__).resolve().parent / "data" / "analyst_cache.json"
 CACHE_TTL_HOURS = 24
+CACHE_VERSION = 2
 
 RATING_WEIGHTS = {"strongbuy": 100.0, "buy": 75.0, "hold": 50.0, "sell": 25.0, "strongsell": 0.0}
 BULLISH_ACTIONS = {"up", "upgrade", "upgraded", "init", "initiated"}
@@ -144,10 +145,6 @@ def _one(ticker):
             counts, consensus_score = _parse_recommendations(t.recommendations_summary)
         except Exception:
             pass
-
-        # yfinance exposes the same recommendation columns through
-        # get_recommendations(). Use it as a fallback when the summary endpoint
-        # is empty or temporarily unavailable.
         if sum(counts.values()) == 0:
             try:
                 counts, consensus_score = _parse_recommendations(t.recommendations)
@@ -160,9 +157,6 @@ def _one(ticker):
         except Exception:
             info = {}
 
-        # Yahoo sometimes exposes targets through info even when
-        # analyst_price_targets is unavailable. Prefer the dedicated endpoint,
-        # then fall back to the info fields.
         targets = {}
         try:
             raw_targets = t.analyst_price_targets or {}
@@ -216,14 +210,13 @@ def _one(ticker):
         total_ratings = sum(counts.values())
         info_analyst_count = _num(info.get("numberOfAnalystOpinions"))
         analyst_count = total_ratings or (int(info_analyst_count) if info_analyst_count else None)
-        # If counts are unavailable, recommendationKey still gives a usable
-        # consensus direction and score without inventing a distribution.
         if consensus_score is None and recommendation_key:
             normalized = str(recommendation_key).replace(" ", "").replace("_", "").lower()
             consensus_score = RATING_WEIGHTS.get(normalized)
         fallback_rating = _rating_key(recommendation_key) or (_rating_key(max(counts, key=counts.get)) if total_ratings else None)
         usable = int(consensus_score is not None) + int(mean is not None) + int(bool(changes))
         out.update({
+            "ticker": ticker,
             "analyst_recommendation": fallback_rating,
             "analyst_consensus_score": round(consensus_score, 1) if consensus_score is not None else None,
             "analyst_strong_buy": counts["strongbuy"],
@@ -277,8 +270,8 @@ def download_analyst_data(tickers, workers=16, refresh_hours=CACHE_TTL_HOURS):
             updated = datetime.fromisoformat(item.get("_cached_at", "")) if item else None
             if updated and updated.tzinfo is None:
                 updated = updated.replace(tzinfo=timezone.utc)
-            if item and updated and updated >= cutoff:
-                fresh[ticker] = {k: v for k, v in item.items() if k != "_cached_at"}
+            if item and item.get("_cache_version") == CACHE_VERSION and updated and updated >= cutoff:
+                fresh[ticker] = {k: v for k, v in item.items() if k not in {"_cached_at", "_cache_version"}}
             else:
                 stale.append(ticker)
         except (TypeError, ValueError):
@@ -289,7 +282,8 @@ def download_analyst_data(tickers, workers=16, refresh_hours=CACHE_TTL_HOURS):
             for future in as_completed(futures):
                 row = future.result()
                 row["_cached_at"] = now.isoformat()
+                row["_cache_version"] = CACHE_VERSION
                 cache[row["ticker"]] = row
-                fresh[row["ticker"]] = {k: v for k, v in row.items() if k != "_cached_at"}
+                fresh[row["ticker"]] = {k: v for k, v in row.items() if k not in {"_cached_at", "_cache_version"}}
         _save_cache(cache)
     return fresh
