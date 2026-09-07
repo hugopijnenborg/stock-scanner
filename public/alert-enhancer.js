@@ -1,13 +1,13 @@
 (() => {
   const cache = { data: null, promise: null };
-  const fmtPct = v => v == null || !Number.isFinite(Number(v)) ? '—' : `${Number(v) >= 0 ? '+' : ''}${(Number(v) * 100).toFixed(1)}%`;
-  const fmtPrice = v => v == null || !Number.isFinite(Number(v)) ? '—' : `$${Number(v).toFixed(2)}`;
   const esc = s => String(s ?? '').replace(/[&<>\"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','\"':'&quot;',"'":'&#39;'}[c]));
-  const ratingClass = r => /STRONG BUY|BUY/.test(r || '') ? 'bull' : /SELL/.test(r || '') ? 'bear' : 'neutral';
+  const pct = v => v == null || !Number.isFinite(Number(v)) ? '—' : `${Number(v) >= 0 ? '+' : ''}${(Number(v) * 100).toFixed(1)}%`;
+  const price = v => v == null || !Number.isFinite(Number(v)) ? '—' : `$${Number(v).toFixed(2)}`;
+  const num = (v, d = 1) => v == null || !Number.isFinite(Number(v)) ? '—' : Number(v).toFixed(d);
 
   async function loadData() {
     if (cache.data?.results?.length) return cache.data;
-    if (!cache.promise) cache.promise = fetch('/api/scan?alertdetail='+Date.now(), { cache: 'no-store' })
+    if (!cache.promise) cache.promise = fetch('/api/scan?alertdetail=' + Date.now(), { cache: 'no-store' })
       .then(r => r.ok ? r.json() : null)
       .then(d => d?.results ? (cache.data = d) : null)
       .catch(() => null);
@@ -21,78 +21,143 @@
     return m ? m[1] : null;
   }
 
-  function makeChart(points6m, points1w, today, panel) {
-    const old = panel.querySelector('.enhancedPriceChart');
-    if (old) old.remove();
-    const section = [...panel.querySelectorAll('.detailSection')].find(x => x.querySelector('h3')?.textContent.trim() === 'Koersverloop');
-    if (!section) return;
-    let range = '6M';
-    const wrap = document.createElement('div');
-    wrap.className = 'enhancedPriceChart';
-    wrap.innerHTML = `<div class="chartRangeBar"><div class="chartRangeButtons"><button data-range="6M" class="active">6M</button><button data-range="3M">3M</button><button data-range="1M">1M</button><button data-range="1W">1W</button><button data-range="1D">Vandaag</button></div></div><div class="enhancedChart"></div>`;
-    section.querySelector('.chartWrap')?.remove();
-    section.querySelector('.chartLabels')?.remove();
-    section.insertBefore(wrap, section.querySelector('.chartStats'));
-    const chart = wrap.querySelector('.enhancedChart');
+  function recentEarnings(row) {
+    if (!row.last_earnings_date) return null;
+    const d = new Date(row.last_earnings_date);
+    if (Number.isNaN(d.getTime())) return null;
+    const days = Math.round((Date.now() - d.getTime()) / 86400000);
+    return days >= 0 && days <= 14 ? days : null;
+  }
 
-    function dailySlice(days) {
-      const src = (points6m || []).filter(p => p && Number.isFinite(Number(p.close)));
-      if (days >= 180) return src;
-      if (!src.length) return [];
-      const last = new Date(src[src.length - 1].date);
-      return src.filter(p => (last - new Date(p.date)) / 86400000 <= days);
-    }
+  function upcomingEarnings(row) {
+    if (!row.next_earnings_date) return null;
+    const d = new Date(row.next_earnings_date);
+    if (Number.isNaN(d.getTime())) return null;
+    const days = Math.round((d.getTime() - Date.now()) / 86400000);
+    return days >= 0 && days <= 90 ? days : null;
+  }
 
-    function labelForDate(v, intraday) {
-      const d = new Date(v);
-      if (intraday) return d.toLocaleDateString('nl-NL', { day: '2-digit', month: 'short' }) + ' ' + d.toLocaleTimeString('nl-NL', { hour: '2-digit', minute: '2-digit' });
-      return d.toLocaleDateString('nl-NL', { day: '2-digit', month: 'short' });
-    }
+  function buildAnalysis(row) {
+    const p = Number(row.price);
+    const r5 = Number(row.return_5d);
+    const r10 = Number(row.return_10d);
+    const r20 = Number(row.return_20d);
+    const rsi = Number(row.rsi_14);
+    const dd52 = Number(row.distance_52w_high);
+    const sma20 = Number(row.distance_sma20);
+    const sma50 = Number(row.distance_sma50);
+    const volume = Number(row.volume_ratio);
+    const trader = Number(row.trader_similarity_score);
+    const technical = Number(row.technical_score);
+    const fundamental = Number(row.fundamental_score);
+    const meanTarget = Number(row.analyst_target_mean);
+    const medianTarget = Number(row.analyst_target_median);
+    const nextEarnings = upcomingEarnings(row);
+    const lastEarnings = recentEarnings(row);
+    const sections = [];
 
-    function draw() {
-      let source = range === '1D' ? (today || []) : range === '1W' ? (points1w || []) : dailySlice(range === '6M' ? 180 : range === '3M' ? 90 : 30);
-      source = source.filter(p => p && Number.isFinite(Number(p.close)));
-      if (source.length < 2) { chart.innerHTML = '<div class="chartEmpty"><span>Niet genoeg koersdata beschikbaar.</span></div>'; return; }
-      const vals = source.map(p => Number(p.close));
-      const min = Math.min(...vals), max = Math.max(...vals), span = max - min || Math.max(1, max * .01);
-      const w = 960, h = 320, px = 18, py = 24;
-      const coords = vals.map((v,i) => [px + (i/(vals.length-1))*(w-px*2), h-py-((v-min)/span)*(h-py*2)]);
-      const path = coords.map(p => p.join(',')).join(' ');
-      const first = vals[0], last = vals[vals.length-1], change = last/first-1;
-      const intraday = range === '1W' || range === '1D';
-      const step = Math.max(1, Math.floor((source.length - 1) / 4));
-      const axis = [0, step, step*2, step*3, source.length-1].filter((v,i,a) => v < source.length && a.indexOf(v) === i);
-      chart.innerHTML = `<div class="chartHeadline"><div><span>${range === '1D' ? 'VANDAAG' : range}</span><strong>${fmtPrice(last)}</strong></div><b class="${change >= 0 ? 'positive' : 'negative'}">${fmtPct(change)}</b></div><div class="chartCanvas"><svg viewBox="0 0 ${w} ${h}" preserveAspectRatio="none" aria-label="Koersgrafiek"><polyline points="${path}" fill="none" stroke="currentColor" stroke-width="3" vector-effect="non-scaling-stroke"/>${coords.map((p,i) => `<circle class="chartPoint" cx="${p[0]}" cy="${p[1]}" r="${source.length > 80 ? 2.5 : 4}" data-index="${i}"/>`).join('')}</svg><div class="chartTooltip" hidden></div></div><div class="chartAxis">${axis.map(i => `<span>${esc(labelForDate(source[i].date, intraday))}</span>`).join('')}</div>`;
-      const tooltip = chart.querySelector('.chartTooltip');
-      chart.querySelectorAll('.chartPoint').forEach(point => point.addEventListener('mouseenter', () => {
-        const i = Number(point.dataset.index), p = source[i];
-        tooltip.hidden = false;
-        tooltip.innerHTML = `<strong>${fmtPrice(p.close)}</strong><span>${esc(labelForDate(p.date, intraday))}</span>`;
-        tooltip.style.left = `${Math.min(92, Math.max(8, coords[i][0] / w * 100))}%`;
-        tooltip.style.top = `${Math.max(5, coords[i][1] / h * 100 - 10)}%`;
-      }));
-      chart.querySelector('.chartCanvas').addEventListener('mouseleave', () => { tooltip.hidden = true; });
+    const move = Number.isFinite(r10) ? r10 : r20;
+    let overview = row.alert_summary || 'De scanner ziet een combinatie van een duidelijke koersdislocatie en een patroon dat sterk overeenkomt met eerdere trader-setups.';
+    const overviewBits = [];
+    if (Number.isFinite(dd52) && dd52 < -0.15) overviewBits.push(`${Math.abs(dd52 * 100).toFixed(1)}% onder de 52-weeks high`);
+    if (Number.isFinite(rsi)) overviewBits.push(`RSI ${rsi.toFixed(1)}`);
+    if (Number.isFinite(trader)) overviewBits.push(`trader match ${trader.toFixed(0)}/100`);
+    if (overviewBits.length) overview += ` ${overviewBits.join(' · ')}.`;
+
+    let technicalText = [];
+    if (Number.isFinite(move) && move < -0.05) technicalText.push(`De koers is in de recente periode ${Math.abs(move * 100).toFixed(1)}% teruggevallen.`);
+    if (Number.isFinite(r5) && r5 < -0.05 && Number.isFinite(r10) && r10 < -0.05) technicalText.push(`Ook over 5 dagen staat het aandeel ${Math.abs(r5 * 100).toFixed(1)}% lager.`);
+    if (Number.isFinite(dd52) && dd52 < -0.15) technicalText.push(`Vanaf de 52-weeks high bedraagt de drawdown ${Math.abs(dd52 * 100).toFixed(1)}%.`);
+    if (Number.isFinite(rsi)) technicalText.push(rsi < 30 ? `RSI ${rsi.toFixed(1)} staat duidelijk in oversold-territorium.` : rsi < 40 ? `RSI ${rsi.toFixed(1)} is laag en bevestigt de oversold-achtige setup.` : `RSI ${rsi.toFixed(1)} is niet extreem oversold, waardoor de technische setup minder puur op RSI leunt.`);
+    if (Number.isFinite(sma20) && sma20 < -0.05) technicalText.push(`De koers ligt ${Math.abs(sma20 * 100).toFixed(1)}% onder de 20-daagse gemiddelde koers.`);
+    if (Number.isFinite(sma50) && sma50 < -0.05) technicalText.push(`Ten opzichte van de 50-daagse gemiddelde koers staat het aandeel ${Math.abs(sma50 * 100).toFixed(1)}% lager.`);
+    if (Number.isFinite(volume) && volume >= 1.5) technicalText.push(`Het volume ligt ongeveer ${volume.toFixed(1)}x boven het normale niveau, wat op verhoogde verkoopinteresse of capitulatie kan wijzen.`);
+    if (!technicalText.length) technicalText.push('De technische score is gebaseerd op de combinatie van sell-off, RSI, dislocatie, volume, steun en reversal-signalen.');
+    sections.push(['1. Technische setup', technicalText.join(' ')]);
+
+    const patternBits = [];
+    if (Number.isFinite(trader)) patternBits.push(`De trader-pattern match staat op ${trader.toFixed(0)}/100.`);
+    if (Number.isFinite(technical)) patternBits.push(`De technische opportunity score staat op ${technical.toFixed(0)}/100.`);
+    patternBits.push('De alert wordt geactiveerd door de combinatie van het geleerde trader-patroon en de technische setup, niet door fundamentals alleen.');
+    sections.push(['2. Trader-patroon', patternBits.join(' ')]);
+
+    const fundBits = [];
+    if (Number.isFinite(row.revenue_growth)) fundBits.push(`omzetgroei ${pct(row.revenue_growth)}`);
+    if (Number.isFinite(row.eps_growth)) fundBits.push(`EPS-groei ${pct(row.eps_growth)}`);
+    if (Number.isFinite(row.net_margin)) fundBits.push(`nettomarge ${pct(row.net_margin)}`);
+    if (Number.isFinite(row.fcf) && row.fcf > 0) fundBits.push('positieve vrije kasstroom');
+    if (Number.isFinite(row.roe)) fundBits.push(`ROE ${pct(row.roe)}`);
+    if (Number.isFinite(row.debt_equity)) fundBits.push(`debt/equity ${num(row.debt_equity, 2)}`);
+    if (lastEarnings != null && Number.isFinite(Number(row.last_earnings_surprise_pct))) fundBits.push(`recente earnings surprise ${pct(Number(row.last_earnings_surprise_pct) / 100)}`);
+    const fundText = fundBits.length ? `De fundamentals zijn aanvullende context voor de swing-setup: ${fundBits.slice(0, 6).join(' · ')}.` : 'Er is onvoldoende fundamentele data beschikbaar om hier een inhoudelijke conclusie aan te verbinden.';
+    sections.push(['3. Fundamentals', fundText]);
+
+    const counts = [
+      ['Strong Buy', row.analyst_strong_buy], ['Buy', row.analyst_buy], ['Hold', row.analyst_hold],
+      ['Sell', row.analyst_sell], ['Strong Sell', row.analyst_strong_sell]
+    ].filter(x => Number(x[1]) > 0);
+    const analystBits = [];
+    if (row.analyst_recommendation) analystBits.push(`consensus ${row.analyst_recommendation}`);
+    if (row.analyst_count) analystBits.push(`${row.analyst_count} beoordelingen`);
+    if (Number.isFinite(meanTarget)) analystBits.push(`gemiddeld koersdoel ${price(meanTarget)}`);
+    if (Number.isFinite(medianTarget)) analystBits.push(`mediaan ${price(medianTarget)}`);
+    if (Number.isFinite(Number(row.analyst_target_upside))) analystBits.push(`${pct(row.analyst_target_upside)} upside naar het gemiddelde target`);
+    if (Number(row.analyst_bullish_changes_30d) > Number(row.analyst_bearish_changes_30d)) analystBits.push(`meer positieve dan negatieve wijzigingen in 30D (${row.analyst_bullish_changes_30d} vs ${row.analyst_bearish_changes_30d})`);
+    const analystText = analystBits.length ? `De beschikbare analisteninformatie ondersteunt de setup: ${analystBits.join(' · ')}.` : 'Er is momenteel geen bruikbare analistenconsensus of koersdoel beschikbaar voor dit aandeel.';
+    sections.push(['4. Analisten', analystText]);
+
+    const catalystBits = [];
+    if (nextEarnings != null) catalystBits.push(`volgende kwartaalcijfers over ongeveer ${nextEarnings} dagen`);
+    if (lastEarnings != null) catalystBits.push(`recente kwartaalcijfers (${lastEarnings} dagen geleden)`);
+    const news = Array.isArray(row.recent_news) ? row.recent_news.filter(x => x?.title).slice(0, 2) : [];
+    if (news.length) catalystBits.push(`recente marktinformatie: ${news.map(x => x.title).join(' | ')}`);
+    sections.push(['5. Katalysator / timing', catalystBits.length ? catalystBits.join('. ') + '.' : 'Er is geen concrete nabije katalysator beschikbaar in de data. De alert is daarom primair een technische swing-setup.']);
+
+    const targetBits = [];
+    if (Number.isFinite(p)) {
+      const target25 = p * 1.25;
+      const target50 = p * 1.50;
+      targetBits.push(`+25% vereist ongeveer ${price(target25)}`);
+      targetBits.push(`+50% vereist ongeveer ${price(target50)}`);
+      if (Number.isFinite(Number(row.high_52w))) {
+        targetBits.push(`52-weeks high ligt op ${price(row.high_52w)}`);
+      }
+      if (Number.isFinite(meanTarget)) targetBits.push(`gemiddeld analistentarget ${price(meanTarget)}`);
     }
-    wrap.querySelectorAll('button').forEach(btn => btn.addEventListener('click', () => { range = btn.dataset.range; wrap.querySelectorAll('button').forEach(b => b.classList.toggle('active', b === btn)); draw(); }));
-    draw();
+    sections.push(['6. Return-potential', targetBits.length ? targetBits.join('. ') + '.' : 'Geen betrouwbare targetdata beschikbaar om een concreet return-pad te onderbouwen.']);
+
+    const riskBits = [];
+    if (Number.isFinite(rsi) && rsi < 35) riskBits.push('de RSI kan lang oversold blijven terwijl de koers verder daalt');
+    if (Number.isFinite(sma20) && sma20 < -0.05 && Number.isFinite(sma50) && sma50 < -0.05) riskBits.push('de korte en middellange trend staan nog onder druk');
+    if (Number.isFinite(dd52) && dd52 < -0.30) riskBits.push('de drawdown vanaf de 52-weeks high is groot');
+    if (!riskBits.length) riskBits.push('een oversold-score is geen garantie op een directe reversal');
+    sections.push(['7. Belangrijkste risico', riskBits.join('. ') + '.']);
+
+    return { overview, sections, counts };
   }
 
   function makeIntelligence(row, panel) {
     panel.querySelector('.enhancedAlertIntel')?.remove();
     const scoreSection = panel.querySelector('.detailScore');
     if (!scoreSection) return;
+    const analysis = buildAnalysis(row);
     const el = document.createElement('section');
     el.className = 'enhancedAlertIntel';
-    const changes = Array.isArray(row.analyst_recent_changes) ? row.analyst_recent_changes.filter(x => x && (x.firm || x.action)).slice(0,4) : [];
-    const target = row.analyst_target_mean;
-    const median = row.analyst_target_median;
-    const targetUpside = row.analyst_target_upside;
-    const recommendation = row.analyst_recommendation || '—';
-    const counts = [['Strong buy', row.analyst_strong_buy], ['Buy', row.analyst_buy], ['Hold', row.analyst_hold], ['Sell', row.analyst_sell], ['Strong sell', row.analyst_strong_sell]].filter(x => Number(x[1]) > 0);
-    const spread = target && median ? Math.abs(target / median - 1) : null;
-    const targetNote = spread != null && spread <= 0.10 ? `Gemiddeld ${fmtPrice(target)} · mediaan ${fmtPrice(median)}` : `Gemiddeld ${fmtPrice(target)} · mediaan ${fmtPrice(median)} · analisten lopen hier relatief uiteen`;
-    el.innerHTML = `<div class="intelSummary"><div class="intelEyebrow">WAAROM NU EEN ALERT?</div><p>${esc(row.alert_summary || 'De scanner ziet een actuele koerssituatie die afwijkt van het normale patroon en tegelijk door meerdere onafhankelijke signalen wordt ondersteund.')}</p></div><div class="intelGrid"><div class="intelBlock"><span>ANALISTENCONSENSUS</span><div class="ratingLine"><strong class="${ratingClass(recommendation)}">${esc(recommendation)}</strong><small>${row.analyst_count ? `${row.analyst_count} beoordelingen` : 'Geen consensusaantal'}</small></div><div class="ratingBars">${counts.map(([name,n]) => `<div><span>${name}</span><b>${n}</b></div>`).join('')}</div></div><div class="intelBlock"><span>KOERSDOEL</span><div class="targetMain"><strong>${fmtPrice(target)}</strong><b class="${targetUpside >= 0 ? 'positive' : 'negative'}">${fmtPct(targetUpside)}</b></div><small>${esc(targetNote)}</small><div class="targetMeta"></div></div></div><div class="intelBlock intelChanges"><span>RECENTE ANALISTENACTIES</span>${changes.length ? `<div class="changeList">${changes.map(c => `<div><b>${esc(c.firm || 'Analist')}</b><span>${esc(c.action || '')}</span><small>${esc(c.from_grade || '')}${c.from_grade && c.to_grade ? ' → ' : ''}${esc(c.to_grade || '')}</small></div>`).join('')}</div>` : '<small>Geen recente wijzigingen beschikbaar.</small>'}</div>`;
-    el.querySelector('.targetMeta').textContent = `${row.analyst_target_changes_30d || 0} targetwijzigingen in 30D`;
+    const target = Number(row.analyst_target_mean);
+    const targetUpside = Number(row.analyst_target_upside);
+    const analystAvailable = row.analyst_recommendation || Number.isFinite(target) || row.analyst_count;
+    el.innerHTML = `
+      <div class="intelSummary">
+        <div class="intelEyebrow">WAAROM NU EEN ALERT?</div>
+        <h3>${esc(row.ticker)}: BUY ALERT</h3>
+        <div class="intelMeta">Score ${esc(num(row.overall_score, 0))}/100 · koers ${esc(price(row.price))} · trader match ${esc(num(row.trader_similarity_score, 0))}/100 · technical ${esc(num(row.technical_score, 0))}/100</div>
+        <p>${esc(analysis.overview)}</p>
+      </div>
+      <div class="intelNarrative">
+        ${analysis.sections.map(([title, text]) => `<article><h4>${esc(title)}</h4><p>${esc(text)}</p></article>`).join('')}
+      </div>
+      ${analystAvailable ? `<div class="intelAnalystSnapshot"><div><span>ANALISTENCONSENSUS</span><strong>${esc(row.analyst_recommendation || 'Beschikbaar')}</strong><small>${row.analyst_count ? `${esc(row.analyst_count)} beoordelingen` : 'Aantal beoordelingen niet beschikbaar'}</small></div><div><span>KOERSDOEL</span><strong>${esc(Number.isFinite(target) ? price(target) : '—')}</strong><small>${Number.isFinite(targetUpside) ? esc(pct(targetUpside) + ' vanaf huidige koers') : 'Geen upside berekend'}</small></div></div>` : ''}
+    `;
     scoreSection.after(el);
   }
 
@@ -104,8 +169,13 @@
     const row = data?.results?.find(x => x.ticker === ticker);
     if (!row) return;
     panel.dataset.enhanced = '1';
+    // The old koersverloop component was consistently empty for alert details.
+    // Remove it entirely instead of showing an empty placeholder.
+    [...panel.querySelectorAll('.detailSection')].forEach(section => {
+      const title = section.querySelector('h3')?.textContent?.trim();
+      if (title === 'Koersverloop') section.remove();
+    });
     makeIntelligence(row, panel);
-    makeChart(row.history_6m, row.history_1w, row.history_today, panel);
   }
 
   const observer = new MutationObserver(() => document.querySelectorAll('.detailPanel').forEach(enhance));
