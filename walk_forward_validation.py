@@ -193,18 +193,27 @@ def build_trade_events(df: pd.DataFrame) -> pd.DataFrame:
     return events.drop(columns=["date_ts"])
 
 
-def run(output_csv: str = "walk_forward_validation.csv", summary_json: str = "walk_forward_validation.json") -> dict:
+def run(output_csv: str = "walk_forward_validation.csv", summary_json: str = "walk_forward_validation.json", trader_weight: float = 0.70) -> dict:
     universe = load_top_us_stocks()
     tickers = universe["ticker"].tolist()
     entries = load_entries()
     entries["date"] = pd.to_datetime(entries["date"]).dt.tz_localize(None).dt.normalize()
 
+    # Same fix as learn_model.py: trader entries outside the curated universe
+    # must still be downloaded, or train_prior() silently drops them as
+    # positives on every evaluation day.
+    trader_tickers = {str(t).upper() for t in entries["ticker"].dropna()}
+    download_tickers = sorted(set(tickers) | trader_tickers)
+    missing_from_universe = sorted(trader_tickers - set(tickers))
+    if missing_from_universe:
+        print(f"Note: {len(missing_from_universe)} trader ticker(s) outside curated universe, fetched separately for validation: {missing_from_universe}")
+
     benchmarks = download_benchmarks(DEFAULT_START)
     spy = benchmarks.get("SPY")
     spy_close = spy["Close"] if spy is not None and "Close" in spy.columns else None
-    prices = download_ohlcv(tickers, DEFAULT_START)
+    prices = download_ohlcv(download_tickers, DEFAULT_START)
     sector_benchmarks = download_sector_benchmarks(DEFAULT_START)
-    fundamentals = download_fundamentals(tickers)
+    fundamentals = download_fundamentals(download_tickers)
     sector_by_ticker = {ticker: data.get("sector") for ticker, data in fundamentals.items()}
 
     if spy_close is not None and not spy_close.empty:
@@ -215,6 +224,7 @@ def run(output_csv: str = "walk_forward_validation.csv", summary_json: str = "wa
     if not eval_dates:
         raise RuntimeError("No historical market dates available for walk-forward validation")
 
+    curated_tickers = set(tickers)
     snapshots: dict[pd.Timestamp, dict[str, np.ndarray]] = {}
     feature_rows: dict[pd.Timestamp, dict[str, pd.Series]] = {}
     close_by_ticker: dict[str, pd.Series] = {}
@@ -252,8 +262,14 @@ def run(output_csv: str = "walk_forward_validation.csv", summary_json: str = "wa
                 if sector_rs_series is not None and date in sector_rs_series.index and pd.notna(sector_rs_series.loc[date])
                 else None
             )
-            feature_rows.setdefault(date, {})[ticker] = row
+            # snapshots feeds train_prior() and must include trader-only
+            # tickers so their entries count as positives. feature_rows
+            # drives what actually gets scored/reported per day and stays
+            # limited to the real curated scanner universe, so validation
+            # numbers reflect what the live scanner can actually alert on.
             snapshots.setdefault(date, {})[ticker] = vector(row)
+            if ticker in curated_tickers:
+                feature_rows.setdefault(date, {})[ticker] = row
 
     results = []
     model_counts = []
@@ -267,7 +283,7 @@ def run(output_csv: str = "walk_forward_validation.csv", summary_json: str = "wa
         for ticker, row in feature_rows.get(pd.Timestamp(date), {}).items():
             trader_score = probability(pipe, row)
             technical = float(technical_opportunity_score(row)["technical_opportunity_score"])
-            score = 0.70 * trader_score + 0.30 * technical
+            score = trader_weight * trader_score + (1 - trader_weight) * technical
             metrics = forward_metrics(close_by_ticker[ticker], pd.Timestamp(date))
             results.append({
                 "date": pd.Timestamp(date).date().isoformat(),
@@ -291,6 +307,7 @@ def run(output_csv: str = "walk_forward_validation.csv", summary_json: str = "wa
 
     summary: dict[str, object] = {
         "method": "Daily walk-forward logistic trader-pattern validation across the full curated universe. Each evaluation day trains only on trader entries before that day, then scores every available ticker. Daily scenarios are retained for model calibration. Trade-event results separately deduplicate 80+ signals per ticker with a 60-calendar-day cooldown, using the first 80+ as entry and measuring score evolution within that event. Fundamentals are excluded from historical scoring because point-in-time fundamentals are unavailable.",
+        "trader_weight": trader_weight,
         "evaluation_start": EVAL_START.date().isoformat(),
         "scenarios": int(len(df)),
         "alerts_80_plus": int((df["score"] >= 80).sum()),
