@@ -1,4 +1,5 @@
 import './globals.css';
+import './marketintel-overrides.css';
 
 export const metadata = {
   title: 'Stock Scanner',
