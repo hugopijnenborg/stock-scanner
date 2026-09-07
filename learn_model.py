@@ -34,34 +34,43 @@ def _clean_row(row: pd.Series) -> np.ndarray | None:
     return arr if np.isfinite(arr).all() else None
 
 
-def build_training_data(limit: int = 1000, negatives_per_positive: int = 20):
+def build_training_data(limit: int = 1000, negatives_per_positive: int = 20, cutoff: pd.Timestamp | None = None):
+    """cutoff: if set, only trader entries strictly before this date are used.
+
+    This is what makes an out-of-sample lockbox possible (see
+    oos_lockbox_check.py): entries at or after cutoff are never seen here,
+    so they can be scored afterwards as a genuine final check rather than
+    something the model or its weights were tuned against.
+    """
     universe = load_top_us_stocks(limit)
     tickers = universe["ticker"].dropna().astype(str).str.upper().tolist()
     entries = load_entries()
     entries["date"] = pd.to_datetime(entries["date"]).dt.tz_localize(None).dt.normalize()
-    entry_dates = sorted(entries["date"].unique())
+    if cutoff is not None:
+        entries = entries[entries["date"] < pd.Timestamp(cutoff).normalize()]
+    dates = sorted(entries["date"].unique())
     positive_keys = {(str(t).upper(), d) for t, d in zip(entries["ticker"], entries["date"])}
     positive_by_date = {}
     for ticker, date in positive_keys:
         positive_by_date.setdefault(date, set()).add(ticker)
 
+    # Trader entries can be in tickers outside the curated scanner universe
+    # (e.g. leveraged/speculative names). Without this, those entries are
+    # silently dropped as positives because their price data is never
+    # downloaded. Negative sampling still only draws from the curated
+    # universe candidates present on that date, so this only adds coverage
+    # for positives and does not change what counts as a negative.
+    trader_tickers = {str(t).upper() for t in entries["ticker"].dropna()}
+    download_tickers = sorted(set(tickers) | trader_tickers)
+    missing_from_universe = sorted(trader_tickers - set(tickers))
+    if missing_from_universe:
+        print(f"Note: {len(missing_from_universe)} trader ticker(s) outside curated universe, fetched separately for training: {missing_from_universe}")
+
     benchmarks = download_benchmarks(DEFAULT_START)
     spy = benchmarks.get("SPY")
     spy_close = spy["Close"] if spy is not None and "Close" in spy.columns else None
-    prices = download_ohlcv(tickers, DEFAULT_START)
+    prices = download_ohlcv(download_tickers, DEFAULT_START)
 
-    prior_dates = set()
-    for ticker, entry_date in positive_keys:
-        df = prices.get(ticker)
-        if df is None or df.empty:
-            continue
-        idx = pd.DatetimeIndex(df.index).tz_localize(None).normalize()
-        prior = idx[idx < entry_date]
-        if len(prior):
-            prior_dates.add(prior[-1])
-            positive_by_date.setdefault(prior[-1], set()).add(ticker)
-
-    dates = sorted(set(entry_dates) | prior_dates)
     snapshots: dict[pd.Timestamp, dict[str, np.ndarray]] = {d: {} for d in dates}
     positive_vectors = []
     rng = np.random.default_rng(42)
@@ -79,10 +88,8 @@ def build_training_data(limit: int = 1000, negatives_per_positive: int = 20):
             if vector is None:
                 continue
             snapshots[date][ticker] = vector
-            if (ticker, date) in positive_keys or ticker in positive_by_date.get(date, set()):
+            if (ticker, date) in positive_keys:
                 positive_vectors.append(vector)
-
-    positive_vectors = list({vector.tobytes(): vector for vector in positive_vectors}.values())
 
     negative_vectors = []
     for date in dates:
@@ -99,8 +106,8 @@ def build_training_data(limit: int = 1000, negatives_per_positive: int = 20):
     return X, y, len(positive_vectors)
 
 
-def train(limit: int = 1000, negatives_per_positive: int = 20, output: str = "learned_model.json") -> dict:
-    X, y, positive_count = build_training_data(limit, negatives_per_positive)
+def train(limit: int = 1000, negatives_per_positive: int = 20, output: str = "learned_model.json", cutoff: pd.Timestamp | None = None) -> dict:
+    X, y, positive_count = build_training_data(limit, negatives_per_positive, cutoff=cutoff)
     if positive_count < 10 or len(np.unique(y)) < 2:
         raise RuntimeError("Not enough positive/negative observations to train the model")
 
@@ -115,7 +122,7 @@ def train(limit: int = 1000, negatives_per_positive: int = 20, output: str = "le
     importance = pd.Series(clf.coef_[0], index=FEATURES).sort_values(key=np.abs, ascending=False)
 
     payload = {
-        "version": 2,
+        "version": 1,
         "features": FEATURES,
         "mean": scaler.mean_.tolist(),
         "scale": scaler.scale_.tolist(),
@@ -125,7 +132,7 @@ def train(limit: int = 1000, negatives_per_positive: int = 20, output: str = "le
         "training_observations": int(len(y)),
         "negative_observations": int((y == 0).sum()),
         "top_feature_importance": [{"feature": k, "standardized_coefficient": float(v)} for k, v in importance.head(15).items()],
-        "method": "balanced logistic regression on trader entries plus one trading day pre-entry vs sampled same-date non-entries",
+        "method": "balanced logistic regression on trader entries vs sampled same-date non-entries",
         "warning": "Research prototype. It uses the current top-1000 universe for historical controls and is not a guarantee of future returns.",
     }
     Path(output).write_text(json.dumps(payload, indent=2), encoding="utf-8")
