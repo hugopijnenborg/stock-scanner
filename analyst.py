@@ -5,15 +5,15 @@ from datetime import datetime, timedelta, timezone
 import json
 import math
 from pathlib import Path
-import time
 
 import pandas as pd
 import yfinance as yf
 
 CACHE_PATH = Path(__file__).resolve().parent / "data" / "analyst_cache.json"
 CACHE_TTL_HOURS = 24
-CACHE_VERSION = 8
+CACHE_VERSION = 9
 ANALYST_RETRY_MINUTES = 60
+
 RATING_WEIGHTS = {
     "strongbuy": 100.0,
     "buy": 75.0,
@@ -71,7 +71,6 @@ def _parse_recommendations(df):
     counts = {key: 0 for key in RATING_WEIGHTS}
     if not isinstance(df, pd.DataFrame) or df.empty:
         return counts, None
-
     row = df.iloc[0]
     for key in counts:
         for alias in RATING_ALIASES[key]:
@@ -82,65 +81,87 @@ def _parse_recommendations(df):
 
 
 def _get_yahoo_frame(ticker, attribute, method=None):
-    """Read a yfinance analyst frame with a method fallback for API changes."""
-    try:
-        value = getattr(ticker, attribute, None)
-        if callable(value):
-            value = value()
-        if isinstance(value, pd.DataFrame) and not value.empty:
-            return value
-    except Exception:
-        pass
-
-    if method:
+    for name in (attribute, method):
+        if not name:
+            continue
         try:
-            fn = getattr(ticker, method, None)
-            if callable(fn):
-                value = fn()
-                if isinstance(value, pd.DataFrame) and not value.empty:
-                    return value
+            value = getattr(ticker, name, None)
+            if callable(value):
+                value = value()
+            if isinstance(value, pd.DataFrame) and not value.empty:
+                return value
         except Exception:
-            pass
+            continue
     return pd.DataFrame()
 
 
 def _get_yahoo_dict(ticker, attribute, method=None):
-    try:
-        value = getattr(ticker, attribute, None)
-        if callable(value):
-            value = value()
-        if isinstance(value, dict) and value:
-            return value
-    except Exception:
-        pass
-
-    if method:
+    for name in (method, attribute):
+        if not name:
+            continue
         try:
-            fn = getattr(ticker, method, None)
-            if callable(fn):
-                value = fn()
-                if isinstance(value, dict) and value:
-                    return value
+            value = getattr(ticker, name, None)
+            if callable(value):
+                value = value()
+            if isinstance(value, dict) and value:
+                return value
         except Exception:
-            pass
+            continue
     return {}
 
 
-def _target_from_row(row):
-    for key in (
+def _first_num(mapping, keys):
+    if not isinstance(mapping, dict):
+        return None
+    for key in keys:
+        value = _num(mapping.get(key))
+        if value is not None and value > 0:
+            return value
+    return None
+
+
+def _target_from_row(row, keys=None):
+    keys = keys or (
         "currentPriceTarget",
+        "current_price_target",
         "priceTarget",
+        "price_target",
         "targetPrice",
+        "target_price",
         "newTarget",
+        "new_target",
         "target",
         "toPrice",
         "to_price",
         "currentTarget",
-    ):
-        value = _num(row.get(key))
+        "current_target",
+    )
+    for key in keys:
+        try:
+            value = _num(row.get(key))
+        except Exception:
+            value = None
         if value is not None and value > 0:
             return value
     return None
+
+
+def _parse_target_summary(targets, info):
+    current = _first_num(targets, ("current", "currentPrice", "current_price"))
+    low = _first_num(targets, ("low", "targetLow", "target_low"))
+    high = _first_num(targets, ("high", "targetHigh", "target_high"))
+    mean = _first_num(targets, ("mean", "average", "targetMean", "target_mean"))
+    median = _first_num(targets, ("median", "targetMedian", "target_median"))
+
+    # Yahoo also exposes the same consensus targets through quote/info on some
+    # symbols. Use those only as fallbacks, never as replacements for a valid
+    # analyst_price_targets response.
+    current = current or _first_num(info, ("currentPrice", "regularMarketPrice"))
+    low = low or _first_num(info, ("targetLowPrice",))
+    high = high or _first_num(info, ("targetHighPrice",))
+    mean = mean or _first_num(info, ("targetMeanPrice",))
+    median = median or _first_num(info, ("targetMedianPrice",))
+    return current, mean, median, low, high
 
 
 def _parse_changes(df):
@@ -170,11 +191,16 @@ def _parse_changes(df):
             ts = None
 
         action = _clean_text(row.get("action"))
-        firm = _clean_text(row.get("firm"))
-        to_grade = _clean_text(row.get("toGrade"))
-        from_grade = _clean_text(row.get("fromGrade"))
+        firm = _clean_text(row.get("firm")) or _clean_text(row.get("company"))
+        to_grade = _clean_text(row.get("toGrade")) or _clean_text(row.get("to_grade"))
+        from_grade = _clean_text(row.get("fromGrade")) or _clean_text(row.get("from_grade"))
         target = _target_from_row(row)
+        prior_target = _target_from_row(row, (
+            "priorPriceTarget", "prior_price_target", "previousPriceTarget", "previous_price_target"
+        ))
+        target_action = _clean_text(row.get("priceTargetAction")) or _clean_text(row.get("price_target_action"))
         action_l = (action or "").lower().replace(" ", "")
+        target_action_l = (target_action or "").lower().replace(" ", "")
 
         if ts is not None and ts.to_pydatetime() >= cutoff:
             recent_count += 1
@@ -182,20 +208,25 @@ def _parse_changes(df):
                 bullish += 1
             if any(x in action_l for x in BEARISH_ACTIONS):
                 bearish += 1
-            if "target" in action_l:
+            if "target" in action_l or target_action:
                 target_changes += 1
 
+        item = {
+            "date": ts.isoformat() if ts is not None else None,
+            "firm": firm,
+            "action": action,
+            "from_grade": from_grade,
+            "to_grade": to_grade,
+            "target": target,
+            "prior_target": prior_target,
+            "target_action": target_action,
+        }
         if len(changes) < 30:
-            changes.append({
-                "date": ts.isoformat() if ts is not None else None,
-                "firm": firm,
-                "action": action,
-                "from_grade": from_grade,
-                "to_grade": to_grade,
-                "target": target,
-            })
+            changes.append(item)
 
-        if firm and firm not in seen:
+        # Only expose firm-level entries when Yahoo actually supplied a target.
+        # This prevents the UI from pretending a rating change is a bank price target.
+        if firm and firm not in seen and target is not None:
             seen.add(firm)
             firms.append({
                 "firm": firm,
@@ -204,6 +235,8 @@ def _parse_changes(df):
                 "from_grade": from_grade,
                 "to_grade": to_grade,
                 "target": target,
+                "prior_target": prior_target,
+                "target_action": target_action,
             })
 
     return changes, recent_count, bullish, bearish, target_changes, firms[:30]
@@ -251,7 +284,6 @@ def _has_analyst_data(row):
         any((row.get(key) or 0) > 0 for key in (
             "analyst_strong_buy", "analyst_buy", "analyst_hold", "analyst_sell", "analyst_strong_sell"
         )),
-        (row.get("analyst_changes_30d") or 0) > 0,
     ])
 
 
@@ -266,21 +298,17 @@ def _usable_fields(row):
 
 def _one(ticker):
     out = {"ticker": ticker, "analyst_completeness": 0.0, "recent_news": []}
-
     try:
-        # yfinance's Ticker object is deliberately kept per stock. This avoids
-        # sharing mutable provider state between worker threads.
         yahoo = yf.Ticker(ticker)
-
         counts = {key: 0 for key in RATING_WEIGHTS}
         consensus = None
         recommendation_key = None
         info = {}
 
-        # Yahoo has exposed both recommendations_summary and recommendations
-        # over time. Try both, plus the explicit get_recommendations method.
+        # Recommendations. Yahoo has exposed both the summary and the full
+        # recommendation table under different names across yfinance versions.
         for attribute, method in (
-            ("recommendations_summary", "get_recommendations"),
+            ("recommendations_summary", "get_recommendations_summary"),
             ("recommendations", "get_recommendations"),
         ):
             if sum(counts.values()) > 0:
@@ -289,28 +317,21 @@ def _one(ticker):
             if not frame.empty:
                 counts, consensus = _parse_recommendations(frame)
 
-        # RecommendationKey/numberOfAnalystOpinions are useful fallbacks when
-        # Yahoo's recommendation table is temporarily incomplete.
         try:
             info = yahoo.info or {}
             recommendation_key = info.get("recommendationKey")
         except Exception:
             info = {}
 
+        # IMPORTANT: explicitly call get_analyst_price_targets first. The
+        # property is only a wrapper in current yfinance, but the method is the
+        # documented analyst-price-target API and is less likely to be confused
+        # with an empty cached property.
         targets = _get_yahoo_dict(yahoo, "analyst_price_targets", "get_analyst_price_targets")
+        current, mean, median, low, high = _parse_target_summary(targets, info)
 
-        current = (
-            _num(targets.get("current"))
-            or _num(info.get("currentPrice"))
-            or _num(info.get("regularMarketPrice"))
-        )
-        mean = _num(targets.get("mean")) or _num(info.get("targetMeanPrice"))
-        median = _num(targets.get("median")) or _num(info.get("targetMedianPrice"))
-        low = _num(targets.get("low")) or _num(info.get("targetLowPrice"))
-        high = _num(targets.get("high")) or _num(info.get("targetHighPrice"))
-
-        # Analyst history contains the individual firms and their target/rating
-        # changes. Keep it because the detail page uses these firm-level events.
+        # Yahoo's upgrades/downgrades feed can contain individual firm target
+        # changes. It is the source used for bank/firm-level target history.
         changes = []
         recent_count = bullish = bearish = target_changes = 0
         firm_targets = []
@@ -399,7 +420,6 @@ def _one(ticker):
         })
     except Exception as exc:
         out["analyst_error"] = str(exc)[:180]
-
     return out
 
 
@@ -427,32 +447,21 @@ def _cached_timestamp(item):
 
 
 def download_analyst_data(tickers, workers=4, refresh_hours=CACHE_TTL_HOURS):
-    """Fetch analyst data from Yahoo Finance and cache successful results.
-
-    Yahoo remains the single source of truth for analyst data. The cache is
-    intentionally conservative: a failed/empty refresh never replaces a good
-    previous result.
-    """
     cache = _load_cache()
     now = datetime.now(timezone.utc)
     cutoff = now - timedelta(hours=refresh_hours)
     retry_cutoff = now - timedelta(minutes=ANALYST_RETRY_MINUTES)
-    fresh = {}
+    result = {}
     stale = []
 
     for ticker in dict.fromkeys(tickers):
         item = cache.get(ticker) or {}
         updated = _cached_timestamp(item)
-        payload = {key: value for key, value in item.items() if not key.startswith("_")}
+        payload = {k: v for k, v in item.items() if not k.startswith("_")}
         good = _has_analyst_data(payload)
 
-        if (
-            item.get("_cache_version") == CACHE_VERSION
-            and updated
-            and updated >= cutoff
-            and good
-        ):
-            fresh[ticker] = payload
+        if item.get("_cache_version") == CACHE_VERSION and updated and updated >= cutoff and good:
+            result[ticker] = payload
             continue
 
         last_attempt = _cached_timestamp({"_cached_at": item.get("_last_attempt_at")})
@@ -465,21 +474,17 @@ def download_analyst_data(tickers, workers=4, refresh_hours=CACHE_TTL_HOURS):
             if good:
                 payload["analyst_cache_stale"] = True
                 payload["analyst_refresh_failed"] = True
-                fresh[ticker] = payload
+                result[ticker] = payload
             continue
-
         stale.append(ticker)
 
     if stale:
-        # Four workers is fast enough while avoiding the burst of simultaneous
-        # Yahoo requests that previously caused incomplete responses.
         with ThreadPoolExecutor(max_workers=max(1, min(int(workers), 4))) as pool:
             futures = {pool.submit(_one, ticker): ticker for ticker in stale}
             for future in as_completed(futures):
                 ticker = futures[future]
                 old = cache.get(ticker) or {}
-                old_payload = {key: value for key, value in old.items() if not key.startswith("_")}
-
+                old_payload = {k: v for k, v in old.items() if not k.startswith("_")}
                 try:
                     row = future.result()
                 except Exception as exc:
@@ -496,9 +501,8 @@ def download_analyst_data(tickers, workers=4, refresh_hours=CACHE_TTL_HOURS):
                     row["_cached_at"] = now.isoformat()
                     row["_last_attempt_at"] = now.isoformat()
                     row["_cache_version"] = CACHE_VERSION
-                    row["_refresh_failed"] = False
                     cache[ticker] = row
-                    fresh[ticker] = {key: value for key, value in row.items() if not key.startswith("_")}
+                    result[ticker] = {k: v for k, v in row.items() if not k.startswith("_")}
                 elif _has_analyst_data(old_payload):
                     old_payload["analyst_cache_stale"] = True
                     old_payload["analyst_refresh_failed"] = True
@@ -510,7 +514,7 @@ def download_analyst_data(tickers, workers=4, refresh_hours=CACHE_TTL_HOURS):
                         "_cache_version": CACHE_VERSION,
                         "_refresh_failed": True,
                     }
-                    fresh[ticker] = old_payload
+                    result[ticker] = old_payload
                 else:
                     cache[ticker] = {
                         **row,
@@ -519,12 +523,6 @@ def download_analyst_data(tickers, workers=4, refresh_hours=CACHE_TTL_HOURS):
                         "_cache_version": CACHE_VERSION,
                         "_refresh_failed": True,
                     }
-
         _save_cache(cache)
 
-    # Small pause between batches keeps repeated scanner invocations from
-    # immediately hammering Yahoo after a failed run.
-    if stale:
-        time.sleep(0.1)
-
-    return fresh
+    return result
