@@ -4,24 +4,16 @@ from concurrent.futures import ThreadPoolExecutor, as_completed
 from datetime import datetime, timedelta, timezone
 import json
 import math
-import os
 from pathlib import Path
-import threading
 import time
-from urllib.error import HTTPError, URLError
-from urllib.parse import urlencode
-from urllib.request import Request, urlopen
+
+import pandas as pd
+import yfinance as yf
 
 CACHE_PATH = Path(__file__).resolve().parent / "data" / "analyst_cache.json"
 CACHE_TTL_HOURS = 24
-CACHE_VERSION = 7
-RETRY_MINUTES = 60
-
-FINNHUB_API_KEY = os.getenv("FINNHUB_API_KEY", "").strip()
-OANOR_API_KEY = os.getenv("OANOR_API_KEY", "").strip()
-FINNHUB_BASE = "https://finnhub.io/api/v1"
-OANOR_BASE = "https://api.oanor.com/analyst-api"
-
+CACHE_VERSION = 8
+ANALYST_RETRY_MINUTES = 60
 RATING_WEIGHTS = {
     "strongbuy": 100.0,
     "buy": 75.0,
@@ -29,14 +21,15 @@ RATING_WEIGHTS = {
     "sell": 25.0,
     "strongsell": 0.0,
 }
-
-# Oanor's public documentation is inconsistent about the free-tier rate limit.
-# The FAQ says 1 request/sec, while the current pricing card says 3 requests/sec.
-# Use 1 request/sec so the scanner remains safe on the stricter limit.
-_oanor_lock = threading.Lock()
-_oanor_last_request = 0.0
-_finnhub_lock = threading.Lock()
-_finnhub_last_request = 0.0
+RATING_ALIASES = {
+    "strongbuy": ["strongbuy", "strong_buy", "strongBuy"],
+    "buy": ["buy"],
+    "hold": ["hold"],
+    "sell": ["sell"],
+    "strongsell": ["strongsell", "strong_sell", "strongSell"],
+}
+BULLISH_ACTIONS = {"up", "upgrade", "upgraded", "init", "initiated"}
+BEARISH_ACTIONS = {"down", "downgrade", "downgraded"}
 
 
 def _num(value):
@@ -47,75 +40,24 @@ def _num(value):
         return None
 
 
-def _text(value):
+def _clean_text(value):
     if value is None:
         return None
     text = str(value).strip()
     return text if text and text.lower() != "nan" else None
 
 
-def _rate_limit(provider: str):
-    global _oanor_last_request, _finnhub_last_request
-    if provider == "oanor":
-        lock = _oanor_lock
-        interval = 1.05
-        last_name = "oanor"
-    else:
-        lock = _finnhub_lock
-        interval = 0.10
-        last_name = "finnhub"
-
-    with lock:
-        now = time.monotonic()
-        last = _oanor_last_request if last_name == "oanor" else _finnhub_last_request
-        wait = interval - (now - last)
-        if wait > 0:
-            time.sleep(wait)
-        current = time.monotonic()
-        if last_name == "oanor":
-            _oanor_last_request = current
-        else:
-            _finnhub_last_request = current
-
-
-def _request_json(url: str, headers: dict[str, str] | None = None, timeout: int = 20):
-    request = Request(url, headers={"User-Agent": "MarketIntel/1.0", **(headers or {})})
-    with urlopen(request, timeout=timeout) as response:
-        return json.loads(response.read().decode("utf-8"))
-
-
-def _provider_request(provider: str, url: str, headers: dict[str, str] | None = None):
-    _rate_limit(provider)
-    try:
-        return _request_json(url, headers), None
-    except HTTPError as exc:
-        try:
-            body = exc.read().decode("utf-8", errors="replace")[:180]
-        except Exception:
-            body = ""
-        return None, f"{provider} HTTP {exc.code}{': ' + body if body else ''}"
-    except (URLError, TimeoutError) as exc:
-        return None, f"{provider} network error: {str(exc)[:140]}"
-    except Exception as exc:
-        return None, f"{provider} error: {str(exc)[:140]}"
-
-
-def _finnhub(symbol: str):
-    if not FINNHUB_API_KEY:
-        return None, "FINNHUB_API_KEY ontbreekt"
-    query = urlencode({"symbol": symbol, "token": FINNHUB_API_KEY})
-    return _provider_request("finnhub", f"{FINNHUB_BASE}/stock/recommendation?{query}")
-
-
-def _oanor(symbol: str, endpoint: str):
-    if not OANOR_API_KEY:
-        return None, "OANOR_API_KEY ontbreekt"
-    query = urlencode({"symbol": symbol})
-    return _provider_request(
-        "oanor",
-        f"{OANOR_BASE}/{endpoint}?{query}",
-        {"x-oanor-key": OANOR_API_KEY},
-    )
+def _rating_key(value):
+    if value is None:
+        return None
+    normalized = str(value).strip().lower().replace(" ", "").replace("_", "").replace("-", "")
+    return {
+        "strongbuy": "STRONG BUY",
+        "buy": "BUY",
+        "hold": "HOLD",
+        "sell": "SELL",
+        "strongsell": "STRONG SELL",
+    }.get(normalized, str(value).strip().upper())
 
 
 def _consensus_score(counts):
@@ -125,144 +67,340 @@ def _consensus_score(counts):
     return sum(float(counts.get(key, 0) or 0) * weight for key, weight in RATING_WEIGHTS.items()) / total
 
 
-def _dominant_rating(counts):
-    if sum(counts.values()) <= 0:
-        return None
-    key = max(counts, key=counts.get)
-    return {
-        "strongbuy": "STRONG BUY",
-        "buy": "BUY",
-        "hold": "HOLD",
-        "sell": "SELL",
-        "strongsell": "STRONG SELL",
-    }[key]
+def _parse_recommendations(df):
+    counts = {key: 0 for key in RATING_WEIGHTS}
+    if not isinstance(df, pd.DataFrame) or df.empty:
+        return counts, None
+
+    row = df.iloc[0]
+    for key in counts:
+        for alias in RATING_ALIASES[key]:
+            if alias in row.index:
+                counts[key] = int(_num(row[alias]) or 0)
+                break
+    return counts, _consensus_score(counts)
 
 
-def _unwrap(payload):
-    if isinstance(payload, dict):
-        for key in ("data", "result", "target", "consensus"):
-            value = payload.get(key)
-            if isinstance(value, dict):
-                return value
-            if isinstance(value, list) and value and isinstance(value[0], dict):
-                return value[0]
-        return payload
-    if isinstance(payload, list) and payload and isinstance(payload[0], dict):
-        return payload[0]
+def _get_yahoo_frame(ticker, attribute, method=None):
+    """Read a yfinance analyst frame with a method fallback for API changes."""
+    try:
+        value = getattr(ticker, attribute, None)
+        if callable(value):
+            value = value()
+        if isinstance(value, pd.DataFrame) and not value.empty:
+            return value
+    except Exception:
+        pass
+
+    if method:
+        try:
+            fn = getattr(ticker, method, None)
+            if callable(fn):
+                value = fn()
+                if isinstance(value, pd.DataFrame) and not value.empty:
+                    return value
+        except Exception:
+            pass
+    return pd.DataFrame()
+
+
+def _get_yahoo_dict(ticker, attribute, method=None):
+    try:
+        value = getattr(ticker, attribute, None)
+        if callable(value):
+            value = value()
+        if isinstance(value, dict) and value:
+            return value
+    except Exception:
+        pass
+
+    if method:
+        try:
+            fn = getattr(ticker, method, None)
+            if callable(fn):
+                value = fn()
+                if isinstance(value, dict) and value:
+                    return value
+        except Exception:
+            pass
     return {}
 
 
-def _finnhub_counts(payload):
-    if not isinstance(payload, list) or not payload:
-        return {}, None, None
-    row = payload[0] if isinstance(payload[0], dict) else {}
-    counts = {
-        "strongbuy": int(_num(row.get("strongBuy")) or 0),
-        "buy": int(_num(row.get("buy")) or 0),
-        "hold": int(_num(row.get("hold")) or 0),
-        "sell": int(_num(row.get("sell")) or 0),
-        "strongsell": int(_num(row.get("strongSell")) or 0),
-    }
-    score = _consensus_score(counts)
-    return counts, score, _text(row.get("period"))
+def _target_from_row(row):
+    for key in (
+        "currentPriceTarget",
+        "priceTarget",
+        "targetPrice",
+        "newTarget",
+        "target",
+        "toPrice",
+        "to_price",
+        "currentTarget",
+    ):
+        value = _num(row.get(key))
+        if value is not None and value > 0:
+            return value
+    return None
 
 
-def _oanor_targets(payload):
-    raw = _unwrap(payload)
-    current = _num(raw.get("current_price") or raw.get("currentPrice") or raw.get("price"))
-    mean = _num(
-        raw.get("mean")
-        or raw.get("average")
-        or raw.get("target_mean")
-        or raw.get("mean_target")
-        or raw.get("consensus_price_target")
-        or raw.get("targetMean")
-    )
-    median = _num(raw.get("median") or raw.get("median_target") or raw.get("targetMedian"))
-    low = _num(raw.get("low") or raw.get("low_target") or raw.get("target_low") or raw.get("targetLow"))
-    high = _num(raw.get("high") or raw.get("high_target") or raw.get("target_high") or raw.get("targetHigh"))
-    upside = _num(raw.get("implied_upside") or raw.get("upside") or raw.get("impliedUpside"))
-    if upside is not None and abs(upside) > 2:
-        upside /= 100.0
-    if upside is None and current and mean:
-        upside = mean / current - 1.0
-    return current, mean, median, low, high, upside
+def _parse_changes(df):
+    if not isinstance(df, pd.DataFrame) or df.empty:
+        return [], 0, 0, 0, 0, []
+
+    data = df.copy()
+    if not isinstance(data.index, pd.DatetimeIndex):
+        try:
+            data.index = pd.to_datetime(data.index, utc=True)
+        except Exception:
+            pass
+
+    cutoff = datetime.now(timezone.utc) - timedelta(days=30)
+    changes = []
+    firms = []
+    seen = set()
+    bullish = bearish = target_changes = recent_count = 0
+
+    for idx, row in data.head(100).iterrows():
+        try:
+            ts = pd.Timestamp(idx)
+            if ts.tzinfo is None:
+                ts = ts.tz_localize("UTC")
+            ts = ts.tz_convert("UTC")
+        except Exception:
+            ts = None
+
+        action = _clean_text(row.get("action"))
+        firm = _clean_text(row.get("firm"))
+        to_grade = _clean_text(row.get("toGrade"))
+        from_grade = _clean_text(row.get("fromGrade"))
+        target = _target_from_row(row)
+        action_l = (action or "").lower().replace(" ", "")
+
+        if ts is not None and ts.to_pydatetime() >= cutoff:
+            recent_count += 1
+            if any(x in action_l for x in BULLISH_ACTIONS):
+                bullish += 1
+            if any(x in action_l for x in BEARISH_ACTIONS):
+                bearish += 1
+            if "target" in action_l:
+                target_changes += 1
+
+        if len(changes) < 30:
+            changes.append({
+                "date": ts.isoformat() if ts is not None else None,
+                "firm": firm,
+                "action": action,
+                "from_grade": from_grade,
+                "to_grade": to_grade,
+                "target": target,
+            })
+
+        if firm and firm not in seen:
+            seen.add(firm)
+            firms.append({
+                "firm": firm,
+                "date": ts.isoformat() if ts is not None else None,
+                "action": action,
+                "from_grade": from_grade,
+                "to_grade": to_grade,
+                "target": target,
+            })
+
+    return changes, recent_count, bullish, bearish, target_changes, firms[:30]
 
 
-def _one(ticker):
-    errors = []
-
-    # One request to each provider per ticker. This is deliberate. The previous
-    # implementation made three Oanor requests plus an unnecessary Finnhub news
-    # request for every stock, which made rate limits and partial results likely.
-    finnhub_raw, finnhub_error = _finnhub(ticker)
-    if finnhub_error:
-        errors.append(finnhub_error)
-    counts, score, period = _finnhub_counts(finnhub_raw)
-
-    oanor_raw, oanor_error = _oanor(ticker, "v1/target")
-    if oanor_error:
-        errors.append(oanor_error)
-    current, mean, median, low, high, upside = _oanor_targets(oanor_raw)
-
-    total = sum(counts.values())
-    analyst_count = total if total > 0 else None
-    recommendation = _dominant_rating(counts)
-    completeness = 0
-    completeness += 1 if score is not None else 0
-    completeness += 1 if mean is not None else 0
-    completeness += 1 if analyst_count else 0
-    completeness += 1 if total > 0 else 0
-
-    has_provider_data = any(value is not None for value in (score, mean, median, low, high, upside)) or total > 0
-    error = "; ".join(errors) if errors and not has_provider_data else None
-
-    return {
-        "ticker": ticker,
-        "analyst_recommendation": recommendation,
-        "analyst_consensus_score": round(score, 1) if score is not None else None,
-        "analyst_strong_buy": counts.get("strongbuy", 0),
-        "analyst_buy": counts.get("buy", 0),
-        "analyst_hold": counts.get("hold", 0),
-        "analyst_sell": counts.get("sell", 0),
-        "analyst_strong_sell": counts.get("strongsell", 0),
-        "analyst_count": analyst_count,
-        "analyst_target_current": current,
-        "analyst_target_mean": mean,
-        "analyst_target_median": median,
-        "analyst_target_low": low,
-        "analyst_target_high": high,
-        "analyst_target_upside": upside,
-        "analyst_changes_30d": 0,
-        "analyst_bullish_changes_30d": None,
-        "analyst_bearish_changes_30d": None,
-        "analyst_target_changes_30d": 0,
-        "analyst_recent_changes": [],
-        "analyst_firm_targets": [],
-        "analyst_completeness": round(completeness / 4 * 100, 1),
-        "analyst_cache_stale": False,
-        "analyst_refresh_failed": False,
-        "analyst_error": error,
-        "last_earnings_date": None,
-        "last_earnings_surprise_pct": None,
-        "next_earnings_date": None,
-        "recent_news": [],
-        "analyst_source": "Finnhub recommendations + Oanor targets",
-        "analyst_finnhub_period": period,
-    }
+def _parse_news(items):
+    out = []
+    if not isinstance(items, list):
+        return out
+    for item in items[:10]:
+        content = item.get("content", item) if isinstance(item, dict) else {}
+        title = _clean_text(content.get("title"))
+        if not title:
+            continue
+        provider = content.get("provider", {}) if isinstance(content, dict) else {}
+        out.append({
+            "title": title,
+            "publisher": _clean_text(provider.get("displayName")) if isinstance(provider, dict) else None,
+            "published": _clean_text(content.get("pubDate") or content.get("displayTime")),
+        })
+    return out[:5]
 
 
-def _has_data(row):
+def _parse_earnings_history(df):
+    if not isinstance(df, pd.DataFrame) or df.empty:
+        return None, None
+    data = df.copy().sort_index(ascending=False)
+    try:
+        idx = pd.Timestamp(data.index[0])
+        if idx.tzinfo is None:
+            idx = idx.tz_localize("UTC")
+        idx = idx.tz_convert("UTC")
+    except Exception:
+        idx = None
+    return idx.isoformat() if idx is not None else None, _num(data.iloc[0].get("surprisePercent"))
+
+
+def _has_analyst_data(row):
     if not isinstance(row, dict):
         return False
     return any([
         row.get("analyst_consensus_score") is not None,
         row.get("analyst_target_mean") is not None,
         row.get("analyst_count") is not None and row.get("analyst_count", 0) > 0,
-        sum((row.get(key) or 0) for key in (
+        any((row.get(key) or 0) > 0 for key in (
             "analyst_strong_buy", "analyst_buy", "analyst_hold", "analyst_sell", "analyst_strong_sell"
-        )) > 0,
+        )),
+        (row.get("analyst_changes_30d") or 0) > 0,
     ])
+
+
+def _usable_fields(row):
+    return sum(bool(x) for x in (
+        row.get("analyst_consensus_score") is not None,
+        row.get("analyst_target_mean") is not None,
+        row.get("analyst_count") is not None,
+        bool(row.get("analyst_recent_changes")),
+    ))
+
+
+def _one(ticker):
+    out = {"ticker": ticker, "analyst_completeness": 0.0, "recent_news": []}
+
+    try:
+        # yfinance's Ticker object is deliberately kept per stock. This avoids
+        # sharing mutable provider state between worker threads.
+        yahoo = yf.Ticker(ticker)
+
+        counts = {key: 0 for key in RATING_WEIGHTS}
+        consensus = None
+        recommendation_key = None
+        info = {}
+
+        # Yahoo has exposed both recommendations_summary and recommendations
+        # over time. Try both, plus the explicit get_recommendations method.
+        for attribute, method in (
+            ("recommendations_summary", "get_recommendations"),
+            ("recommendations", "get_recommendations"),
+        ):
+            if sum(counts.values()) > 0:
+                break
+            frame = _get_yahoo_frame(yahoo, attribute, method)
+            if not frame.empty:
+                counts, consensus = _parse_recommendations(frame)
+
+        # RecommendationKey/numberOfAnalystOpinions are useful fallbacks when
+        # Yahoo's recommendation table is temporarily incomplete.
+        try:
+            info = yahoo.info or {}
+            recommendation_key = info.get("recommendationKey")
+        except Exception:
+            info = {}
+
+        targets = _get_yahoo_dict(yahoo, "analyst_price_targets", "get_analyst_price_targets")
+
+        current = (
+            _num(targets.get("current"))
+            or _num(info.get("currentPrice"))
+            or _num(info.get("regularMarketPrice"))
+        )
+        mean = _num(targets.get("mean")) or _num(info.get("targetMeanPrice"))
+        median = _num(targets.get("median")) or _num(info.get("targetMedianPrice"))
+        low = _num(targets.get("low")) or _num(info.get("targetLowPrice"))
+        high = _num(targets.get("high")) or _num(info.get("targetHighPrice"))
+
+        # Analyst history contains the individual firms and their target/rating
+        # changes. Keep it because the detail page uses these firm-level events.
+        changes = []
+        recent_count = bullish = bearish = target_changes = 0
+        firm_targets = []
+        upgrades = _get_yahoo_frame(yahoo, "upgrades_downgrades", "get_upgrades_downgrades")
+        if not upgrades.empty:
+            changes, recent_count, bullish, bearish, target_changes, firm_targets = _parse_changes(upgrades)
+
+        earnings_last_date = earnings_surprise = None
+        earnings_history = _get_yahoo_frame(yahoo, "earnings_history", "get_earnings_history")
+        if not earnings_history.empty:
+            earnings_last_date, earnings_surprise = _parse_earnings_history(earnings_history)
+
+        next_earnings = None
+        try:
+            dates = yahoo.get_earnings_dates(limit=8)
+            if isinstance(dates, pd.DataFrame) and not dates.empty:
+                now = pd.Timestamp.now(tz="UTC")
+                for idx in dates.index:
+                    ts = pd.Timestamp(idx)
+                    if ts.tzinfo is None:
+                        ts = ts.tz_localize("UTC")
+                    ts = ts.tz_convert("UTC")
+                    if ts >= now:
+                        next_earnings = ts.isoformat()
+                        break
+        except Exception:
+            pass
+
+        recent_news = []
+        try:
+            recent_news = _parse_news(yahoo.get_news(count=10, tab="news"))
+        except Exception:
+            pass
+
+        upside = (mean / current - 1) if current and mean else None
+        total_ratings = sum(counts.values())
+        info_count = _num(info.get("numberOfAnalystOpinions"))
+        analyst_count = total_ratings or (int(info_count) if info_count else None)
+
+        if consensus is None and recommendation_key:
+            normalized = str(recommendation_key).replace(" ", "").replace("_", "").lower()
+            consensus = RATING_WEIGHTS.get(normalized)
+
+        fallback_rating = _rating_key(recommendation_key)
+        if not fallback_rating and total_ratings:
+            fallback_rating = _rating_key(max(counts, key=counts.get))
+
+        usable = _usable_fields({
+            "analyst_consensus_score": consensus,
+            "analyst_target_mean": mean,
+            "analyst_count": analyst_count,
+            "analyst_recent_changes": changes,
+        })
+
+        out.update({
+            "ticker": ticker,
+            "analyst_recommendation": fallback_rating,
+            "analyst_consensus_score": round(consensus, 1) if consensus is not None else None,
+            "analyst_strong_buy": counts["strongbuy"],
+            "analyst_buy": counts["buy"],
+            "analyst_hold": counts["hold"],
+            "analyst_sell": counts["sell"],
+            "analyst_strong_sell": counts["strongsell"],
+            "analyst_count": analyst_count,
+            "analyst_target_current": current,
+            "analyst_target_mean": mean,
+            "analyst_target_median": median,
+            "analyst_target_low": low,
+            "analyst_target_high": high,
+            "analyst_target_upside": upside,
+            "analyst_changes_30d": recent_count,
+            "analyst_bullish_changes_30d": bullish,
+            "analyst_bearish_changes_30d": bearish,
+            "analyst_target_changes_30d": target_changes,
+            "analyst_recent_changes": changes,
+            "analyst_firm_targets": firm_targets,
+            "analyst_completeness": round(min(100.0, usable / 4 * 100), 1),
+            "analyst_cache_stale": False,
+            "analyst_refresh_failed": False,
+            "analyst_error": None,
+            "last_earnings_date": earnings_last_date,
+            "last_earnings_surprise_pct": earnings_surprise,
+            "next_earnings_date": next_earnings,
+            "recent_news": recent_news,
+            "analyst_source": "Yahoo Finance / yfinance",
+        })
+    except Exception as exc:
+        out["analyst_error"] = str(exc)[:180]
+
+    return out
 
 
 def _load_cache():
@@ -278,80 +416,93 @@ def _save_cache(cache):
     CACHE_PATH.write_text(json.dumps(cache, indent=2, allow_nan=False), encoding="utf-8")
 
 
-def _timestamp(value):
+def _cached_timestamp(item):
     try:
-        timestamp = datetime.fromisoformat(value or "")
-        if timestamp.tzinfo is None:
-            timestamp = timestamp.replace(tzinfo=timezone.utc)
-        return timestamp
+        updated = datetime.fromisoformat(item.get("_cached_at", "")) if item else None
+        if updated and updated.tzinfo is None:
+            updated = updated.replace(tzinfo=timezone.utc)
+        return updated
     except (TypeError, ValueError):
         return None
 
 
 def download_analyst_data(tickers, workers=4, refresh_hours=CACHE_TTL_HOURS):
-    """Load analyst data with durable GitHub Actions caching.
+    """Fetch analyst data from Yahoo Finance and cache successful results.
 
-    Finnhub supplies the five recommendation buckets.
-    Oanor supplies the current price and low/mean/median/high targets.
-    Only two API requests are made per uncached ticker.
+    Yahoo remains the single source of truth for analyst data. The cache is
+    intentionally conservative: a failed/empty refresh never replaces a good
+    previous result.
     """
     cache = _load_cache()
     now = datetime.now(timezone.utc)
     cutoff = now - timedelta(hours=refresh_hours)
-    retry_cutoff = now - timedelta(minutes=RETRY_MINUTES)
-    result = {}
+    retry_cutoff = now - timedelta(minutes=ANALYST_RETRY_MINUTES)
+    fresh = {}
     stale = []
 
     for ticker in dict.fromkeys(tickers):
         item = cache.get(ticker) or {}
-        cached_at = _timestamp(item.get("_cached_at"))
+        updated = _cached_timestamp(item)
         payload = {key: value for key, value in item.items() if not key.startswith("_")}
+        good = _has_analyst_data(payload)
 
-        if item.get("_cache_version") == CACHE_VERSION and cached_at and cached_at >= cutoff and _has_data(payload):
-            result[ticker] = payload
+        if (
+            item.get("_cache_version") == CACHE_VERSION
+            and updated
+            and updated >= cutoff
+            and good
+        ):
+            fresh[ticker] = payload
             continue
 
-        attempted_at = _timestamp(item.get("_last_attempt_at"))
+        last_attempt = _cached_timestamp({"_cached_at": item.get("_last_attempt_at")})
         if (
             item.get("_cache_version") == CACHE_VERSION
             and item.get("_refresh_failed")
-            and attempted_at
-            and attempted_at >= retry_cutoff
+            and last_attempt
+            and last_attempt >= retry_cutoff
         ):
-            if _has_data(payload):
+            if good:
                 payload["analyst_cache_stale"] = True
                 payload["analyst_refresh_failed"] = True
-                result[ticker] = payload
+                fresh[ticker] = payload
             continue
+
         stale.append(ticker)
 
     if stale:
+        # Four workers is fast enough while avoiding the burst of simultaneous
+        # Yahoo requests that previously caused incomplete responses.
         with ThreadPoolExecutor(max_workers=max(1, min(int(workers), 4))) as pool:
             futures = {pool.submit(_one, ticker): ticker for ticker in stale}
             for future in as_completed(futures):
                 ticker = futures[future]
                 old = cache.get(ticker) or {}
                 old_payload = {key: value for key, value in old.items() if not key.startswith("_")}
+
                 try:
                     row = future.result()
                 except Exception as exc:
                     row = {
                         "ticker": ticker,
                         "analyst_completeness": 0.0,
+                        "recent_news": [],
                         "analyst_error": str(exc)[:180],
                     }
 
-                if _has_data(row):
+                if _has_analyst_data(row):
+                    row["analyst_cache_stale"] = False
+                    row["analyst_refresh_failed"] = False
                     row["_cached_at"] = now.isoformat()
                     row["_last_attempt_at"] = now.isoformat()
                     row["_cache_version"] = CACHE_VERSION
                     row["_refresh_failed"] = False
                     cache[ticker] = row
-                    result[ticker] = {key: value for key, value in row.items() if not key.startswith("_")}
-                elif _has_data(old_payload):
+                    fresh[ticker] = {key: value for key, value in row.items() if not key.startswith("_")}
+                elif _has_analyst_data(old_payload):
                     old_payload["analyst_cache_stale"] = True
                     old_payload["analyst_refresh_failed"] = True
-                    old_payload["analyst_error"] = row.get("analyst_error") or "Provider returned incomplete analyst data"
+                    old_payload["analyst_error"] = row.get("analyst_error") or "Yahoo Finance returned incomplete analyst data"
                     cache[ticker] = {
                         **old_payload,
                         "_cached_at": old.get("_cached_at"),
@@ -359,7 +510,7 @@ def download_analyst_data(tickers, workers=4, refresh_hours=CACHE_TTL_HOURS):
                         "_cache_version": CACHE_VERSION,
                         "_refresh_failed": True,
                     }
-                    result[ticker] = old_payload
+                    fresh[ticker] = old_payload
                 else:
                     cache[ticker] = {
                         **row,
@@ -371,4 +522,9 @@ def download_analyst_data(tickers, workers=4, refresh_hours=CACHE_TTL_HOURS):
 
         _save_cache(cache)
 
-    return result
+    # Small pause between batches keeps repeated scanner invocations from
+    # immediately hammering Yahoo after a failed run.
+    if stale:
+        time.sleep(0.1)
+
+    return fresh
