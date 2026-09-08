@@ -1,6 +1,6 @@
 'use client';
-import './opportunity.css';
 import {useEffect,useMemo,useState} from 'react';
+import Link from 'next/link';
 import {Activity,Bell,ChevronRight,Database,History,LayoutDashboard,RefreshCw,Search,Target,TrendingUp,X} from 'lucide-react';
 const pct=v=>v==null||!Number.isFinite(Number(v))?'—':`${(Number(v)*100).toFixed(1)}%`;
 const signed=v=>v==null||!Number.isFinite(Number(v))?'—':`${Number(v)>=0?'+':''}${(Number(v)*100).toFixed(1)}%`;
