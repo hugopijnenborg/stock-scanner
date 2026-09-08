@@ -42,6 +42,16 @@ jobs:
           restore-keys: |
             scanner-data-v1-
 
+      - name: Check analyst API credentials
+        env:
+          FINNHUB_API_KEY: ${{ secrets.FINNHUB_API_KEY }}
+          OANOR_API_KEY: ${{ secrets.OANOR_API_KEY }}
+        shell: bash
+        run: |
+          test -n "$FINNHUB_API_KEY" || { echo 'ERROR: GitHub Actions secret FINNHUB_API_KEY ontbreekt.'; exit 1; }
+          test -n "$OANOR_API_KEY" || { echo 'ERROR: GitHub Actions secret OANOR_API_KEY ontbreekt.'; exit 1; }
+          echo 'Analyst API credentials zijn beschikbaar voor deze scan.'
+
       - name: Check requested market window
         id: market_window
         shell: bash
@@ -56,6 +66,9 @@ jobs:
 
       - name: Run market scan
         if: steps.market_window.outputs.run == 'true'
+        env:
+          FINNHUB_API_KEY: ${{ secrets.FINNHUB_API_KEY }}
+          OANOR_API_KEY: ${{ secrets.OANOR_API_KEY }}
         run: python main.py scan --limit 1000 --top 1000 --output scan_results.csv --web-output public/data/latest_scan.json
 
       - name: Save own 80+ alerts to Supabase
