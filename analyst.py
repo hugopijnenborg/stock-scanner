@@ -5,39 +5,51 @@ import json, math
 from pathlib import Path
 import pandas as pd
 import yfinance as yf
+
 CACHE_PATH=Path(__file__).resolve().parent/"data"/"analyst_cache.json"
 CACHE_TTL_HOURS=24
-CACHE_VERSION=4
+CACHE_VERSION=5
 ANALYST_RETRY_MINUTES=60
 RATING_WEIGHTS={"strongbuy":100.0,"buy":75.0,"hold":50.0,"sell":25.0,"strongsell":0.0}
+RATING_ALIASES={"strongbuy":["strongbuy","strong_buy","strongBuy"],"buy":["buy"],"hold":["hold"],"sell":["sell"],"strongsell":["strongsell","strong_sell","strongSell"]}
 BULLISH_ACTIONS={"up","upgrade","upgraded","init","initiated"}
 BEARISH_ACTIONS={"down","downgrade","downgraded"}
+
 def _num(v):
     try:
         x=float(v); return x if math.isfinite(x) else None
     except (TypeError,ValueError): return None
+
 def _clean_text(v):
     if v is None:return None
     text=str(v).strip(); return text if text and text.lower()!="nan" else None
+
 def _rating_key(value):
     if value is None:return None
     s=str(value).strip().lower().replace(" ","").replace("_","").replace("-","")
     return {"strongbuy":"STRONG BUY","buy":"BUY","hold":"HOLD","sell":"SELL","strongsell":"STRONG SELL"}.get(s,str(value).strip().upper())
+
 def _consensus_score(counts):
     total=sum(float(counts.get(k,0) or 0) for k in RATING_WEIGHTS)
     return None if total<=0 else sum(float(counts.get(k,0) or 0)*w for k,w in RATING_WEIGHTS.items())/total
+
 def _parse_recommendations(df):
     counts={k:0 for k in RATING_WEIGHTS}
     if not isinstance(df,pd.DataFrame) or df.empty:return counts,None
     row=df.iloc[0]
     for key in counts:
-        if key in row.index:counts[key]=int(_num(row[key]) or 0)
+        for alias in RATING_ALIASES[key]:
+            if alias in row.index:
+                counts[key]=int(_num(row[alias]) or 0)
+                break
     return counts,_consensus_score(counts)
+
 def _target_from_row(row):
     for key in ("currentPriceTarget","priceTarget","targetPrice","newTarget","target","toPrice","to_price","currentTarget"):
         value=_num(row.get(key))
         if value is not None and value>0:return value
     return None
+
 def _parse_changes(df):
     if not isinstance(df,pd.DataFrame) or df.empty:return [],0,0,0,0,[]
     d=df.copy()
@@ -46,7 +58,7 @@ def _parse_changes(df):
         except Exception:pass
     cutoff=datetime.now(timezone.utc)-timedelta(days=30)
     changes=[];firms=[];seen=set();bullish=bearish=target_changes=recent_count=0
-    for idx,row in d.head(60).iterrows():
+    for idx,row in d.head(100).iterrows():
         try:
             ts=pd.Timestamp(idx)
             if ts.tzinfo is None:ts=ts.tz_localize("UTC")
@@ -62,6 +74,7 @@ def _parse_changes(df):
         if firm and firm not in seen:
             seen.add(firm);firms.append({"firm":firm,"date":ts.isoformat() if ts is not None else None,"action":action,"from_grade":from_grade,"to_grade":to_grade,"target":target})
     return changes,recent_count,bullish,bearish,target_changes,firms[:30]
+
 def _parse_news(items):
     out=[]
     if not isinstance(items,list):return out
@@ -71,6 +84,7 @@ def _parse_news(items):
         provider=content.get("provider",{}) if isinstance(content,dict) else {}
         out.append({"title":title,"publisher":_clean_text(provider.get("displayName")) if isinstance(provider,dict) else None,"published":_clean_text(content.get("pubDate") or content.get("displayTime"))})
     return out[:5]
+
 def _parse_earnings_history(df):
     if not isinstance(df,pd.DataFrame) or df.empty:return None,None
     d=df.copy().sort_index(ascending=False)
@@ -80,11 +94,14 @@ def _parse_earnings_history(df):
         idx=idx.tz_convert("UTC")
     except Exception:idx=None
     return idx.isoformat() if idx is not None else None,_num(d.iloc[0].get("surprisePercent"))
+
 def _has_analyst_data(row):
     if not isinstance(row,dict):return False
     return any([row.get("analyst_consensus_score") is not None,row.get("analyst_target_mean") is not None,row.get("analyst_count") is not None and row.get("analyst_count",0)>0,any((row.get(k) or 0)>0 for k in ("analyst_strong_buy","analyst_buy","analyst_hold","analyst_sell","analyst_strong_sell")),(row.get("analyst_changes_30d") or 0)>0])
+
 def _usable_fields(row):
     return sum(bool(x) for x in (row.get("analyst_consensus_score") is not None,row.get("analyst_target_mean") is not None,row.get("analyst_count") is not None,bool(row.get("analyst_recent_changes"))))
+
 def _one(ticker):
     out={"ticker":ticker,"analyst_completeness":0.0,"recent_news":[]}
     try:
@@ -129,18 +146,22 @@ def _one(ticker):
         out.update({"ticker":ticker,"analyst_recommendation":fallback_rating,"analyst_consensus_score":round(consensus,1) if consensus is not None else None,"analyst_strong_buy":counts["strongbuy"],"analyst_buy":counts["buy"],"analyst_hold":counts["hold"],"analyst_sell":counts["sell"],"analyst_strong_sell":counts["strongsell"],"analyst_count":analyst_count,"analyst_target_current":current,"analyst_target_mean":mean,"analyst_target_median":median,"analyst_target_low":low,"analyst_target_high":high,"analyst_target_upside":upside,"analyst_changes_30d":recent_count,"analyst_bullish_changes_30d":bullish,"analyst_bearish_changes_30d":bearish,"analyst_target_changes_30d":target_changes,"analyst_recent_changes":changes,"analyst_firm_targets":firm_targets,"analyst_completeness":round(min(100.0,usable/4*100),1),"last_earnings_date":earnings_last_date,"last_earnings_surprise_pct":earnings_surprise,"next_earnings_date":next_earnings,"recent_news":recent_news})
     except Exception as exc:out["analyst_error"]=str(exc)[:160]
     return out
+
 def _load_cache():
     try:
         data=json.loads(CACHE_PATH.read_text(encoding="utf-8"));return data if isinstance(data,dict) else {}
     except (FileNotFoundError,json.JSONDecodeError,OSError):return {}
+
 def _save_cache(cache):
     CACHE_PATH.parent.mkdir(parents=True,exist_ok=True);CACHE_PATH.write_text(json.dumps(cache,indent=2,allow_nan=False),encoding="utf-8")
+
 def _cached_timestamp(item):
     try:
         updated=datetime.fromisoformat(item.get("_cached_at","")) if item else None
         if updated and updated.tzinfo is None:updated=updated.replace(tzinfo=timezone.utc)
         return updated
     except (TypeError,ValueError):return None
+
 def download_analyst_data(tickers,workers=8,refresh_hours=CACHE_TTL_HOURS):
     cache=_load_cache();now=datetime.now(timezone.utc);cutoff=now-timedelta(hours=refresh_hours);retry_cutoff=now-timedelta(minutes=ANALYST_RETRY_MINUTES);fresh={};stale=[]
     for ticker in dict.fromkeys(tickers):
@@ -162,6 +183,7 @@ def download_analyst_data(tickers,workers=8,refresh_hours=CACHE_TTL_HOURS):
                     row["analyst_cache_stale"]=False;row["analyst_refresh_failed"]=False;row["_cached_at"]=now.isoformat();row["_last_attempt_at"]=now.isoformat();row["_cache_version"]=CACHE_VERSION;cache[ticker]=row;fresh[ticker]={k:v for k,v in row.items() if not k.startswith("_")}
                 elif _has_analyst_data(old_payload):
                     old_payload["analyst_cache_stale"]=True;old_payload["analyst_refresh_failed"]=True;old_payload["analyst_error"]=row.get("analyst_error") or "Yahoo Finance returned incomplete analyst data";cache[ticker]={**old_payload,"_cached_at":old.get("_cached_at"),"_last_attempt_at":now.isoformat(),"_cache_version":CACHE_VERSION,"_refresh_failed":True};fresh[ticker]=old_payload
-                else:cache[ticker]={**row,"_cached_at":None,"_last_attempt_at":now.isoformat(),"_cache_version":CACHE_VERSION,"_refresh_failed":True}
+                else:
+                    cache[ticker]={**row,"_cached_at":None,"_last_attempt_at":now.isoformat(),"_cache_version":CACHE_VERSION,"_refresh_failed":True}
         _save_cache(cache)
     return fresh
