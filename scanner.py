@@ -4,13 +4,13 @@ from datetime import datetime, timedelta, timezone
 import numpy as np
 import pandas as pd
 
-from config import ALERT_THRESHOLD, WATCH_THRESHOLD, MIN_AVG_DOLLAR_VOLUME, MIN_PRICE, REBOUND_WEIGHTS, QUALITY_WEIGHTS, CYCLICAL_WEIGHTS
+from config import MIN_AVG_DOLLAR_VOLUME, MIN_PRICE
 from data import download_benchmarks, download_ohlcv, download_intraday, download_intraday_benchmarks, download_sector_benchmarks, SECTOR_ETFS
 from fundamentals import download_fundamentals
 from analyst import download_analyst_data
 from indicators import add_indicators
-from model import score_row
 from universe import load_top_us_stocks
+from opportunity_engine import apply_opportunity_engine
 
 FEATURE_COLUMNS = ["rsi_7", "rsi_14", "rsi_21", "macd", "macd_signal", "macd_histogram", "macd_histogram_change", "atr_pct", "bollinger_pct", "bollinger_width", "return_1d", "return_3d", "return_5d", "return_10d", "return_20d", "distance_sma20", "distance_sma50", "distance_sma200", "distance_1m_high", "distance_3m_high", "distance_6m_high", "distance_52w_high", "high_52w", "distance_support_20d", "distance_support_60d", "distance_support_120d", "volume_ratio", "volume_ratio_5d", "volatility_20d", "z_score", "close_location", "relative_strength_5d", "relative_strength_20d", "sector_relative_strength_20d"]
 FUNDAMENTAL_COLUMNS = ["revenue", "revenue_growth", "eps", "eps_growth", "net_margin", "gross_margin", "fcf", "fcf_growth", "fcf_margin", "roe", "debt_equity", "cash", "pe", "forward_pe", "peg", "fundamental_score", "fundamental_completeness", "sector", "sector_median_pe", "sector_median_forward_pe", "sector_median_peg", "pe_vs_sector", "forward_pe_vs_sector", "peg_vs_sector"]
@@ -18,25 +18,7 @@ ANALYST_COLUMNS = ["analyst_recommendation", "analyst_consensus_score", "analyst
 LIVE_HISTORY_DAYS = 450
 
 
-def _signal_label(score) -> str:
-    if score is None or pd.isna(score):
-        return "DATA_INCOMPLETE"
-    if score >= ALERT_THRESHOLD:
-        return "ALERT"
-    if score >= WATCH_THRESHOLD:
-        return "WATCH"
-    return "NO_SIGNAL"
-
-
-def _context_score(fundamental_score, analyst_score):
-    parts = [(float(v), w) for v, w in ((fundamental_score, 0.70), (analyst_score, 0.30)) if pd.notna(v)]
-    if not parts:
-        return None
-    total_weight = sum(w for _, w in parts)
-    return sum(v * w for v, w in parts) / total_weight
-
-
-def _intraday_confirmation(intraday: pd.DataFrame, benchmark: pd.DataFrame | None = None) -> dict[str, float | None]:
+def _intraday_confirmation(intraday: pd.DataFrame) -> dict[str, float | None]:
     if intraday is None or intraday.empty or "Close" not in intraday.columns:
         return {"intraday_score": None, "intraday_return_1h": None, "intraday_return_session": None, "intraday_volume_ratio": None, "intraday_vwap_distance": None}
     d = intraday.dropna(subset=["Close"]).copy().sort_index()
@@ -73,43 +55,7 @@ def _sector_relative_strength(stock_prices: pd.DataFrame, sector_prices: pd.Data
     sector_close = pd.to_numeric(sector_prices["Close"], errors="coerce").dropna()
     if len(stock_close) < 21 or len(sector_close) < 21:
         return None
-    stock_return = float(stock_close.iloc[-1] / stock_close.iloc[-21] - 1)
-    sector_return = float(sector_close.iloc[-1] / sector_close.iloc[-21] - 1)
-    return stock_return - sector_return
-
-
-def _alert_summary(row):
-    price = row.get("price")
-    r1 = row.get("return_1d")
-    r5 = row.get("return_5d")
-    r10 = row.get("return_10d")
-    high_52w = row.get("distance_52w_high")
-    volume_ratio = row.get("volume_ratio")
-    news = row.get("recent_news") or []
-    next_earnings = row.get("next_earnings_date")
-    recent_move = r5 if r5 is not None else r10
-    sections = []
-    if recent_move is not None and recent_move <= -0.06:
-        text = f"Het aandeel is de afgelopen periode {abs(recent_move) * 100:.1f}% gedaald"
-        if r1 is not None and abs(r1) >= 0.04:
-            text += f", waarvan {abs(r1) * 100:.1f}% vandaag"
-        extras=[]
-        if high_52w is not None and high_52w <= -0.20: extras.append(f"{abs(high_52w)*100:.1f}% onder de 52-weken high")
-        if volume_ratio is not None and volume_ratio >= 1.8: extras.append(f"volume circa {volume_ratio:.1f}x normaal")
-        sections.append(text + (", " + " en ".join(extras) if extras else "") + ".")
-    fund_bits=[]
-    if row.get("revenue_growth") is not None and row.get("revenue_growth") > 0.05: fund_bits.append(f"omzet groeit met {row['revenue_growth']*100:.1f}%")
-    if row.get("fcf") is not None and row.get("fcf") > 0: fund_bits.append("vrije kasstroom is positief")
-    if row.get("net_margin") is not None and row.get("net_margin") > 0.08: fund_bits.append(f"nettomarge ligt rond {row['net_margin']*100:.1f}%")
-    if fund_bits: sections.append("De fundamentals blijven ondersteunend: " + ", ".join(fund_bits[:3]) + ".")
-    analyst=row.get("analyst_recommendation");target=row.get("analyst_target_mean");upside=row.get("analyst_target_upside")
-    if analyst and target is not None: sections.append(f"Analisten: consensus {analyst}, gemiddeld koersdoel ${target:.2f}" + (f" ({upside*100:+.1f}% vanaf de huidige koers)." if upside is not None else "."))
-    if next_earnings:
-        try:
-            dt=pd.Timestamp(next_earnings); dt=dt.tz_localize("UTC") if dt.tzinfo is None else dt.tz_convert("UTC"); days=(dt-pd.Timestamp.now(tz="UTC")).days
-            if 0<=days<=45: sections.append(f"De volgende kwartaalcijfers staan over ongeveer {days} dagen gepland.")
-        except Exception: pass
-    return " ".join(sections) or "De scanner ziet een kansrijke combinatie van trader- en technische signalen."
+    return float((stock_close.iloc[-1] / stock_close.iloc[-21] - 1) - (sector_close.iloc[-1] / sector_close.iloc[-21] - 1))
 
 
 def scan(limit: int = 1000, top_n: int = 1000) -> pd.DataFrame:
@@ -123,13 +69,14 @@ def scan(limit: int = 1000, top_n: int = 1000) -> pd.DataFrame:
     market = download_ohlcv(tickers, live_start)
     sector_benchmarks = download_sector_benchmarks(live_start)
     intraday = download_intraday(tickers, period="10d", interval="15m")
-    intraday_benchmarks = download_intraday_benchmarks(period="10d", interval="15m")
+    download_intraday_benchmarks(period="10d", interval="15m")
     fundamentals = download_fundamentals(tickers)
     analyst_data = download_analyst_data(tickers)
 
     rows = []
     for ticker, prices in market.items():
-        if prices.empty or "Close" not in prices.columns: continue
+        if prices.empty or "Close" not in prices.columns:
+            continue
         features = add_indicators(prices, benchmark_close)
         row = features.iloc[-1].copy()
         f = fundamentals.get(ticker, {})
@@ -138,45 +85,57 @@ def scan(limit: int = 1000, top_n: int = 1000) -> pd.DataFrame:
         sector_etf = SECTOR_ETFS.get(sector)
         row["sector_relative_strength_20d"] = _sector_relative_strength(prices, sector_benchmarks.get(sector_etf)) if sector_etf else None
         intraday_data = intraday.get(ticker)
-        live = _intraday_confirmation(intraday_data, intraday_benchmarks.get("SPY"))
+        live = _intraday_confirmation(intraday_data)
         current_price = None
         if intraday_data is not None and not intraday_data.empty and "Close" in intraday_data.columns:
             live_close = pd.to_numeric(intraday_data["Close"], errors="coerce").dropna()
-            if not live_close.empty: current_price = float(live_close.iloc[-1]); row["Close"] = current_price
-        if current_price is None: current_price = float(row["Close"])
+            if not live_close.empty:
+                current_price = float(live_close.iloc[-1])
+                row["Close"] = current_price
+        if current_price is None:
+            current_price = float(row["Close"])
         avg_dollar_volume = (features["Close"] * features["Volume"]).rolling(20).mean().iloc[-1]
-        if row.get("Close", 0) < MIN_PRICE or (pd.notna(avg_dollar_volume) and avg_dollar_volume < MIN_AVG_DOLLAR_VOLUME): continue
-        scores = score_row(row, REBOUND_WEIGHTS, QUALITY_WEIGHTS, CYCLICAL_WEIGHTS)
-        daily_technical = scores.get("technical_opportunity_score")
-        live_score = live.get("intraday_score")
-        technical_score = 0.85 * float(daily_technical) + 0.15 * float(live_score) if live_score is not None and pd.notna(daily_technical) else daily_technical
-        trader_similarity = scores.get("trader_similarity_score")
-        validated_score = scores.get("overall_score")
-        fundamental_score = f.get("fundamental_score")
-        analyst_score = a.get("analyst_consensus_score")
-        context_score = _context_score(fundamental_score, analyst_score)
-        if validated_score is None or pd.isna(validated_score): continue
-        signal = _signal_label(validated_score)
-        result = {"ticker":ticker,"company_name":company_map.get(ticker,ticker),"price":current_price,"avg_dollar_volume_20d":float(avg_dollar_volume) if pd.notna(avg_dollar_volume) else None,"technical_score":round(float(technical_score),1) if pd.notna(technical_score) else None,"daily_technical_score":round(float(daily_technical),1) if pd.notna(daily_technical) else None,"intraday_score":round(float(live_score),1) if live_score is not None and pd.notna(live_score) else None,"intraday_return_1h":live.get("intraday_return_1h"),"intraday_return_session":live.get("intraday_return_session"),"intraday_volume_ratio":live.get("intraday_volume_ratio"),"intraday_vwap_distance":live.get("intraday_vwap_distance"),"trader_similarity_score":round(float(trader_similarity),1) if pd.notna(trader_similarity) else None,"fundamental_score":round(float(fundamental_score),1) if pd.notna(fundamental_score) else None,"fundamental_completeness":f.get("fundamental_completeness"),"analyst_consensus_score":round(float(analyst_score),1) if pd.notna(analyst_score) else None,"context_score":round(float(context_score),1) if context_score is not None else None,"market_regime_score":round(float(row.get("market_regime_score",0.5))*100,1),"sector":sector,"sector_relative_strength_20d":round(float(row["sector_relative_strength_20d"]),4) if row.get("sector_relative_strength_20d") is not None else None,"overall_score":round(float(validated_score),1),"signal":signal}
-        result.update({k:float(v) if isinstance(v,(int,float)) else v for k,v in scores.items() if k not in {"overall_score","trader_similarity_score","technical_opportunity_score"}})
-        result.update({k:float(row[k]) if pd.notna(row[k]) else None for k in FEATURE_COLUMNS if k in row})
-        result.update({k:f.get(k) for k in FUNDAMENTAL_COLUMNS})
-        result.update({k:a.get(k) for k in ANALYST_COLUMNS})
-        result["alert_summary"]=_alert_summary(result) if signal=="ALERT" else None
-        history=prices[["Close"]].dropna().tail(140).reset_index()
-        result["history_6m"]=[{"date":str(x.date()) if hasattr(x,"date") else str(x),"close":float(y)} for x,y in zip(history.iloc[:,0],history["Close"])]
-        week_points=[]
+        if row.get("Close", 0) < MIN_PRICE or (pd.notna(avg_dollar_volume) and avg_dollar_volume < MIN_AVG_DOLLAR_VOLUME):
+            continue
+        result = {
+            "ticker": ticker,
+            "company_name": company_map.get(ticker, ticker),
+            "price": current_price,
+            "avg_dollar_volume_20d": float(avg_dollar_volume) if pd.notna(avg_dollar_volume) else None,
+            "intraday_score": live.get("intraday_score"),
+            "intraday_return_1h": live.get("intraday_return_1h"),
+            "intraday_return_session": live.get("intraday_return_session"),
+            "intraday_volume_ratio": live.get("intraday_volume_ratio"),
+            "intraday_vwap_distance": live.get("intraday_vwap_distance"),
+            "fundamental_completeness": f.get("fundamental_completeness"),
+            "analyst_consensus_score": a.get("analyst_consensus_score"),
+            "market_regime_score": row.get("market_regime_score", 0.5),
+            "sector": sector,
+            "sector_relative_strength_20d": row.get("sector_relative_strength_20d"),
+        }
+        result.update({k: float(row[k]) if pd.notna(row[k]) else None for k in FEATURE_COLUMNS if k in row})
+        result.update({k: f.get(k) for k in FUNDAMENTAL_COLUMNS})
+        result.update({k: a.get(k) for k in ANALYST_COLUMNS})
+        history = prices[["Close"]].dropna().tail(140).reset_index()
+        result["history_6m"] = [{"date": str(x.date()) if hasattr(x, "date") else str(x), "close": float(y)} for x, y in zip(history.iloc[:, 0], history["Close"])]
+        week_points = []
         if intraday_data is not None and not intraday_data.empty and "Close" in intraday_data.columns:
-            d=intraday_data.dropna(subset=["Close"]).sort_index()
+            d = intraday_data.dropna(subset=["Close"]).sort_index()
             if not d.empty:
-                cutoff=d.index[-1]-pd.Timedelta(days=7);d=d[d.index>=cutoff]
-                week_points=[{"date":x.isoformat() if hasattr(x,"isoformat") else str(x),"close":float(y)} for x,y in zip(d.index,d["Close"])]
-        result["history_1w"]=week_points
-        result["history_today"]=[]
+                cutoff = d.index[-1] - pd.Timedelta(days=7)
+                d = d[d.index >= cutoff]
+                week_points = [{"date": x.isoformat() if hasattr(x, "isoformat") else str(x), "close": float(y)} for x, y in zip(d.index, d["Close"])]
+        result["history_1w"] = week_points
+        result["history_today"] = []
         if week_points:
-            latest_day=str(week_points[-1]["date"])[:10];result["history_today"]=[p for p in week_points if str(p["date"])[:10]==latest_day]
+            latest_day = str(week_points[-1]["date"])[:10]
+            result["history_today"] = [p for p in week_points if str(p["date"])[:10] == latest_day]
         rows.append(result)
-    if not rows:return pd.DataFrame()
-    return pd.DataFrame(rows).sort_values(["overall_score","trader_similarity_score","reversal_trigger"],ascending=[False,False,False]).head(top_n).reset_index(drop=True)
 
-if __name__ == "__main__": print(scan().to_string(index=False))
+    if not rows:
+        return pd.DataFrame()
+    frame = pd.DataFrame(rows)
+    frame = apply_opportunity_engine(frame)
+    if top_n and top_n > 0:
+        return frame.head(top_n).reset_index(drop=True)
+    return frame.reset_index(drop=True)
