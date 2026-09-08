@@ -1,9 +1,16 @@
 name: Market Scanner
 
 on:
+  push:
+    branches: [main]
+    paths:
+      - 'scanner.py'
+      - 'opportunity_engine.py'
+      - 'fundamentals.py'
+      - 'analyst.py'
+      - 'indicators.py'
+      - '.github/workflows/market_scan.yml'
   schedule:
-    # Run every 30 minutes during the requested Dutch market window.
-    # Offset by 5 minutes to avoid GitHub's busiest :00/:30 schedule times.
     - cron: '5,35 15-21 * * 1-5'
       timezone: 'Europe/Amsterdam'
   workflow_dispatch:
@@ -24,14 +31,11 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-
       - uses: actions/setup-python@v5
         with:
           python-version: '3.12'
           cache: pip
-
       - run: pip install -r requirements.txt
-
       - name: Restore scanner data cache
         uses: actions/cache@v4
         with:
@@ -41,7 +45,6 @@ jobs:
           key: scanner-data-v1-${{ github.run_id }}
           restore-keys: |
             scanner-data-v1-
-
       - name: Check analyst API credentials
         env:
           FINNHUB_API_KEY: ${{ secrets.FINNHUB_API_KEY }}
@@ -51,40 +54,35 @@ jobs:
           test -n "$FINNHUB_API_KEY" || { echo 'ERROR: GitHub Actions secret FINNHUB_API_KEY ontbreekt.'; exit 1; }
           test -n "$OANOR_API_KEY" || { echo 'ERROR: GitHub Actions secret OANOR_API_KEY ontbreekt.'; exit 1; }
           echo 'Analyst API credentials zijn beschikbaar voor deze scan.'
-
       - name: Check requested market window
         id: market_window
         shell: bash
         run: |
-          if [ "$GITHUB_EVENT_NAME" = "workflow_dispatch" ]; then
+          if [ "$GITHUB_EVENT_NAME" = "workflow_dispatch" ] || [ "$GITHUB_EVENT_NAME" = "push" ]; then
             echo 'run=true' >> "$GITHUB_OUTPUT"
           elif python scripts/market_hours_guard.py; then
             echo 'run=true' >> "$GITHUB_OUTPUT"
           else
             echo 'run=false' >> "$GITHUB_OUTPUT"
           fi
-
       - name: Run market scan
         if: steps.market_window.outputs.run == 'true'
         env:
           FINNHUB_API_KEY: ${{ secrets.FINNHUB_API_KEY }}
           OANOR_API_KEY: ${{ secrets.OANOR_API_KEY }}
         run: python main.py scan --limit 1000 --top 1000 --output scan_results.csv --web-output public/data/latest_scan.json
-
-      - name: Save own 80+ alerts to Supabase
+      - name: Save Opportunity Engine BUY alerts to Supabase
         if: steps.market_window.outputs.run == 'true'
         env:
           SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
           SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
         run: python scripts/save_alerts_supabase.py
-
       - name: Send Discord alerts when configured
         if: steps.market_window.outputs.run == 'true'
         continue-on-error: true
         env:
           DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
         run: python notify_discord.py
-
       - name: Publish latest scan and alert history
         if: steps.market_window.outputs.run == 'true'
         run: |
