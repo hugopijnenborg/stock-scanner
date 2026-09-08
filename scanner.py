@@ -40,6 +40,7 @@ def _intraday_confirmation(intraday: pd.DataFrame) -> dict[str, float | None]:
     vwap_distance = last / vwap - 1 if vwap else 0.0
     baseline = float(volume.iloc[-21:-1].mean()) if len(volume) > 21 else float(volume.iloc[:-1].mean())
     volume_ratio = float(volume.iloc[-1] / baseline) if baseline > 0 else 1.0
+    # Intraday momentum is input data only. The Opportunity Engine decides whether it is a reversal.
     momentum = float(np.clip((one_hour + 0.04) / 0.08, 0, 1))
     session_component = float(np.clip((session_return + 0.06) / 0.12, 0, 1))
     volume_component = float(np.clip((volume_ratio - 0.7) / 1.8, 0, 1))
@@ -62,22 +63,33 @@ def scan(limit: int = 1000, top_n: int = 1000) -> pd.DataFrame:
     universe = load_top_us_stocks(limit)
     company_map = universe.set_index("ticker")["company_name"].to_dict()
     tickers = universe["ticker"].tolist()
+    requested_count = len(tickers)
     live_start = (datetime.now(timezone.utc) - timedelta(days=LIVE_HISTORY_DAYS)).strftime("%Y-%m-%d")
+
     benchmarks = download_benchmarks(live_start)
     spy = benchmarks.get("SPY")
     benchmark_close = spy["Close"] if spy is not None and "Close" in spy else None
     market = download_ohlcv(tickers, live_start)
+    market_data_count = len(market)
     sector_benchmarks = download_sector_benchmarks(live_start)
     intraday = download_intraday(tickers, period="10d", interval="15m")
+    intraday_data_count = len(intraday)
     download_intraday_benchmarks(period="10d", interval="15m")
     fundamentals = download_fundamentals(tickers)
     analyst_data = download_analyst_data(tickers)
 
     rows = []
-    for ticker, prices in market.items():
-        if prices.empty or "Close" not in prices.columns:
+    skipped_missing_price = []
+    skipped_liquidity = []
+    for ticker in tickers:
+        prices = market.get(ticker)
+        if prices is None or prices.empty or "Close" not in prices.columns:
+            skipped_missing_price.append(ticker)
             continue
         features = add_indicators(prices, benchmark_close)
+        if features.empty or "Close" not in features.columns:
+            skipped_missing_price.append(ticker)
+            continue
         row = features.iloc[-1].copy()
         f = fundamentals.get(ticker, {})
         a = analyst_data.get(ticker, {})
@@ -96,6 +108,7 @@ def scan(limit: int = 1000, top_n: int = 1000) -> pd.DataFrame:
             current_price = float(row["Close"])
         avg_dollar_volume = (features["Close"] * features["Volume"]).rolling(20).mean().iloc[-1]
         if row.get("Close", 0) < MIN_PRICE or (pd.notna(avg_dollar_volume) and avg_dollar_volume < MIN_AVG_DOLLAR_VOLUME):
+            skipped_liquidity.append(ticker)
             continue
         result = {
             "ticker": ticker,
@@ -133,9 +146,23 @@ def scan(limit: int = 1000, top_n: int = 1000) -> pd.DataFrame:
         rows.append(result)
 
     if not rows:
-        return pd.DataFrame()
+        empty = pd.DataFrame()
+        empty.attrs.update({"universe_requested": requested_count, "market_data_returned": market_data_count, "intraday_data_returned": intraday_data_count, "rows_scored": 0, "missing_market_data": skipped_missing_price, "excluded_liquidity": skipped_liquidity})
+        return empty
+
     frame = pd.DataFrame(rows)
     frame = apply_opportunity_engine(frame)
+    frame.attrs.update({
+        "universe_requested": requested_count,
+        "market_data_returned": market_data_count,
+        "intraday_data_returned": intraday_data_count,
+        "rows_scored": len(frame),
+        "missing_market_data": skipped_missing_price,
+        "excluded_liquidity": skipped_liquidity,
+    })
     if top_n and top_n > 0:
-        return frame.head(top_n).reset_index(drop=True)
+        frame = frame.head(top_n).reset_index(drop=True)
+        frame.attrs.update({"rows_returned": len(frame)})
+        return frame
+    frame.attrs.update({"rows_returned": len(frame)})
     return frame.reset_index(drop=True)
