@@ -1,24 +1,47 @@
-"""Optional runtime hook for the MarketIntel scanner.
+"""Runtime hooks for MarketIntel.
 
-Python imports sitecustomize automatically when it is on sys.path. We keep the
-hook tiny and only activate it when OANOR_API_KEY is present, so normal tests
-and local tooling are unchanged when the key is absent.
+The scanner keeps its existing data collection pipeline. This hook adds the
+new opportunity decision layer after the existing scan and also makes the
+Oanor fallback available to the function imported by scanner.py itself.
 """
 
 import os
 
-if os.getenv("OANOR_API_KEY"):
-    try:
-        import analyst
-        from oanor_fallback import enrich_missing_targets
+try:
+    import analyst
+    from oanor_fallback import enrich_missing_targets
 
-        _original_download_analyst_data = analyst.download_analyst_data
+    _original_download_analyst_data = analyst.download_analyst_data
 
-        def _download_analyst_data_with_oanor(tickers):
-            data = _original_download_analyst_data(tickers)
+    def _download_analyst_data_with_oanor(tickers):
+        data = _original_download_analyst_data(tickers)
+        if os.getenv("OANOR_API_KEY"):
             return enrich_missing_targets(data)
+        return data
 
-        analyst.download_analyst_data = _download_analyst_data_with_oanor
+    analyst.download_analyst_data = _download_analyst_data_with_oanor
+
+    # scanner.py imported the function directly, so patch that reference too.
+    try:
+        import scanner
+        scanner.download_analyst_data = _download_analyst_data_with_oanor
     except Exception:
-        # Never let the optional fallback prevent the scanner from running.
         pass
+except Exception:
+    # Analyst fallback is optional. Never block the scanner when it is broken.
+    pass
+
+try:
+    import scanner as _scanner
+    from opportunity_engine import apply_opportunity_engine
+
+    _original_scan = _scanner.scan
+
+    def _scan_with_opportunity_engine(limit=1000, top_n=1000):
+        frame = _original_scan(limit, top_n)
+        return apply_opportunity_engine(frame)
+
+    _scanner.scan = _scan_with_opportunity_engine
+except Exception:
+    # Keep the old scanner available if the new decision layer has a problem.
+    pass
