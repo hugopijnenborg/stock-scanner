@@ -1,15 +1,6 @@
 name: Market Scanner
 
 on:
-  push:
-    branches: [main]
-    paths:
-      - 'scanner.py'
-      - 'opportunity_engine.py'
-      - 'fundamentals.py'
-      - 'analyst.py'
-      - 'indicators.py'
-      - '.github/workflows/market_scan.yml'
   schedule:
     - cron: '5,35 15-21 * * 1-5'
       timezone: 'Europe/Amsterdam'
@@ -58,7 +49,7 @@ jobs:
         id: market_window
         shell: bash
         run: |
-          if [ "$GITHUB_EVENT_NAME" = "workflow_dispatch" ] || [ "$GITHUB_EVENT_NAME" = "push" ]; then
+          if [ "$GITHUB_EVENT_NAME" = "workflow_dispatch" ]; then
             echo 'run=true' >> "$GITHUB_OUTPUT"
           elif python scripts/market_hours_guard.py; then
             echo 'run=true' >> "$GITHUB_OUTPUT"
