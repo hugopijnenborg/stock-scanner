@@ -8,7 +8,7 @@ from typing import Any
 import numpy as np
 import pandas as pd
 
-ENGINE_VERSION = 3
+ENGINE_VERSION = 4
 WEIGHTS = {
     "technical": 30,
     "fundamentals": 20,
@@ -75,32 +75,51 @@ def _target_upside(r: dict[str, Any]) -> float | None:
     return mean / cur - 1.0 if cur and mean else None
 
 
-def reversal_confirmation(r: dict[str, Any]) -> float:
-    signals: list[float] = []
-    close = _f(r.get("close_location"))
-    one_day = _f(r.get("return_1d"))
-    macd_change = _f(r.get("macd_histogram_change"))
-    hist = _f(r.get("macd_histogram"), 0.0) or 0.0
-    intraday = _f(r.get("intraday_score"))
-    if close is not None:
-        signals.append(_clamp((close - 0.45) / 0.55))
-    if one_day is not None:
-        signals.append(_clamp((one_day + 0.15) / 0.20))
-    if macd_change is not None:
-        scale = max(abs(hist), 0.01)
-        signals.append(_clamp(0.5 + macd_change / (2.0 * scale)))
-    if intraday is not None:
-        signals.append(_clamp(intraday / 100.0))
-    return float(np.mean(signals)) if signals else 0.0
+def _recent_dislocation(r: dict[str, Any]) -> float:
+    """How much the stock has actually sold off recently.
 
-
-def score_technical(r: dict[str, Any]) -> tuple[float, float]:
-    selloff = (
+    Positive recent momentum must not count as reversal confirmation by itself.
+    """
+    return _clamp(
         0.30 * _negative_scale(r.get("return_1d"), -0.01, -0.15)
         + 0.30 * _negative_scale(r.get("return_5d"), -0.04, -0.30)
         + 0.20 * _negative_scale(r.get("return_20d"), -0.05, -0.40)
         + 0.20 * _negative_scale(r.get("distance_52w_high"), -0.05, -0.50)
     )
+
+
+def reversal_confirmation(r: dict[str, Any]) -> float:
+    """Measure reversal after dislocation, not simple positive momentum."""
+    dislocation = _recent_dislocation(r)
+    if dislocation <= 0.05:
+        return 0.0
+
+    signals: list[float] = []
+    close = _f(r.get("close_location"))
+    one_day = _f(r.get("return_1d"))
+    five_day = _f(r.get("return_5d"))
+    macd_change = _f(r.get("macd_histogram_change"))
+    hist = _f(r.get("macd_histogram"), 0.0) or 0.0
+    intraday = _f(r.get("intraday_score"))
+
+    if close is not None:
+        signals.append(_clamp((close - 0.50) / 0.50))
+    if one_day is not None:
+        signals.append(_clamp((one_day - 0.005) / 0.075))
+    if five_day is not None:
+        signals.append(_clamp((five_day + 0.10) / 0.20))
+    if macd_change is not None:
+        scale = max(abs(hist), 0.01)
+        signals.append(_clamp(0.5 + macd_change / (2.0 * scale)))
+    if intraday is not None:
+        signals.append(_clamp((intraday - 50.0) / 50.0))
+
+    bounce = float(np.mean(signals)) if signals else 0.0
+    return round(_clamp(dislocation * bounce), 4)
+
+
+def score_technical(r: dict[str, Any]) -> tuple[float, float]:
+    selloff = _recent_dislocation(r)
     rsi = _negative_scale(r.get("rsi_14"), 45.0, 20.0)
     volume = _positive_scale(r.get("volume_ratio"), 1.0, 4.0)
     support_values = [
@@ -111,21 +130,28 @@ def score_technical(r: dict[str, Any]) -> tuple[float, float]:
     support_values = [x for x in support_values if x is not None]
     support = 1.0 - _clamp(float(np.mean(support_values)) / 0.10) if support_values else 0.5
     reversal = reversal_confirmation(r)
-    trend = (
-        0.45 * _clamp((_f(r.get("distance_sma20"), 0.0) + 0.20) / 0.40)
-        + 0.35 * _clamp((_f(r.get("distance_sma50"), 0.0) + 0.25) / 0.50)
-        + 0.20 * _clamp((_f(r.get("distance_sma200"), 0.0) + 0.30) / 0.60)
-    )
+
+    # Trend is deliberately neutral unless the stock is actually in a pullback.
+    # A stock being above its moving averages is not itself an opportunity signal.
+    d20 = _f(r.get("distance_sma20"))
+    d50 = _f(r.get("distance_sma50"))
+    d200 = _f(r.get("distance_sma200"))
+    pullback_structure = 0.5
+    if d20 is not None or d50 is not None or d200 is not None:
+        values = [x for x in (d20, d50, d200) if x is not None]
+        pullback_structure = _clamp(np.mean([_negative_scale(x, -0.02, -0.30) for x in values]))
+
     sector = _clamp((_f(r.get("sector_relative_strength_20d"), 0.0) + 0.20) / 0.40)
     td = _f(r.get("td_setup_count")) or _f(r.get("td_countdown_count")) or 0
     td_bonus = 0.08 if td >= 9 and reversal >= 0.55 else 0.0
+
     raw = (
         0.27 * selloff
         + 0.13 * rsi
         + 0.10 * volume
         + 0.08 * support
         + 0.25 * reversal
-        + 0.12 * trend
+        + 0.12 * pullback_structure
         + 0.05 * sector
         + td_bonus
     )
@@ -141,7 +167,8 @@ def score_fundamentals(r: dict[str, Any]) -> float:
         + 0.35 * _positive_scale(r.get("fcf_margin"), 0.0, 0.25)
         + 0.30 * _positive_scale(r.get("roe"), 0.10, 0.30)
     )
-    leverage = 1.0 - _clamp((_f(r.get("debt_equity"), 0.5) or 0.5) / 1.5)
+    leverage_raw = _f(r.get("debt_equity"))
+    leverage = 0.5 if leverage_raw is None else 1.0 - _clamp(leverage_raw / 1.5)
     dilution = 1.0 - _norm(r.get("dilution_risk"), 0.0)
     return 100.0 * _clamp(0.45 * growth + 0.35 * quality + 0.12 * leverage + 0.08 * dilution)
 
@@ -273,20 +300,24 @@ def calculate_opportunity_score(components: dict[str, float], data_quality: floa
 
 
 def scenario_data(r: dict[str, Any], score: float, reversal: float, analyst_score: float) -> list[dict[str, Any]]:
-    target = _target_upside(r)
-    if target is None:
-        return []
-    upside = max(0.0, target)
-    confidence = _clamp(0.40 * score / 100.0 + 0.35 * reversal + 0.25 * analyst_score / 100.0)
-    return [
-        {"name": "25pct_1m", "return_pct": min(upside, 0.25), "probability": _clamp(0.15 + 0.45 * confidence), "horizon_days": 31},
-        {"name": "50pct_3m", "return_pct": min(upside, 0.50), "probability": _clamp(0.12 + 0.48 * confidence), "horizon_days": 93},
-        {"name": "100pct_12m", "return_pct": upside, "probability": _clamp(0.10 + 0.55 * confidence), "horizon_days": 365},
-    ]
+    # Explicit scenarios are preferred. Do not manufacture a probability from an analyst target.
+    supplied = r.get("scenarios")
+    if isinstance(supplied, list):
+        return [s for s in supplied if isinstance(s, dict) and s.get("name") in PATH_RULES]
+    return []
 
 
 def qualifying_paths(scenarios: list[dict[str, Any]]) -> list[str]:
-    return [s["name"] for s in scenarios if s["return_pct"] >= PATH_RULES[s["name"]]["min_upside"] and s["horizon_days"] <= PATH_RULES[s["name"]]["max_days"] and s["probability"] >= PATH_RULES[s["name"]]["min_probability"]]
+    paths = []
+    for s in scenarios:
+        try:
+            name = s["name"]
+            rule = PATH_RULES[name]
+            if float(s.get("return_pct", 0)) >= rule["min_upside"] and float(s.get("horizon_days", 9999)) <= rule["max_days"] and float(s.get("probability", 0)) >= rule["min_probability"]:
+                paths.append(name)
+        except (KeyError, TypeError, ValueError):
+            continue
+    return paths
 
 
 def trading_plan(r: dict[str, Any], target: float | None) -> dict[str, Any]:
