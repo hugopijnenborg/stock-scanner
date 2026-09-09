@@ -8,14 +8,12 @@ export function getPivots(history = []) {
   const rows = history.filter((row) => finite(row?.close) !== null);
   const lows = [];
   const highs = [];
-
   for (let i = 2; i < rows.length - 2; i += 1) {
     const price = Number(rows[i].close);
     const around = rows.slice(i - 2, i + 3).map((row) => Number(row.close));
     if (price === Math.min(...around) && price < around[0] && price < around[4]) lows.push(price);
     if (price === Math.max(...around) && price > around[0] && price > around[4]) highs.push(price);
   }
-
   return {lows:uniqueSorted(lows,'desc'),highs:uniqueSorted(highs,'asc')};
 }
 
@@ -51,23 +49,19 @@ export function buildTradePlan(position, result) {
   let firstTarget = resistances[0] || null;
   let secondTarget = null;
   if (!firstTarget && analystTarget && analystTarget > price * 1.02) firstTarget = analystTarget;
-
   if (firstTarget) {
     secondTarget = analystTarget && analystTarget > firstTarget * 1.03 ? analystTarget : null;
     if (!secondTarget) {
       const nextResistance = resistances.find((level) => level > firstTarget * 1.03);
       secondTarget = nextResistance || (high52 && high52 > firstTarget * 1.03 ? high52 : null);
     }
-  } else if (high52 && high52 > price * 1.02) {
-    secondTarget = high52;
-  }
+  } else if (high52 && high52 > price * 1.02) secondTarget = high52;
   if (!secondTarget && analystTarget && analystTarget > price * 1.02 && analystTarget !== firstTarget) secondTarget = analystTarget;
   if (!firstTarget && secondTarget) firstTarget = secondTarget;
 
   const supportLevel = support || price * (1 - atrPct);
   const stop = Math.max(0.01, supportLevel - price * atrPct * 0.5);
   const riskPct = price > stop ? 1 - stop / price : null;
-
   const addLow = support ? Math.max(stop, support * 0.99) : stop;
   const addHigh = support ? support * 1.02 : price * Math.max(0.94, 1 - atrPct * 0.5);
 
@@ -109,12 +103,12 @@ export function getPortfolioAction(position,result,plan=buildTradePlan(position,
   if(secondTargetReached&&gain!=null&&gain>0.05)return{label:'SELL',tone:'sell',reason:'Het tweede koersdoel is bereikt. Overweeg winst te nemen of de positie gedeeltelijk af te bouwen.'};
 
   const strongSetup=score!=null&&score>=82&&technicalScore!=null&&technicalScore>=70;
-  const enoughUpside=targetUpside==null||targetUpside>=0.08;
-  const acceptableRiskReward=rewardRisk==null||rewardRisk>=2;
+  const enoughUpside=targetUpside!=null&&targetUpside>=0.08;
+  const acceptableRiskReward=rewardRisk!=null&&rewardRisk>=2;
   const notTooCloseToTarget=!(firstTargetReached||(analystTarget>0&&price>=analystTarget*0.95));
   const scoreHealthy=scoreChange==null||scoreChange>=-3;
 
-  if(strongSetup&&inAddZone&&enoughUpside&&acceptableRiskReward&&notTooCloseToTarget&&scoreHealthy)return{label:'ADD',tone:'add',reason:`Sterke score en technische bevestiging. De koers zit in de koopzone met ${rewardRisk?`${rewardRisk.toFixed(1)}x`:'voldoende'} risk/reward.`};
+  if(strongSetup&&inAddZone&&enoughUpside&&acceptableRiskReward&&notTooCloseToTarget&&scoreHealthy)return{label:'ADD',tone:'add',reason:`Sterke score en technische bevestiging. De koers zit in de koopzone met ${rewardRisk.toFixed(1)}x risk/reward.`};
   if(firstTargetReached&&secondTarget&&secondTarget>price*1.03)return{label:'HOLD',tone:'hold',reason:'Eerste weerstand is bereikt. Geen nieuwe aankoop hier. Houd de positie voor het tweede koersdoel en overweeg eventueel gedeeltelijke winstneming.'};
   if(strongSetup&&!inAddZone)return{label:'HOLD',tone:'hold',reason:'De setup blijft sterk, maar de koers staat buiten de optimale koopzone. Wacht liever op een betere instap.'};
   return{label:'HOLD',tone:'hold',reason:'De positie blijft binnen de normale risicobandbreedte. Geen duidelijke ADD- of SELL-trigger.'};
