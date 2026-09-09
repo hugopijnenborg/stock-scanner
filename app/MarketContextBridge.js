@@ -15,7 +15,6 @@ function marketRegime(rows) {
   const valid = rows.filter((r) => finite(r?.distance_sma50) || finite(r?.return_20d));
   const breadth = valid.length ? valid.filter((r) => Number(r.distance_sma50) >= 0).length / valid.length : null;
   const avg20 = average(valid, 'return_20d');
-  const avg5 = average(valid, 'return_5d');
 
   if (breadth == null || avg20 == null) return { label: 'Niet beschikbaar', tone: 'neutral', detail: 'Onvoldoende marktdata' };
   if (breadth >= 0.60 && avg20 >= 0.02) return { label: 'Bullish', tone: 'bullish', detail: `${Math.round(breadth * 100)}% boven SMA50` };
@@ -39,12 +38,19 @@ function qualityForStock(r) {
 
 function ensureMarketCard(rows) {
   const heroStats = document.querySelector('.heroStats');
-  if (!heroStats || heroStats.querySelector('.marketRegimeStat')) return;
+  if (!heroStats) return;
   const regime = marketRegime(rows);
-  const card = document.createElement('div');
-  card.className = `marketRegimeStat ${regime.tone}`;
-  card.innerHTML = `<span>MARKTREGIME</span><strong>${regime.label}</strong><small>${regime.detail}</small>`;
-  heroStats.appendChild(card);
+  let card = heroStats.querySelector('.marketRegimeStat');
+  if (!card) {
+    card = document.createElement('div');
+    card.className = `marketRegimeStat ${regime.tone}`;
+    heroStats.appendChild(card);
+  }
+  const html = `<span>MARKTREGIME</span><strong>${regime.label}</strong><small>${regime.detail}</small>`;
+  if (card.innerHTML !== html || card.className !== `marketRegimeStat ${regime.tone}`) {
+    card.className = `marketRegimeStat ${regime.tone}`;
+    card.innerHTML = html;
+  }
 }
 
 function ensureDataQuality(rows) {
@@ -55,9 +61,9 @@ function ensureDataQuality(rows) {
   if (!ticker) return;
   const stock = rows.find((r) => String(r?.ticker || '').toUpperCase() === ticker.toUpperCase());
   if (!stock) return;
-  const existing = modal.querySelector('.dataQualityCard');
+
   const quality = qualityForStock(stock);
-  const content = `
+  const html = `
     <div class="dataQualityCard">
       <div class="dataQualityHead"><div><span class="sectionEyebrow">DATA QUALITY</span><strong>${quality.quality}/100</strong></div><span class="dataQualityBadge ${quality.quality >= 85 ? 'good' : quality.quality >= 65 ? 'medium' : 'low'}">${quality.quality >= 85 ? 'HOOG' : quality.quality >= 65 ? 'GEMIDDELD' : 'LAAG'}</span></div>
       <div class="dataQualityGrid">
@@ -68,21 +74,26 @@ function ensureDataQuality(rows) {
       </div>
       <p>Data Quality meet de volledigheid van de gegevens die voor deze analyse beschikbaar zijn. Het verandert de totaalscore niet.</p>
     </div>`;
+
+  const existing = modal.querySelector('.dataQualityCard');
   if (existing) {
-    existing.outerHTML = content;
-  } else {
-    const cards = modal.querySelector('.detailCards');
-    if (cards) cards.insertAdjacentHTML('afterend', content);
+    if (existing.outerHTML !== html) existing.outerHTML = html;
+    return;
   }
+
+  const cards = modal.querySelector('.detailCards');
+  if (cards && !modal.querySelector('.dataQualityCard')) cards.insertAdjacentHTML('afterend', html);
 }
 
 export default function MarketContextBridge() {
   useEffect(() => {
     let alive = true;
     let rows = [];
+
     const load = async () => {
       try {
         const response = await fetch('/api/scan?context=' + Date.now(), { cache: 'no-store' });
+        if (!response.ok) return;
         const body = await response.json();
         if (!alive) return;
         rows = Array.isArray(body?.results) ? body.results : [];
@@ -90,15 +101,22 @@ export default function MarketContextBridge() {
         ensureDataQuality(rows);
       } catch (_) {}
     };
+
     load();
     const interval = setInterval(load, 60000);
+
     const observer = new MutationObserver(() => {
       if (!alive) return;
       ensureMarketCard(rows);
       ensureDataQuality(rows);
     });
     observer.observe(document.body, { childList: true, subtree: true });
-    return () => { alive = false; clearInterval(interval); observer.disconnect(); };
+
+    return () => {
+      alive = false;
+      clearInterval(interval);
+      observer.disconnect();
+    };
   }, []);
 
   return null;
