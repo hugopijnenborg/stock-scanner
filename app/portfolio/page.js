@@ -93,7 +93,6 @@ function TradePlan({ plan, action }) {
         <div className="tradePlanRow"><span>1e koersdoel</span><b>{level(plan.firstTarget)}</b></div>
         <div className="tradePlanRow"><span>2e koersdoel</span><b>{level(plan.secondTarget)}</b></div>
         <div className="tradePlanRow"><span>ADD-zone</span><b className="tradeAdd">{addZone}</b></div>
-        <div className="tradePlanRow"><span>Risk / stop</span><b className="tradeRisk">{level(plan.stop)}</b></div>
         <div className="tradePlanRow">
           <span>Potentieel</span>
           <b className={plan.targetUpside > 0 ? 'tradePositive' : 'tradeRisk'}>{pct(plan.targetUpside)}</b>
@@ -137,8 +136,6 @@ function PositionCard({ position, r, onRemove }) {
   const gainPct = gain != null && cost > 0 ? gain / cost : null;
   const plan = buildTradePlan(position, r);
   const action = getPortfolioAction(position, r, plan);
-  const target = Number(r?.analyst_target_mean);
-  const targetUpside = target > 0 && price > 0 ? target / price - 1 : null;
 
   return (
     <div className="positionCard">
@@ -188,10 +185,11 @@ function PositionCard({ position, r, onRemove }) {
       <TradePlan plan={plan} action={action} />
 
       <div className="positionMeta">
-        <span>Scanner score <b>{score(r?.overall_score)}</b></span>
+        <span>Totaal <b>{score(r?.overall_score)}</b></span>
+        <span>Trader <b>{score(r?.trader_score)}</b></span>
         <span>Technisch <b>{score(r?.technical_score)}</b></span>
-        <span>Analisten <b>{targetUpside == null ? '—' : pct(targetUpside)}</b></span>
-        <span>Koersdoel <b>{target > 0 ? money(target) : '—'}</b></span>
+        <span>Fundamental <b>{score(r?.fundamental_score)}</b></span>
+        <span>Analist <b>{score(r?.analyst_score)}</b></span>
         <button onClick={() => onRemove(position.ticker)} title="Verwijder positie"><X size={14} /></button>
       </div>
     </div>
@@ -284,7 +282,7 @@ export default function PortfolioPage() {
             <div>
               <span className="sectionEyebrow">PORTFOLIO OVERVIEW</span>
               <h2>Je posities in één overzicht</h2>
-              <p>De scanner beoordeelt iedere positie opnieuw. ADD, HOLD en SELL komen uit één tradeplan met score, technische bevestiging, steun, weerstand, risico en koersdoelen.</p>
+              <p>De scanner beoordeelt iedere positie opnieuw. ADD, HOLD en SELL komen uit één tradeplan met score, technische bevestiging, steun, weerstand en koersdoelen.</p>
             </div>
             <div className="heroStats">
               <div><span>POSITIES</span><strong>{positions.length}</strong><small>aandelen</small></div>
@@ -346,15 +344,15 @@ export default function PortfolioPage() {
           <div className="signalRules">
             <div>
               <span className="positionAction add">ADD</span>
-              <p>Sterke score, technische bevestiging, voldoende opwaarts potentieel en minimaal circa 2x risk/reward. De koers moet bovendien in de berekende koopzone rond steun liggen.</p>
+              <p>Sterke score, technische bevestiging, voldoende opwaarts potentieel en minimaal circa 2x risk/reward. De koers moet minimaal 7,5% onder de gewogen aankoopprijs staan én aan de overige voorwaarden voldoen.</p>
             </div>
             <div>
               <span className="positionAction hold">HOLD</span>
-              <p>De setup blijft gezond, maar de koers staat buiten de optimale koopzone of heeft de eerste weerstand bereikt. Dan wachten we liever op een betere instap.</p>
+              <p>De setup blijft gezond, maar de koers staat buiten de ADD-zone of er is nog geen sterk genoeg bijkoopsignaal. Een positie met verlies blijft altijd HOLD totdat een ADD- of herstelmoment ontstaat.</p>
             </div>
             <div>
               <span className="positionAction sell">SELL</span>
-              <p>De stop wordt geraakt, de score valt onder 60, de score verslechtert minimaal 10 punten, of een belangrijk koersdoel is vrijwel bereikt en er staat winst op de positie.</p>
+              <p>SELL kan alleen wanneer de positie winstgevend is én een duidelijke verkooptrigger optreedt, zoals sterke scoreverslechtering, een belangrijk koersdoel of het berekende risiconiveau.</p>
             </div>
           </div>
         </section>
