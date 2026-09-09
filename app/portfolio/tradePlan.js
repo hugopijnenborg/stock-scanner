@@ -83,7 +83,7 @@ export function buildTradePlan(position, result) {
   else if (sma20 && price > sma20) context = 'Koers ligt boven de 20-daagse trend. Korte trend is positief.';
   else if (sma20) context = 'Koers ligt onder de 20-daagse trend. Wacht op technische verbetering.';
 
-  return {price,entryPrice,gain,score,technicalScore,entryScore,scoreChange,support,stop,riskPct,addLow,addHigh,firstTarget,secondTarget,targetUpside,rewardRisk,analystTarget,high52,sma20,sma50,atrPct,context};
+  return {price,entryPrice,gain,score,technicalScore,entryScore,scoreChange,support,resistance:firstTarget,stop,riskPct,addLow,addHigh,firstTarget,secondTarget,targetUpside,rewardRisk,analystTarget,high52,sma20,sma50,atrPct,context};
 }
 
 export function getPortfolioAction(position,result,plan=buildTradePlan(position,result)) {
