@@ -4,7 +4,7 @@ from zoneinfo import ZoneInfo
 # User-requested scan window in Dutch local time.
 # The workflow triggers broadly in UTC so DST does not break the schedule.
 TZ = ZoneInfo('Europe/Amsterdam')
-START = time(15, 30)
+START = time(15, 45)
 END = time(22, 0)
 
 now = datetime.now(TZ)
