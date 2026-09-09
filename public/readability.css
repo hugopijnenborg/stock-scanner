@@ -73,6 +73,12 @@ html body th{font-size:10px!important}html body td{font-size:12px!important}html
 html body .footerInfo strong{font-size:12px!important}.footerInfo p{font-size:11px!important}html body footer{font-size:10px!important}
 html body .detailTicker{font-size:13px!important}html body .detailScore>div span{font-size:10px!important}
 
+/* Score rings: display only the total and keep it exactly centered. */
+html body .scoreRing>div{width:100%;height:100%;justify-content:center!important;align-items:center!important}
+html body .scoreRing strong{line-height:1!important}
+html body .scoreRing span{display:none!important}
+html body .detailScore strong small{display:none!important}
+
 @media(max-width:760px){
  html body .intelAnalystSnapshot{grid-template-columns:1fr}
  html body .intelAnalystSnapshot>div+div{border-left:0;border-top:1px solid #20303d}
