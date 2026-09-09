@@ -79,9 +79,34 @@ html body .scoreRing strong{line-height:1!important}
 html body .scoreRing span{display:none!important}
 html body .detailScore strong small{display:none!important}
 
+/* Market regime context card. It is contextual only and never changes a stock score. */
+html body .heroStats{grid-template-columns:repeat(4,minmax(0,1fr))!important}
+html body .heroStats .marketRegimeStat{position:relative;background:linear-gradient(145deg,rgba(16,32,32,.95),rgba(10,17,24,.95));}
+html body .heroStats .marketRegimeStat strong{font-size:22px!important;line-height:1.15}
+html body .heroStats .marketRegimeStat small{display:block;margin-top:5px;margin-left:0!important;color:#718497;font-size:11px!important}
+html body .heroStats .marketRegimeStat.bullish strong{color:#55e6aa}
+html body .heroStats .marketRegimeStat.riskoff strong{color:#ff8792}
+html body .heroStats .marketRegimeStat.neutral strong{color:#c9d5df}
+
+/* Data quality context inside stock detail. It describes completeness only and never alters the score. */
+html body .dataQualityCard{margin-top:16px;padding:18px 19px;border:1px solid #263847;border-radius:11px;background:linear-gradient(145deg,#0d161f,#0a1118)}
+html body .dataQualityHead{display:flex;align-items:center;justify-content:space-between;gap:16px}
+html body .dataQualityHead strong{display:block;margin-top:5px;font-family:'Space Grotesk',sans-serif;font-size:25px;color:#eef6fb}
+html body .dataQualityBadge{padding:6px 9px;border-radius:7px;border:1px solid #31516a;font-size:10px;font-weight:800;letter-spacing:.08em}
+html body .dataQualityBadge.good{color:#73edb5;border-color:#2b7354;background:#0e2119}
+html body .dataQualityBadge.medium{color:#e5bd72;border-color:#69522d;background:#211b11}
+html body .dataQualityBadge.low{color:#ff929c;border-color:#6b3740;background:#24151a}
+html body .dataQualityGrid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:1px;margin-top:15px;background:#21303c;border:1px solid #21303c;border-radius:8px;overflow:hidden}
+html body .dataQualityGrid>div{padding:11px 12px;background:#0b131a}
+html body .dataQualityGrid span{display:block;color:#718497;font-size:10px!important;font-weight:800;letter-spacing:.08em}
+html body .dataQualityGrid b{display:block;margin-top:5px;color:#dce7ee;font-size:13px!important}
+html body .dataQualityCard p{margin:12px 0 0;color:#7d90a3;font-size:11px;line-height:1.55}
+
+@media(max-width:900px){html body .heroStats{grid-template-columns:repeat(2,minmax(0,1fr))!important}}
 @media(max-width:760px){
  html body .intelAnalystSnapshot{grid-template-columns:1fr}
  html body .intelAnalystSnapshot>div+div{border-left:0;border-top:1px solid #20303d}
  html body .chartRangeBar{justify-content:flex-start}
  html body .chartRangeButtons button{padding:7px 9px}
+ html body .dataQualityGrid{grid-template-columns:repeat(2,minmax(0,1fr))}
 }
