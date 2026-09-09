@@ -1,7 +1,35 @@
 const finite = (value) => Number.isFinite(Number(value)) ? Number(value) : null;
 
+const SCORE_WEIGHTS = {
+  trader: 0.35,
+  technical: 0.30,
+  fundamental: 0.20,
+  analyst: 0.15,
+};
+
 function uniqueSorted(values, direction = 'asc') {
   return [...new Set(values.filter((value) => Number.isFinite(value)))].sort((a, b) => direction === 'asc' ? a - b : b - a);
+}
+
+function scoreValue(value) {
+  const n = finite(value);
+  return n != null && n > 0 ? n : null;
+}
+
+function weightedScore(scores) {
+  const parts = [
+    [scoreValue(scores?.trader), SCORE_WEIGHTS.trader],
+    [scoreValue(scores?.technical), SCORE_WEIGHTS.technical],
+    [scoreValue(scores?.fundamental), SCORE_WEIGHTS.fundamental],
+    [scoreValue(scores?.analyst), SCORE_WEIGHTS.analyst],
+  ].filter(([value]) => value != null);
+  if (!parts.length) return null;
+  const weightSum = parts.reduce((sum, [, weight]) => sum + weight, 0);
+  return parts.reduce((sum, [value, weight]) => sum + value * weight, 0) / weightSum;
+}
+
+function hasCompleteScoreSet(scores) {
+  return [scores?.trader, scores?.technical, scores?.fundamental, scores?.analyst].every((value) => scoreValue(value) != null);
 }
 
 export function getPivots(history = []) {
@@ -62,54 +90,85 @@ export function buildTradePlan(position, result) {
   const supportLevel = support || price * (1 - atrPct);
   const stop = Math.max(0.01, supportLevel - price * atrPct * 0.5);
   const riskPct = price > stop ? 1 - stop / price : null;
-  const addLow = support ? Math.max(stop, support * 0.99) : stop;
-  const addHigh = support ? support * 1.02 : price * Math.max(0.94, 1 - atrPct * 0.5);
+
+  const entryPrice = finite(position?.entryPrice);
+  const gain = entryPrice && entryPrice > 0 ? price / entryPrice - 1 : null;
+
+  // Portfolio ADD is deliberately tied to the user's position basis:
+  // no ADD signal until price is at least 7.5% below the weighted purchase price.
+  const addTrigger = entryPrice && entryPrice > 0 ? entryPrice * 0.925 : null;
+  const technicalAddHigh = support ? support * 1.02 : price * Math.max(0.94, 1 - atrPct * 0.5);
+  const addHigh = addTrigger != null ? Math.min(addTrigger, technicalAddHigh) : technicalAddHigh;
+  const addLow = support ? Math.max(stop, Math.min(support * 0.99, addHigh || support)) : stop;
 
   const target = secondTarget || firstTarget;
   const targetUpside = target && target > price ? target / price - 1 : null;
   const rewardRisk = targetUpside != null && riskPct > 0 ? targetUpside / riskPct : null;
 
-  const score = finite(result?.overall_score);
-  const technicalScore = finite(result?.technical_score);
-  const entryScore = finite(position?.entryScore);
-  const entryPrice = finite(position?.entryPrice);
-  const gain = entryPrice && entryPrice > 0 ? price / entryPrice - 1 : null;
-  const scoreChange = entryScore != null && score != null ? score - entryScore : null;
+  const scores = {
+    trader: finite(result?.trader_score ?? result?.trader_similarity_score),
+    technical: finite(result?.technical_score),
+    fundamental: finite(result?.fundamental_score),
+    analyst: finite(result?.analyst_score ?? result?.analyst_consensus_score),
+  };
+  const entryScores = {
+    trader: finite(position?.entryTraderScore),
+    technical: finite(position?.entryTechnicalScore),
+    fundamental: finite(position?.entryFundamentalScore),
+    analyst: finite(position?.entryAnalystScore),
+  };
+  const comparableCurrentScore = weightedScore(scores);
+  const comparableEntryScore = hasCompleteScoreSet(entryScores) ? weightedScore(entryScores) : null;
+  const scoreChange = comparableCurrentScore != null && comparableEntryScore != null && hasCompleteScoreSet(scores)
+    ? comparableCurrentScore - comparableEntryScore
+    : null;
 
   let context = 'Geen duidelijke technische trigger. Positie volgen.';
-  if (support && price <= addHigh * 1.01) context = 'Koers zit in of vlak boven de technische koopzone rond steun.';
+  if (addTrigger != null && price <= addTrigger) context = 'Koers staat minimaal 7,5% onder de aankoopprijs. Alleen bij voldoende technische bevestiging komt ADD in beeld.';
+  else if (support && price <= support * 1.01) context = 'Koers zit in of vlak boven de technische koopzone rond steun, maar de 7,5%-drempel voor ADD is nog leidend.';
   else if (firstTarget && price >= firstTarget * 0.97) context = 'Koers nadert de eerste technische weerstand. Nieuwe koop is hier minder aantrekkelijk.';
   else if (sma20 && sma50 && price > sma20 && price > sma50) context = 'Koers ligt boven de 20- en 50-daagse trend. Technisch beeld is sterk.';
   else if (sma20 && price > sma20) context = 'Koers ligt boven de 20-daagse trend. Korte trend is positief.';
   else if (sma20) context = 'Koers ligt onder de 20-daagse trend. Wacht op technische verbetering.';
 
-  return {price,entryPrice,gain,score,technicalScore,entryScore,scoreChange,support,resistance:firstTarget,stop,riskPct,addLow,addHigh,firstTarget,secondTarget,targetUpside,rewardRisk,analystTarget,high52,sma20,sma50,atrPct,context};
+  return {
+    price,entryPrice,gain,
+    traderScore:scores.trader,
+    technicalScore:scores.technical,
+    fundamentalScore:scores.fundamental,
+    analystScore:scores.analyst,
+    comparableCurrentScore,comparableEntryScore,scoreChange,
+    support,resistance:firstTarget,stop,riskPct,addLow,addHigh,addTrigger,
+    firstTarget,secondTarget,targetUpside,rewardRisk,analystTarget,high52,sma20,sma50,atrPct,context,
+  };
 }
 
 export function getPortfolioAction(position,result,plan=buildTradePlan(position,result)) {
   if(!result||!plan)return{label:'GEEN DATA',tone:'neutral',reason:'De scanner heeft momenteel geen actuele data voor deze positie.'};
 
-  const {price,gain,score,technicalScore,scoreChange,stop,firstTarget,secondTarget,targetUpside,rewardRisk,addLow,addHigh,analystTarget}=plan;
+  const {price,gain,comparableCurrentScore,scoreChange,stop,firstTarget,secondTarget,targetUpside,rewardRisk,addTrigger,analystTarget,technicalScore,fundamentalScore,traderScore,analystScore}=plan;
+  const profitable=gain!=null&&gain>0;
   const nearStop=price<=stop*1.01;
   const analystTargetReached=analystTarget>0&&price>=analystTarget*0.98;
   const secondTargetReached=secondTarget&&price>=secondTarget*0.98;
   const firstTargetReached=firstTarget&&price>=firstTarget*0.98;
-  const inAddZone=price>=addLow*0.98&&price<=addHigh*1.02;
+  const belowAddTrigger=addTrigger!=null&&price<=addTrigger;
 
-  if(nearStop)return{label:'SELL',tone:'sell',reason:'De koers heeft de vooraf bepaalde risicogrens bereikt. Bescherm het kapitaal.'};
-  if(score!=null&&score<60)return{label:'SELL',tone:'sell',reason:'De totaalscore is onder 60 gezakt. De oorspronkelijke setup is te zwak geworden.'};
-  if(scoreChange!=null&&scoreChange<=-10)return{label:'SELL',tone:'sell',reason:'De totaalscore is minimaal 10 punten verslechterd sinds aankoop.'};
-  if(analystTargetReached&&(gain==null||gain>0.05))return{label:'SELL',tone:'sell',reason:'Het gemiddelde analistenkoersdoel is vrijwel bereikt. Winst nemen is nu rationeler dan verder bijkopen.'};
-  if(secondTargetReached&&gain!=null&&gain>0.05)return{label:'SELL',tone:'sell',reason:'Het tweede koersdoel is bereikt. Overweeg winst te nemen of de positie gedeeltelijk af te bouwen.'};
+  // A losing position is never converted into a SELL signal. The portfolio
+  // should first wait for recovery or a separately defined risk policy.
+  if(profitable&&nearStop)return{label:'SELL',tone:'sell',reason:'De koers heeft de vooraf bepaalde risicogrens bereikt terwijl de positie winstgevend is. Winst beschermen.'};
+  if(profitable&&comparableCurrentScore!=null&&comparableCurrentScore<60)return{label:'SELL',tone:'sell',reason:'De vier scannercomponenten geven samen een totaalscore onder 60. De setup is verzwakt terwijl de positie winstgevend is.'};
+  if(profitable&&scoreChange!=null&&scoreChange<=-10)return{label:'SELL',tone:'sell',reason:'De gewogen score van Trader, Technical, Fundamentals en Analyst is minimaal 10 punten verslechterd sinds aankoop.'};
+  if(profitable&&analystTargetReached)return{label:'SELL',tone:'sell',reason:'Het gemiddelde analistenkoersdoel is vrijwel bereikt en de positie staat op winst. Winst nemen is nu rationeler dan verder bijkopen.'};
+  if(profitable&&secondTargetReached)return{label:'SELL',tone:'sell',reason:'Het tweede koersdoel is bereikt en de positie staat op winst. Overweeg winst te nemen of de positie gedeeltelijk af te bouwen.'};
 
-  const strongSetup=score!=null&&score>=82&&technicalScore!=null&&technicalScore>=70;
+  const strongSetup = comparableCurrentScore!=null&&comparableCurrentScore>=82&&traderScore!=null&&traderScore>=70&&technicalScore!=null&&technicalScore>=70&&fundamentalScore!=null&&fundamentalScore>=60&&analystScore!=null&&analystScore>0;
   const enoughUpside=targetUpside!=null&&targetUpside>=0.08;
   const acceptableRiskReward=rewardRisk!=null&&rewardRisk>=2;
   const notTooCloseToTarget=!(firstTargetReached||(analystTarget>0&&price>=analystTarget*0.95));
-  const scoreHealthy=scoreChange==null||scoreChange>=-3;
 
-  if(strongSetup&&inAddZone&&enoughUpside&&acceptableRiskReward&&notTooCloseToTarget&&scoreHealthy)return{label:'ADD',tone:'add',reason:`Sterke score en technische bevestiging. De koers zit in de koopzone met ${rewardRisk.toFixed(1)}x risk/reward.`};
+  if(strongSetup&&belowAddTrigger&&enoughUpside&&acceptableRiskReward&&notTooCloseToTarget)return{label:'ADD',tone:'add',reason:`Sterke scanner-score over Trader, Technical, Fundamentals en Analyst. De positie staat minimaal 7,5% onder aankoop en biedt ${rewardRisk.toFixed(1)}x risk/reward.`};
   if(firstTargetReached&&secondTarget&&secondTarget>price*1.03)return{label:'HOLD',tone:'hold',reason:'Eerste weerstand is bereikt. Geen nieuwe aankoop hier. Houd de positie voor het tweede koersdoel en overweeg eventueel gedeeltelijke winstneming.'};
-  if(strongSetup&&!inAddZone)return{label:'HOLD',tone:'hold',reason:'De setup blijft sterk, maar de koers staat buiten de optimale koopzone. Wacht liever op een betere instap.'};
-  return{label:'HOLD',tone:'hold',reason:'De positie blijft binnen de normale risicobandbreedte. Geen duidelijke ADD- of SELL-trigger.'};
+  if(strongSetup&&addTrigger!=null&&price>addTrigger)return{label:'HOLD',tone:'hold',reason:'De scanner-score is sterk, maar ADD verschijnt pas wanneer de positie minimaal 7,5% onder de aankoopprijs staat.'};
+  return{label:'HOLD',tone:'hold',reason:profitable?'De positie staat op winst, maar er is geen duidelijke SELL-trigger. De scanner-score en technische niveaus rechtvaardigen aanhouden.':'De positie staat niet op winst. Daarom wordt geen SELL-signaal gegeven. Wacht op herstel of een duidelijke ADD-trigger.'};
 }
