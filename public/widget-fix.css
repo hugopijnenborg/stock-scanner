@@ -12,3 +12,6 @@ html body .heroSignal .validationHero .oosBadge strong{display:block!important;m
 html body .heroSignal .validationHero .oosBadge small{display:block!important;margin:6px 0 0!important;}
 html body .heroSignal .validationFoot{display:flex!important;align-items:center!important;position:relative!important;border-top:1px solid #1c2b38!important;padding-top:8px!important;}
 @media(max-width:900px){html body .heroSignal .validationHero{grid-template-columns:1fr!important;height:auto!important}.heroSignal .validationHero .validationMetrics{grid-column:1!important;grid-row:auto!important;margin:10px 0 0!important;padding:10px 0 0!important;border-left:0!important;border-top:1px solid rgba(67,199,255,.16)!important}.heroSignal .validationHero>.oosBadge{grid-column:1!important;grid-row:auto!important;padding:0!important}}
+
+/* Scanner: AI analysis is only shown for active BUY alerts. */
+html body .detailPanelOpportunity:has(.detailScore .signal.watch) .aiSummarySection{display:none!important}
