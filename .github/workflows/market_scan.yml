@@ -2,10 +2,13 @@ name: Market Scanner
 
 on:
   schedule:
-    # Trigger every 15 minutes across the full UTC range that can contain
-    # 15:30-22:00 Europe/Amsterdam, then let the local-time guard decide.
-    # Using a broad UTC window avoids DST/schedule-timezone edge cases.
-    - cron: '*/15 13-21 * * 1-5'
+    # First scan at 15:45 Dutch time, then every 15 minutes until 22:00.
+    - cron: '45 15 * * 1-5'
+      timezone: 'Europe/Amsterdam'
+    - cron: '0,15,30,45 16-21 * * 1-5'
+      timezone: 'Europe/Amsterdam'
+    - cron: '0 22 * * 1-5'
+      timezone: 'Europe/Amsterdam'
   workflow_dispatch:
 
 permissions:
