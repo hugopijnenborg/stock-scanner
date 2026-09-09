@@ -1,6 +1,7 @@
 import './globals.css';
 import './marketintel-overrides.css';
 import PortfolioBridge from './portfolio/PortfolioBridge';
+import MarketRegimeCard from './MarketRegimeCard';
 
 export const metadata = {
   title: 'Stock Scanner',
@@ -16,6 +17,7 @@ export default function RootLayout({ children }) {
       </head>
       <body>
         <PortfolioBridge />
+        <MarketRegimeCard />
         {children}
       </body>
     </html>
