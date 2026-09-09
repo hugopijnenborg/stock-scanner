@@ -17,3 +17,17 @@ body{font-size:17px}
 .analystHero span,.bankTargetsHead span{font-size:10px}.analystHero strong{font-size:32px}.analystHero small{font-size:11px}.targetBlock strong{font-size:36px}.consensusRow span{font-size:11px}.consensusRow b{font-size:14px}.targetStats span{font-size:11px}.targetStats b{font-size:18px}.bankTargetsHead small{font-size:10px}.bankTargetRow strong{font-size:12px}.bankTargetRow small{font-size:10px}.bankTargetRow>b{font-size:15px}.bankTargetsEmpty{font-size:12px}
 
 @media (max-width:900px){.dashboard{padding:20px 14px}.topbar h1{font-size:32px}.sectionHeader h2{font-size:22px}.universeTable .tableHead{font-size:10px}.universeTable .tableRow{font-size:12px}.universeTable .tableRow>span:first-child b{font-size:13px}.universeTable .tableRow>span:first-child small{font-size:10px}.oppIdentity b{font-size:17px}.oppIdentity span{font-size:11px}.oppMeta{gap:18px}.oppMeta span{font-size:9px}.oppMeta b{font-size:12px}}
+
+/* Scanner visual refinements */
+.scoreBars>div{grid-template-columns:126px 1fr 27px}
+.oppTag{right:76px;top:50%;transform:translateY(-50%)}
+.oppScore{right:18px;top:50%;width:42px;height:42px;transform:translateY(-50%);align-items:center;justify-content:center}
+.oppScore .scoreRing.medium{margin-right:0}
+.oppScore>strong,.oppScore>small{display:none}
+.oppIdentity{max-width:calc(100% - 150px)}
+.searchBox{display:flex;align-items:center;gap:9px;height:38px;min-width:250px;padding:0 11px;border:1px solid #2a3b4d;border-radius:9px;background:linear-gradient(180deg,#101923,#0b1219);box-shadow:inset 0 1px 0 rgba(255,255,255,.02),0 5px 18px rgba(0,0,0,.12)}
+.searchBox:focus-within{border-color:#3c6176;box-shadow:0 0 0 2px rgba(67,199,255,.07),inset 0 1px 0 rgba(255,255,255,.02)}
+.searchBox svg{flex:none;color:#6e8295}
+.searchBox input{width:100%;min-width:0;border:0;outline:0;background:transparent;color:#dfe8ee;font-size:13px}
+.searchBox input::placeholder{color:#66798b;opacity:1}
+@media (max-width:900px){.scoreBars>div{grid-template-columns:116px 1fr 27px}.searchBox{min-width:200px}.oppTag{right:70px}.oppScore{right:16px}}
