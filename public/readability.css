@@ -1,8 +1,8 @@
 /* Readability and data-visual hierarchy layer. */
 html body{font-size:14px}
-html body .eyebrow,html body .sectionEyebrow,html body .navLabel,html body .sideStat span,html body .liveStatus,html body .scanMeta,html body .kpiCard span,html body .heroStats span,html body .signalHeader,html body .statusPill,html body .why>span{font-size:9px!important}
-html body .topbar p,html body .heroPanel p,html body .sectionHeader p,html body .kpiCard small,html body .companyName,html body .convictionBody>div:last-child span,html body .convictionBody>div:last-child small{font-size:11px!important}
-html body .navItem{font-size:13px!important;padding:13px 11px!important}
+html body .eyebrow,html body .sectionEyebrow,html body .navLabel,html body .sideStat span,html body .liveStatus,html body .scanMeta,html body .kpiCard span,html body .heroStats span,html body .signalHeader,html body .statusPill,html body .why>span{font-size:10px!important}
+html body .topbar p,html body .heroPanel p,html body .sectionHeader p,html body .kpiCard small,html body .companyName,html body .convictionBody>div:last-child span,html body .convictionBody>div:last-child small{font-size:13px!important}
+html body .navItem{font-size:14px!important;padding:13px 11px!important}
 html body .topbar h1{font-size:34px!important}
 html body .heroPanel h2{font-size:27px!important}
 html body .sectionHeader h2{font-size:21px!important}
@@ -10,55 +10,72 @@ html body .heroStats strong{font-size:26px!important}
 html body .kpiCard strong{font-size:24px!important}
 html body .detailPanel{max-width:1050px!important}
 html body .detailPanel .detailSection h3{font-size:17px!important}
-html body .detailPanel .detailGrid span,html body .detailPanel .fundGrid span{font-size:10px!important}
-html body .detailPanel .detailGrid b,html body .detailPanel .fundGrid b{font-size:14px!important}
-html body .detailPanel .reasonList div{font-size:12px!important}
+html body .detailPanel .detailGrid span,html body .detailPanel .fundGrid span{font-size:11px!important}
+html body .detailPanel .detailGrid b,html body .detailPanel .fundGrid b{font-size:15px!important}
+html body .detailPanel .reasonList div{font-size:13px!important}
 
 html body .enhancedAlertIntel{margin:18px 0 0;border:1px solid #233443;border-radius:12px;background:linear-gradient(145deg,#0d161f,#0a1017);overflow:hidden}
 html body .intelSummary{padding:20px 19px;border-bottom:1px solid #20303d;background:linear-gradient(90deg,rgba(53,229,160,.06),rgba(67,199,255,.025))}
-html body .intelEyebrow{display:block;color:#6f8498;font-size:9px;font-weight:800;letter-spacing:.14em}
+html body .intelEyebrow{display:block;color:#6f8498;font-size:10px;font-weight:800;letter-spacing:.14em}
 html body .intelSummary h3{margin:7px 0 4px;color:#eef6fb;font-family:'Space Grotesk',sans-serif;font-size:22px;line-height:1.2}
-html body .intelMeta{color:#71e5b2;font-size:10px;font-weight:700;letter-spacing:.02em;margin-top:4px}
-html body .intelSummary p{margin:11px 0 0;color:#d5e0e8;font-size:13px;line-height:1.65;max-width:920px}
+html body .intelMeta{color:#71e5b2;font-size:11px;font-weight:700;letter-spacing:.02em;margin-top:4px}
+html body .intelSummary p{margin:11px 0 0;color:#d5e0e8;font-size:14px;line-height:1.65;max-width:920px}
 html body .intelNarrative{padding:4px 19px 8px}
 html body .intelNarrative article{padding:15px 0;border-bottom:1px solid #1c2b37}
 html body .intelNarrative article:last-child{border-bottom:0}
-html body .intelNarrative h4{margin:0 0 6px;color:#eef6fb;font-family:'Space Grotesk',sans-serif;font-size:14px;font-weight:700}
-html body .intelNarrative p{margin:0;color:#c7d3dd;font-size:12px;line-height:1.65;max-width:920px}
+html body .intelNarrative h4{margin:0 0 6px;color:#eef6fb;font-family:'Space Grotesk',sans-serif;font-size:15px;font-weight:700}
+html body .intelNarrative p{margin:0;color:#c7d3dd;font-size:13px;line-height:1.65;max-width:920px}
 html body .intelAnalystSnapshot{display:grid;grid-template-columns:1fr 1fr;border-top:1px solid #20303d;background:#0b131b}
 html body .intelAnalystSnapshot>div{padding:15px 19px}
 html body .intelAnalystSnapshot>div+div{border-left:1px solid #20303d}
-html body .intelAnalystSnapshot span{display:block;color:#6f8498;font-size:9px;font-weight:800;letter-spacing:.14em}
-html body .intelAnalystSnapshot strong{display:block;color:#eef6fb;font-family:'Space Grotesk',sans-serif;font-size:20px;margin-top:6px}
-html body .intelAnalystSnapshot small{display:block;color:#718498;font-size:10px;margin-top:4px}
+html body .intelAnalystSnapshot span{display:block;color:#6f8498;font-size:10px;font-weight:800;letter-spacing:.14em}
+html body .intelAnalystSnapshot strong{display:block;color:#eef6fb;font-family:'Space Grotesk',sans-serif;font-size:21px;margin-top:6px}
+html body .intelAnalystSnapshot small{display:block;color:#718498;font-size:11px;margin-top:4px}
 
 /* Legacy analyst/chart rules remain harmless for cached pages, but alert details no longer render the empty chart. */
 html body .enhancedPriceChart{margin-top:10px}
 html body .chartRangeBar{display:flex;justify-content:flex-end;margin-bottom:8px}
 html body .chartRangeButtons{display:flex;gap:4px;padding:3px;border:1px solid #263746;border-radius:8px;background:#0b1219}
-html body .chartRangeButtons button{border:0;background:transparent;color:#718497;padding:6px 9px;border-radius:5px;font-size:10px;font-weight:700;cursor:pointer}
+html body .chartRangeButtons button{border:0;background:transparent;color:#718497;padding:7px 10px;border-radius:5px;font-size:11px;font-weight:700;cursor:pointer}
 html body .chartRangeButtons button:hover{color:#dbe6ee;background:#13202b}
 html body .chartRangeButtons button.active{background:#174532;color:#75f0b8}
 html body .chartHeadline{display:flex;justify-content:space-between;align-items:end;margin:2px 0 8px}
-html body .chartHeadline span{display:block;color:#64798c;font-size:9px;font-weight:800;letter-spacing:.12em}
-html body .chartHeadline strong{display:block;font-family:'Space Grotesk',sans-serif;font-size:22px;margin-top:3px}
-html body .chartHeadline>b{font-family:'Space Grotesk',sans-serif;font-size:14px}
+html body .chartHeadline span{display:block;color:#64798c;font-size:10px;font-weight:800;letter-spacing:.12em}
+html body .chartHeadline strong{display:block;font-family:'Space Grotesk',sans-serif;font-size:23px;margin-top:3px}
+html body .chartHeadline>b{font-family:'Space Grotesk',sans-serif;font-size:15px}
 html body .chartCanvas{position:relative}
 html body .enhancedChart svg{display:block;width:100%;height:260px;border:1px solid #1b2b38;border-radius:10px;background:linear-gradient(180deg,rgba(16,29,39,.65),rgba(8,14,20,.3));color:#45dfa2;padding:8px;overflow:visible}
 html body .chartPoint{fill:#45dfa2;stroke:#0b1219;stroke-width:1;opacity:.35;cursor:crosshair}
 html body .chartPoint:hover{opacity:1;r:6}
-html body .chartTooltip{position:absolute;transform:translate(-50%,-100%);pointer-events:none;z-index:5;padding:7px 9px;border:1px solid #304556;border-radius:7px;background:#0b141d;box-shadow:0 8px 24px rgba(0,0,0,.35);white-space:nowrap}
-html body .chartTooltip strong{display:block;color:#eef6fb;font-size:12px}
-html body .chartTooltip span{display:block;color:#8195a8;font-size:9px;margin-top:2px}
-html body .chartAxis{display:flex;justify-content:space-between;color:#708396;font-size:10px;margin-top:6px;gap:8px}
+html body .chartTooltip{position:absolute;transform:translate(-50%,-100%);pointer-events:none;z-index:5;padding:8px 10px;border:1px solid #304556;border-radius:7px;background:#0b141d;box-shadow:0 8px 24px rgba(0,0,0,.35);white-space:nowrap}
+html body .chartTooltip strong{display:block;color:#eef6fb;font-size:13px}
+html body .chartTooltip span{display:block;color:#8195a8;font-size:10px;margin-top:2px}
+html body .chartAxis{display:flex;justify-content:space-between;color:#708396;font-size:11px;margin-top:6px;gap:8px}
 
 html body .heroSignal .convictionBody>div:first-child.scoreRing{background:conic-gradient(var(--green) var(--score),#263544 0)!important;box-shadow:0 0 22px rgba(53,229,160,.12)!important}
 html body .heroSignal .convictionBody>div:first-child.scoreRing:before{background:#0b1219!important;border:0!important}
 html body .heroSignal .convictionBody>div:first-child.scoreRing>div{background:transparent!important;border:0!important}
 
+/* Stronger global secondary-text scale. Main titles and tickers are intentionally left alone. */
+html body .sideBrand small{font-size:9px!important}
+html body .scanMeta b{font-size:13px!important}
+html body .refresh{font-size:14px!important}
+html body .heroStats small{font-size:12px!important}
+html body .scoreRing span{font-size:9px!important}
+html body .kpiCard small{font-size:12px!important}
+html body .signal{font-size:11px!important}
+html body .scoreBars span{font-size:10px!important}.scoreBars strong{font-size:12px!important}
+html body .why>div span{font-size:11px!important}
+html body .emptyState strong{font-size:17px!important}.emptyState span{font-size:12px!important}
+html body .threshold{font-size:11px!important}
+html body .oppMain span{font-size:12px!important}.oppScore small{font-size:10px!important}.oppStats{font-size:10px!important}.badge{font-size:10px!important}
+html body th{font-size:10px!important}html body td{font-size:12px!important}html body .company small{font-size:10px!important}html body .score{font-size:16px!important}.showMore{font-size:12px!important}
+html body .footerInfo strong{font-size:12px!important}.footerInfo p{font-size:11px!important}html body footer{font-size:10px!important}
+html body .detailTicker{font-size:13px!important}html body .detailScore>div span{font-size:10px!important}
+
 @media(max-width:760px){
  html body .intelAnalystSnapshot{grid-template-columns:1fr}
  html body .intelAnalystSnapshot>div+div{border-left:0;border-top:1px solid #20303d}
  html body .chartRangeBar{justify-content:flex-start}
- html body .chartRangeButtons button{padding:6px 8px}
+ html body .chartRangeButtons button{padding:7px 9px}
 }
