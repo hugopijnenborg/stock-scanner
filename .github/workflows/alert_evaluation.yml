@@ -2,17 +2,29 @@ name: Alert Evaluation
 
 on:
   schedule:
-    - cron: '15 22 * * 1-5'
+    - cron: '17 22 * * 1-5'
+      timezone: 'Europe/Amsterdam'
+    - cron: '17 23 * * 1-5'
       timezone: 'Europe/Amsterdam'
   workflow_dispatch:
+  push:
+    branches:
+      - main
+    paths:
+      - '.github/workflows/alert_evaluation.yml'
 
 permissions:
   contents: write
+
+concurrency:
+  group: alert-evaluation
+  cancel-in-progress: false
 
 jobs:
   evaluate:
     name: Evaluate alert performance
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
