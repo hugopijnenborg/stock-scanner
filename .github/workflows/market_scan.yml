@@ -2,7 +2,11 @@ name: Market Scanner
 
 on:
   schedule:
-    - cron: '5,35 15-21 * * 1-5'
+    - cron: '45 15 * * 1-5'
+      timezone: 'Europe/Amsterdam'
+    - cron: '0,15,30,45 16-21 * * 1-5'
+      timezone: 'Europe/Amsterdam'
+    - cron: '0 22 * * 1-5'
       timezone: 'Europe/Amsterdam'
   workflow_dispatch:
 
@@ -20,6 +24,7 @@ jobs:
   scan:
     name: Scan complete curated universe
     runs-on: ubuntu-latest
+    timeout-minutes: 20
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
@@ -62,7 +67,7 @@ jobs:
           FINNHUB_API_KEY: ${{ secrets.FINNHUB_API_KEY }}
           OANOR_API_KEY: ${{ secrets.OANOR_API_KEY }}
         run: python main.py scan --limit 1000 --top 1000 --output scan_results.csv --web-output public/data/latest_scan.json
-      - name: Save Opportunity Engine BUY alerts to Supabase
+      - name: Save scanner BUY alerts to Supabase
         if: steps.market_window.outputs.run == 'true'
         env:
           SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
