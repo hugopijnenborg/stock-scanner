@@ -1,6 +1,8 @@
 name: Market Scanner
 
 on:
+  push:
+    branches: [main]
   schedule:
     - cron: '45 15 * * 1-5'
       timezone: 'Europe/Amsterdam'
@@ -49,12 +51,11 @@ jobs:
         run: |
           test -n "$FINNHUB_API_KEY" || { echo 'ERROR: GitHub Actions secret FINNHUB_API_KEY ontbreekt.'; exit 1; }
           test -n "$OANOR_API_KEY" || { echo 'ERROR: GitHub Actions secret OANOR_API_KEY ontbreekt.'; exit 1; }
-          echo 'Analyst API credentials zijn beschikbaar voor deze scan.'
       - name: Check requested market window
         id: market_window
         shell: bash
         run: |
-          if [ "$GITHUB_EVENT_NAME" = "workflow_dispatch" ]; then
+          if [ "$GITHUB_EVENT_NAME" = "workflow_dispatch" ] || [ "$GITHUB_EVENT_NAME" = "push" ]; then
             echo 'run=true' >> "$GITHUB_OUTPUT"
           elif python scripts/market_hours_guard.py; then
             echo 'run=true' >> "$GITHUB_OUTPUT"
