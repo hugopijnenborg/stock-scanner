@@ -13,7 +13,7 @@ from scanner import scan
 from score_engine import calculate_score
 from universe import load_top_us_stocks
 
-ALERT_THRESHOLD = 80.0
+ALERT_THRESHOLD = 70.0
 EXCLUDED_TICKERS = {"FLNC"}
 
 
@@ -66,6 +66,7 @@ def write_web_output(result, universe_size: int, path: str) -> None:
         "alert_count": int((result["signal"] == "ALERT").sum()) if not result.empty and "signal" in result else 0,
         "top_score": top_score,
         "score_weights": {"trader": 35, "technical": 30, "fundamental": 20, "analyst": 15},
+        "alert_threshold": 70,
         "results": rows,
     }
     output = Path(path)
