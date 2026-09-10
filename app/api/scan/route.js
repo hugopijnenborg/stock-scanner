@@ -12,6 +12,8 @@ const WEIGHTS = {
   fundamental_score: 0.20,
   analyst_consensus_score: 0.15,
 };
+const ALERT_THRESHOLD = 70;
+const WATCH_THRESHOLD = 55;
 
 function numberOrNull(value) {
   const n = Number(value);
@@ -37,8 +39,8 @@ function normalizeResult(row) {
   const overall = calculateOverallScore(row);
   let signal = 'DATA_INCOMPLETE';
   if (overall !== null) {
-    if (overall >= 80) signal = 'ALERT';
-    else if (overall >= 65) signal = 'WATCH';
+    if (overall >= ALERT_THRESHOLD) signal = 'ALERT';
+    else if (overall >= WATCH_THRESHOLD) signal = 'WATCH';
     else signal = 'NO_SIGNAL';
   }
 
@@ -97,6 +99,7 @@ export async function GET() {
     }
 
     data.score_weights = { trader: 35, technical: 30, fundamental: 20, analyst: 15 };
+    data.alert_threshold = ALERT_THRESHOLD;
 
     // generated_at from the scanner is the scan timestamp. Use the GitHub
     // commit as the refresh version because it changes only after the workflow
