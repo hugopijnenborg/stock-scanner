@@ -1,34 +1,116 @@
-import {NextResponse} from 'next/server';
+import { NextResponse } from 'next/server';
 
-export const dynamic='force-dynamic';
-export const revalidate=0;
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
 
-const SOURCE='https://raw.githubusercontent.com/hugopijnenborg/stock-scanner/main/public/data/latest_scan.json';
-const COMMITS='https://api.github.com/repos/hugopijnenborg/stock-scanner/commits?path=public/data/latest_scan.json&per_page=1';
+const SOURCE = 'https://raw.githubusercontent.com/hugopijnenborg/stock-scanner/main/public/data/latest_scan.json';
+const COMMITS = 'https://api.github.com/repos/hugopijnenborg/stock-scanner/commits?path=public/data/latest_scan.json&per_page=1';
 
-export async function GET(){
-  try{
-    const [dataResponse,commitResponse]=await Promise.all([
-      fetch(`${SOURCE}?t=${Date.now()}`,{cache:'no-store',headers:{Accept:'application/json'}}),
-      fetch(`${COMMITS}&t=${Date.now()}`,{cache:'no-store',headers:{Accept:'application/vnd.github+json'}})
+const WEIGHTS = {
+  trader_similarity_score: 0.35,
+  technical_score: 0.30,
+  fundamental_score: 0.20,
+  analyst_consensus_score: 0.15,
+};
+
+function numberOrNull(value) {
+  const n = Number(value);
+  return Number.isFinite(n) ? n : null;
+}
+
+function calculateOverallScore(row) {
+  const parts = [
+    [numberOrNull(row.trader_similarity_score), WEIGHTS.trader_similarity_score],
+    [numberOrNull(row.technical_score), WEIGHTS.technical_score],
+    [numberOrNull(row.fundamental_score), WEIGHTS.fundamental_score],
+    [numberOrNull(row.analyst_consensus_score), WEIGHTS.analyst_consensus_score],
+  ].filter(([value]) => value !== null);
+
+  if (!parts.length) return null;
+
+  const weightSum = parts.reduce((sum, [, weight]) => sum + weight, 0);
+  const weighted = parts.reduce((sum, [value, weight]) => sum + value * weight, 0) / weightSum;
+  return Math.round(weighted * 10) / 10;
+}
+
+function normalizeResult(row) {
+  const overall = calculateOverallScore(row);
+  let signal = 'DATA_INCOMPLETE';
+  if (overall !== null) {
+    if (overall >= 80) signal = 'ALERT';
+    else if (overall >= 65) signal = 'WATCH';
+    else signal = 'NO_SIGNAL';
+  }
+
+  return {
+    ...row,
+    overall_score: overall,
+    trader_score: numberOrNull(row.trader_similarity_score),
+    technical_score: numberOrNull(row.technical_score),
+    fundamental_score: numberOrNull(row.fundamental_score),
+    analyst_score: numberOrNull(row.analyst_consensus_score),
+    signal,
+  };
+}
+
+export async function GET() {
+  try {
+    const [dataResponse, commitResponse] = await Promise.all([
+      fetch(`${SOURCE}?t=${Date.now()}`, {
+        cache: 'no-store',
+        headers: { Accept: 'application/json' },
+      }),
+      fetch(`${COMMITS}&t=${Date.now()}`, {
+        cache: 'no-store',
+        headers: { Accept: 'application/vnd.github+json' },
+      }),
     ]);
-    if(!dataResponse.ok)return NextResponse.json({error:`GitHub scan data returned HTTP ${dataResponse.status}`},{status:502});
-    const text=await dataResponse.text();
-    const data=JSON.parse(text.replace(/\bNaN\b/g,'null').replace(/\b-Infinity\b/g,'null').replace(/\bInfinity\b/g,'null'));
-    const valid=Array.isArray(data.results)&&data.results.length>0&&data.results.every(r=>r&&r.opportunity_score!=null&&r.action!=null&&r.component_scores!=null);
-    if(!valid)return NextResponse.json({error:'De gepubliceerde scan bevat nog geen geldige Opportunity Engine resultaten. De scanner moet eerst één volledige nieuwe scan publiceren.'},{status:503});
-    data.engine_version=Number(data.engine_version)||3;
-    const originalGeneratedAt=data.generated_at;
-    if(commitResponse.ok){
-      const commits=await commitResponse.json();
-      const latestCommitDate=commits?.[0]?.commit?.committer?.date||commits?.[0]?.commit?.author?.date;
-      const latestCommitSha=commits?.[0]?.sha;
-      if(latestCommitDate)data.generated_at=latestCommitDate;
-      if(originalGeneratedAt)data.scan_generated_at=originalGeneratedAt;
-      if(latestCommitSha)data.scan_version=latestCommitSha;
+
+    if (!dataResponse.ok) {
+      return NextResponse.json(
+        { error: `GitHub scan data returned HTTP ${dataResponse.status}` },
+        { status: 502 }
+      );
     }
-    return NextResponse.json(data,{headers:{'Cache-Control':'no-store, max-age=0'}});
-  }catch(error){
-    return NextResponse.json({error:`Kan scan data niet laden: ${error instanceof Error?error.message:'onbekende fout'}`},{status:500});
+
+    const text = await dataResponse.text();
+    const cleaned = text
+      .replace(/\bNaN\b/g, 'null')
+      .replace(/\b-Infinity\b/g, 'null')
+      .replace(/\bInfinity\b/g, 'null');
+
+    const data = JSON.parse(cleaned);
+    const originalGeneratedAt = data.generated_at;
+
+    if (Array.isArray(data.results)) {
+      data.results = data.results.map(normalizeResult);
+      data.results.sort((a, b) => {
+        const scoreA = numberOrNull(a.overall_score);
+        const scoreB = numberOrNull(b.overall_score);
+        return (scoreB ?? -1) - (scoreA ?? -1);
+      });
+      data.alert_count = data.results.filter((row) => row.signal === 'ALERT').length;
+      data.top_score = data.results.length ? data.results[0].overall_score : null;
+    }
+
+    data.score_weights = { trader: 35, technical: 30, fundamental: 20, analyst: 15 };
+
+    if (commitResponse.ok) {
+      const commits = await commitResponse.json();
+      const latestCommitDate = commits?.[0]?.commit?.committer?.date || commits?.[0]?.commit?.author?.date;
+      const latestCommitSha = commits?.[0]?.sha;
+      if (latestCommitDate) data.generated_at = latestCommitDate;
+      if (originalGeneratedAt) data.scan_generated_at = originalGeneratedAt;
+      if (latestCommitSha) data.scan_version = latestCommitSha;
+    }
+
+    return NextResponse.json(data, {
+      headers: { 'Cache-Control': 'no-store, max-age=0' },
+    });
+  } catch (error) {
+    return NextResponse.json(
+      { error: `Kan scan data niet laden: ${error instanceof Error ? error.message : 'onbekende fout'}` },
+      { status: 500 }
+    );
   }
 }
