@@ -1,5 +1,6 @@
 import './globals.css';
 import './marketintel-overrides.css';
+import './opportunity.css';
 import PortfolioBridge from './portfolio/PortfolioBridge';
 import MarketRegimeCard from './MarketRegimeCard';
 
