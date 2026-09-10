@@ -75,7 +75,7 @@ jobs:
           OANOR_API_KEY: ${{ secrets.OANOR_API_KEY }}
         run: python main.py scan --limit 1000 --top 1000 --output scan_results.csv --web-output public/data/latest_scan.json
 
-      - name: Save own 80+ alerts to Supabase
+      - name: Save 70+ alerts to Supabase
         if: steps.market_window.outputs.run == 'true'
         env:
           SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
@@ -95,7 +95,7 @@ jobs:
           cp public/data/latest_scan.json /tmp/latest_scan.json
           cp public/data/alert_history.json /tmp/alert_history.json
           git config user.name 'github-actions[bot]'
-          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git config user.email '41898282+github-actions[bot].noreply.github.com'
           git fetch origin main
           git reset --hard origin/main
           cp /tmp/latest_scan.json public/data/latest_scan.json
