@@ -2,9 +2,12 @@ name: Market Scanner
 
 on:
   schedule:
-    # Run every 30 minutes during the requested Dutch market window.
-    # Offset by 5 minutes to avoid GitHub's busiest :00/:30 schedule times.
-    - cron: '5,35 15-21 * * 1-5'
+    # First scan at 15:45 Dutch time, then every 15 minutes through 22:00.
+    - cron: '45 15 * * 1-5'
+      timezone: 'Europe/Amsterdam'
+    - cron: '0,15,30,45 16-21 * * 1-5'
+      timezone: 'Europe/Amsterdam'
+    - cron: '0 22 * * 1-5'
       timezone: 'Europe/Amsterdam'
   workflow_dispatch:
 
@@ -22,6 +25,7 @@ jobs:
   scan:
     name: Scan complete curated universe
     runs-on: ubuntu-latest
+    timeout-minutes: 20
     steps:
       - uses: actions/checkout@v4
 
