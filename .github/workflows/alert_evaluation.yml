@@ -2,7 +2,7 @@ name: Alert Evaluation
 
 on:
   schedule:
-    - cron: '15 22 * * 1-5'
+    - cron: '55 21 * * 1-5'
       timezone: 'Europe/Amsterdam'
   workflow_dispatch:
 
