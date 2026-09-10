@@ -7,11 +7,13 @@ from datetime import datetime, timezone
 from pathlib import Path
 
 import scanner as scanner_module
+from backtest import run_backtest
 from market_validation import run_market_validation
 from scanner import scan
+from score_engine import calculate_score
 from universe import load_top_us_stocks
-from opportunity_engine import ENGINE_VERSION
 
+ALERT_THRESHOLD = 80.0
 EXCLUDED_TICKERS = {"FLNC"}
 
 
@@ -21,6 +23,7 @@ def scanner_universe(limit: int | None = None):
 
 
 def _json_safe(value):
+    """Convert pandas/numpy values to strict JSON-safe Python values."""
     if value is None:
         return None
     if isinstance(value, float):
@@ -37,23 +40,32 @@ def _json_safe(value):
     return value
 
 
+def apply_production_score(result):
+    """Replace the legacy combined score with the four-part production score."""
+    if result is None or result.empty:
+        return result
+    result = result.copy()
+    result["analyst_score"] = result.get("analyst_consensus_score")
+    scored = result.apply(calculate_score, axis=1, result_type="expand")
+    for column in ["overall_score", "trader_score", "technical_score", "fundamental_score", "analyst_score", "signal"]:
+        if column in scored:
+            result[column] = scored[column]
+    result["trader_similarity_score"] = result["trader_score"]
+    return result.sort_values(["overall_score", "trader_score", "technical_score"], ascending=[False, False, False], na_position="last").reset_index(drop=True)
+
+
 def write_web_output(result, universe_size: int, path: str) -> None:
-    rows = [_json_safe(row) for row in result.where(result.notna(), None).to_dict(orient="records")]
-    attrs = getattr(result, "attrs", {}) or {}
-    top_score = _json_safe(result["opportunity_score"].max()) if not result.empty else None
+    rows = result.where(result.notna(), None).to_dict(orient="records")
+    rows = [_json_safe(row) for row in rows]
+    top_score = None
+    if not result.empty and "overall_score" in result:
+        top_score = _json_safe(result["overall_score"].max())
     payload = {
-        "engine_version": ENGINE_VERSION,
         "generated_at": datetime.now(timezone.utc).isoformat(),
         "universe_size": int(universe_size),
-        "market_data_returned": int(attrs.get("market_data_returned", len(result))),
-        "intraday_data_returned": int(attrs.get("intraday_data_returned", 0)),
-        "rows_scored": int(attrs.get("rows_scored", len(result))),
-        "rows_returned": int(attrs.get("rows_returned", len(result))),
-        "missing_market_data": list(attrs.get("missing_market_data", [])),
-        "excluded_liquidity": list(attrs.get("excluded_liquidity", [])),
-        "coverage_pct": round(100.0 * len(result) / universe_size, 1) if universe_size else 0.0,
-        "alert_count": int((result["action"] == "BUY").sum()) if not result.empty else 0,
+        "alert_count": int((result["signal"] == "ALERT").sum()) if not result.empty and "signal" in result else 0,
         "top_score": top_score,
+        "score_weights": {"trader": 35, "technical": 30, "fundamental": 20, "analyst": 15},
         "results": rows,
     }
     output = Path(path)
@@ -62,50 +74,45 @@ def write_web_output(result, universe_size: int, path: str) -> None:
 
 
 def main() -> None:
-    parser = argparse.ArgumentParser(description="MarketIntel Opportunity Engine scanner")
+    parser = argparse.ArgumentParser(description="Trader-pattern stock scanner")
     sub = parser.add_subparsers(dest="command", required=True)
-    u = sub.add_parser("universe")
+    u = sub.add_parser("universe", help="show current curated universe")
     u.add_argument("--limit", type=int, default=1000)
-    s = sub.add_parser("scan")
+    s = sub.add_parser("scan", help="scan current market")
     s.add_argument("--limit", type=int, default=1000)
-    s.add_argument("--top", type=int, default=1000)
+    s.add_argument("--top", type=int, default=25)
     s.add_argument("--output", default=None)
     s.add_argument("--web-output", default="public/data/latest_scan.json")
-    v = sub.add_parser("validate-market")
+    b = sub.add_parser("backtest", help="backtest supplied trader entries")
+    b.add_argument("--output", default="trader_backtest.csv")
+    v = sub.add_parser("validate-market", help="validate 80+ signals across the full curated universe")
+    v.add_argument("--start", default="2024-01-01")
     v.add_argument("--output", default="market_validation.csv")
     v.add_argument("--summary", default="market_validation.json")
     args = parser.parse_args()
-
     if args.command == "universe":
         print(scanner_universe(args.limit).to_string(index=False))
-        return
-
-    if args.command == "scan":
+    elif args.command == "scan":
         scanner_module.load_top_us_stocks = scanner_universe
         universe = scanner_universe(args.limit)
-        result = scan(args.limit, args.top)
+        result = apply_production_score(scan(args.limit, args.top))
         print(result.to_string(index=False))
         if args.output:
             result.to_csv(args.output, index=False)
             print(f"\nSaved {args.output}")
         write_web_output(result, len(universe), args.web_output)
-        attrs = result.attrs or {}
-        print(
-            "\nSCAN COVERAGE: "
-            f"requested={len(universe)} "
-            f"market_data={attrs.get('market_data_returned', 0)} "
-            f"scored={attrs.get('rows_scored', len(result))} "
-            f"missing={len(attrs.get('missing_market_data', []))} "
-            f"liquidity_excluded={len(attrs.get('excluded_liquidity', []))}"
-        )
         print(f"Saved {args.web_output}")
-        return
-
-    signals, summary = run_market_validation()
-    print(json.dumps(summary, indent=2))
-    signals.to_csv(args.output, index=False)
-    Path(args.summary).write_text(json.dumps(summary, indent=2, allow_nan=False), encoding="utf-8")
-    print(f"Saved {args.output} and {args.summary}")
+    elif args.command == "backtest":
+        result = run_backtest()
+        print(result.to_string(index=False))
+        result.to_csv(args.output, index=False)
+        print(f"\nSaved {args.output}")
+    elif args.command == "validate-market":
+        signals, summary = run_market_validation(args.start)
+        print(json.dumps(summary, indent=2))
+        signals.to_csv(args.output, index=False)
+        Path(args.summary).write_text(json.dumps(summary, indent=2, allow_nan=False), encoding="utf-8")
+        print(f"Saved {args.output} and {args.summary}")
 
 
 if __name__ == "__main__":
