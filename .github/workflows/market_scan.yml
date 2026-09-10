@@ -95,7 +95,7 @@ jobs:
           cp public/data/latest_scan.json /tmp/latest_scan.json
           cp public/data/alert_history.json /tmp/alert_history.json
           git config user.name 'github-actions[bot]'
-          git config user.email '41898282+github-actions[bot].noreply.github.com'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
           git fetch origin main
           git reset --hard origin/main
           cp /tmp/latest_scan.json public/data/latest_scan.json
