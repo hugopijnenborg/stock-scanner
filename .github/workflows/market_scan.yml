@@ -75,7 +75,7 @@ jobs:
           OANOR_API_KEY: ${{ secrets.OANOR_API_KEY }}
         run: python main.py scan --limit 1000 --top 1000 --output scan_results.csv --web-output public/data/latest_scan.json
 
-      - name: Save 70+ alerts to Supabase
+      - name: Save 80+ alerts to Supabase
         if: steps.market_window.outputs.run == 'true'
         env:
           SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
