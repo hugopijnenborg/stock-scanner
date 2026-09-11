@@ -214,10 +214,12 @@ def _learned_score(row: pd.Series) -> float | None:
         logit = float(np.dot(coef, z) + payload["intercept"])
         probability = 1.0 / (1.0 + np.exp(-np.clip(logit, -30, 30)))
         raw_score = float(probability * 100.0)
-        # Calibration: the learned model is a probability-like output and was
-        # becoming too compressed during broad market selloffs. Expand its
-        # useful 50-100 range without changing the underlying model ranking.
-        return float(np.clip(50.0 + 1.25 * (raw_score - 50.0), 0.0, 100.0))
+        # The learned model distinguishes historical trader entries from
+        # same-date controls. Its probability is not itself the user-facing
+        # conviction score. A neutral 50% model result maps to 70/100 and the
+        # useful range is expanded so broad market selloffs do not collapse
+        # strong opportunity setups into the 50s and 60s.
+        return float(np.clip(70.0 + 1.5 * (raw_score - 50.0), 0.0, 100.0))
     except Exception:
         return None
 
