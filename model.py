@@ -213,7 +213,11 @@ def _learned_score(row: pd.Series) -> float | None:
         z = (x - mean) / np.where(scale == 0, 1.0, scale)
         logit = float(np.dot(coef, z) + payload["intercept"])
         probability = 1.0 / (1.0 + np.exp(-np.clip(logit, -30, 30)))
-        return float(probability * 100.0)
+        raw_score = float(probability * 100.0)
+        # Calibration: the learned model is a probability-like output and was
+        # becoming too compressed during broad market selloffs. Expand its
+        # useful 50-100 range without changing the underlying model ranking.
+        return float(np.clip(50.0 + 1.25 * (raw_score - 50.0), 0.0, 100.0))
     except Exception:
         return None
 
