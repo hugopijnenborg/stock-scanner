@@ -128,36 +128,47 @@ def weighted_score(components: dict[str, float], weights: dict[str, float]) -> f
 
 
 def technical_opportunity_score(r: pd.Series) -> dict[str, float]:
-    """Return a 0..100 technical score explicitly focused on beaten-down/oversold setups."""
-    c = {
-        "drawdown_5d": _neutral_centered_low(r.get("return_5d", np.nan), -0.04, -0.30),
-        "rsi_14": _neutral_centered_low(r.get("rsi_14", np.nan), 43, 20),
-        "drawdown_20d": _neutral_centered_low(r.get("return_20d", np.nan), -0.05, -0.40),
-        "distance_sma20": _neutral_centered_low(r.get("distance_sma20", np.nan), -0.03, -0.25),
-        "distance_sma50": _neutral_centered_low(r.get("distance_sma50", np.nan), -0.03, -0.30),
-        "z_score": _neutral_centered_low(r.get("z_score", np.nan), -0.5, -3.0),
-        "distance_52w_high": _neutral_centered_low(r.get("distance_52w_high", np.nan), -0.05, -0.45),
-        "volume_ratio": _neutral_centered_high(r.get("volume_ratio", np.nan), 1.0, 4.0),
+    """Score the opportunity itself, not whether the rebound has already started.
+
+    A large drawdown, oversold conditions and distance from prior highs are
+    positive opportunity signals. Reversal and volume are confirmation only.
+    This makes the score persist while the opportunity is still open.
+    """
+    structural = {
+        "drawdown_5d": low_is_good(r.get("return_5d", np.nan), -0.02, -0.20),
+        "rsi_14": low_is_good(r.get("rsi_14", np.nan), 48, 22),
+        "drawdown_20d": low_is_good(r.get("return_20d", np.nan), -0.03, -0.35),
+        "distance_sma20": low_is_good(r.get("distance_sma20", np.nan), -0.02, -0.20),
+        "distance_sma50": low_is_good(r.get("distance_sma50", np.nan), -0.03, -0.25),
+        "z_score": low_is_good(r.get("z_score", np.nan), -0.25, -2.50),
+        "distance_52w_high": low_is_good(r.get("distance_52w_high", np.nan), -0.05, -0.45),
         "support": _technical_support_component(r),
+    }
+    structural_weights = {
+        "drawdown_5d": 0.14,
+        "rsi_14": 0.18,
+        "drawdown_20d": 0.16,
+        "distance_sma20": 0.10,
+        "distance_sma50": 0.12,
+        "z_score": 0.10,
+        "distance_52w_high": 0.15,
+        "support": 0.05,
+    }
+    confirmation = {
+        "volume_ratio": _neutral_centered_high(r.get("volume_ratio", np.nan), 1.0, 4.0),
         "intraday_reversal": _neutral_centered_high(r.get("close_location", np.nan), 0.50, 1.00),
         "sector_relative_strength_20d": _neutral_centered_high(r.get("sector_relative_strength_20d", np.nan), 0.0, 0.20),
         "market_regime": float(r.get("market_regime_score", 0.5)) if pd.notna(r.get("market_regime_score", np.nan)) else 0.5,
     }
-    weights = {
-        "drawdown_5d": 0.18,
-        "rsi_14": 0.18,
-        "drawdown_20d": 0.12,
-        "distance_sma20": 0.10,
-        "distance_sma50": 0.08,
-        "z_score": 0.08,
-        "distance_52w_high": 0.10,
-        "volume_ratio": 0.06,
-        "support": 0.05,
-        "intraday_reversal": 0.02,
-        "sector_relative_strength_20d": 0.01,
-        "market_regime": 0.02,
+    confirmation_weights = {
+        "volume_ratio": 0.35,
+        "intraday_reversal": 0.25,
+        "sector_relative_strength_20d": 0.20,
+        "market_regime": 0.20,
     }
-    return {"technical_opportunity_score": weighted_score(c, weights)}
+    structural_score = weighted_score(structural, structural_weights)
+    confirmation_score = weighted_score(confirmation, confirmation_weights)
+    return {"technical_opportunity_score": float(0.80 * structural_score + 0.20 * confirmation_score)}
 
 
 def dip_score(r: pd.Series) -> float:
@@ -219,41 +230,49 @@ def _learned_score(row: pd.Series) -> float | None:
 
 
 def trader_setup_score(r: pd.Series) -> float:
-    """Stable, transparent trader-entry score.
+    """Stable trader opportunity score based primarily on persistent setup quality.
 
-    The learned classifier is intentionally only a small confirmation factor.
-    The main score comes from observable setup quality so a nearly unchanged
-    price cannot cause a large score swing merely because the classifier
-    probability moved.
+    The score is intentionally not driven by the learned probability. A stock
+    that remains deeply below its prior high and moving averages should keep a
+    high opportunity score until the price actually recovers or the underlying
+    setup materially changes. The learned model is retained only as a small
+    confirmation signal and can therefore not swing the score by tens of points.
     """
-    components = {
-        "drawdown_20d": _neutral_centered_low(r.get("return_20d", np.nan), -0.03, -0.35),
-        "distance_52w_high": _neutral_centered_low(r.get("distance_52w_high", np.nan), -0.05, -0.45),
-        "rsi_14": _neutral_centered_low(r.get("rsi_14", np.nan), 45, 22),
-        "z_score": _neutral_centered_low(r.get("z_score", np.nan), -0.4, -2.5),
-        "distance_sma50": _neutral_centered_low(r.get("distance_sma50", np.nan), -0.03, -0.25),
+    structural = {
+        "drawdown_20d": low_is_good(r.get("return_20d", np.nan), -0.03, -0.35),
+        "distance_52w_high": low_is_good(r.get("distance_52w_high", np.nan), -0.05, -0.45),
+        "rsi_14": low_is_good(r.get("rsi_14", np.nan), 45, 22),
+        "z_score": low_is_good(r.get("z_score", np.nan), -0.30, -2.50),
+        "distance_sma50": low_is_good(r.get("distance_sma50", np.nan), -0.03, -0.25),
         "support": _technical_support_component(r),
+    }
+    structural_weights = {
+        "drawdown_20d": 0.22,
+        "distance_52w_high": 0.28,
+        "rsi_14": 0.16,
+        "z_score": 0.10,
+        "distance_sma50": 0.14,
+        "support": 0.10,
+    }
+    confirmation = {
         "relative_strength_20d": _neutral_centered_high(r.get("relative_strength_20d", np.nan), 0.0, 0.15),
         "volume_ratio": _neutral_centered_high(r.get("volume_ratio", np.nan), 1.0, 3.0),
         "reversal": _neutral_centered_high(r.get("close_location", np.nan), 0.50, 1.00),
     }
-    weights = {
-        "drawdown_20d": 0.18,
-        "distance_52w_high": 0.15,
-        "rsi_14": 0.15,
-        "z_score": 0.10,
-        "distance_sma50": 0.10,
-        "support": 0.10,
-        "relative_strength_20d": 0.08,
-        "volume_ratio": 0.06,
-        "reversal": 0.08,
+    confirmation_weights = {
+        "relative_strength_20d": 0.40,
+        "volume_ratio": 0.30,
+        "reversal": 0.30,
     }
-    setup = weighted_score(components, weights)
+    structural_score = weighted_score(structural, structural_weights)
+    confirmation_score = weighted_score(confirmation, confirmation_weights)
+    base = 0.82 * structural_score + 0.18 * confirmation_score
+
     learned = _learned_score(r)
     if learned is None:
-        return float(setup)
-    learned_stable = 50.0 + 0.60 * (learned - 50.0)
-    return float(0.85 * setup + 0.15 * learned_stable)
+        return float(base)
+    learned_confirmation = 50.0 + 0.15 * (learned - 50.0)
+    return float(0.92 * base + 0.08 * learned_confirmation)
 
 
 def score_row(r: pd.Series, rebound_weights: dict, quality_weights: dict, cyclical_weights: dict) -> dict:
