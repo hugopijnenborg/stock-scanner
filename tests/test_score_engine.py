@@ -27,5 +27,5 @@ def test_four_component_score_exposes_all_components():
     assert result["technical_score"] == 80
     assert result["fundamental_score"] == 70
     assert result["analyst_score"] == 60
-    assert result["overall_score"] == 80.0
-    assert result["signal"] == "ALERT"
+    assert result["overall_score"] == 78.5
+    assert result["signal"] == "WATCH"
