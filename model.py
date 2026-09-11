@@ -213,41 +213,71 @@ def _learned_score(row: pd.Series) -> float | None:
         z = (x - mean) / np.where(scale == 0, 1.0, scale)
         logit = float(np.dot(coef, z) + payload["intercept"])
         probability = 1.0 / (1.0 + np.exp(-np.clip(logit, -30, 30)))
-        raw_score = float(probability * 100.0)
-        # The learned model distinguishes historical trader entries from
-        # same-date controls. Its probability is not itself the user-facing
-        # conviction score. A neutral 50% model result maps to 70/100 and the
-        # useful range is expanded so broad market selloffs do not collapse
-        # strong opportunity setups into the 50s and 60s.
-        return float(np.clip(70.0 + 1.6 * (raw_score - 50.0), 0.0, 100.0))
+        return float(probability * 100.0)
     except Exception:
         return None
 
 
-def score_row(row: pd.Series, rebound_weights: dict, quality_weights: dict, cyclical_weights: dict) -> dict:
-    rb = rebound_components(row)
-    qu = quality_components(row)
-    cy = cyclical_components(row)
+def trader_setup_score(r: pd.Series) -> float:
+    """Stable, transparent trader-entry score.
+
+    The learned classifier is intentionally only a small confirmation factor.
+    The main score comes from observable setup quality so a nearly unchanged
+    price cannot cause a large score swing merely because the classifier
+    probability moved.
+    """
+    components = {
+        "drawdown_20d": _neutral_centered_low(r.get("return_20d", np.nan), -0.03, -0.35),
+        "distance_52w_high": _neutral_centered_low(r.get("distance_52w_high", np.nan), -0.05, -0.45),
+        "rsi_14": _neutral_centered_low(r.get("rsi_14", np.nan), 45, 22),
+        "z_score": _neutral_centered_low(r.get("z_score", np.nan), -0.4, -2.5),
+        "distance_sma50": _neutral_centered_low(r.get("distance_sma50", np.nan), -0.03, -0.25),
+        "support": _technical_support_component(r),
+        "relative_strength_20d": _neutral_centered_high(r.get("relative_strength_20d", np.nan), 0.0, 0.15),
+        "volume_ratio": _neutral_centered_high(r.get("volume_ratio", np.nan), 1.0, 3.0),
+        "reversal": _neutral_centered_high(r.get("close_location", np.nan), 0.50, 1.00),
+    }
+    weights = {
+        "drawdown_20d": 0.18,
+        "distance_52w_high": 0.15,
+        "rsi_14": 0.15,
+        "z_score": 0.10,
+        "distance_sma50": 0.10,
+        "support": 0.10,
+        "relative_strength_20d": 0.08,
+        "volume_ratio": 0.06,
+        "reversal": 0.08,
+    }
+    setup = weighted_score(components, weights)
+    learned = _learned_score(r)
+    if learned is None:
+        return float(setup)
+    learned_stable = 50.0 + 0.60 * (learned - 50.0)
+    return float(0.85 * setup + 0.15 * learned_stable)
+
+
+def score_row(r: pd.Series, rebound_weights: dict, quality_weights: dict, cyclical_weights: dict) -> dict:
+    rb = rebound_components(r)
+    qu = quality_components(r)
+    cy = cyclical_components(r)
     scores = {
         "rebound_score": weighted_score(rb, rebound_weights),
         "quality_score": weighted_score(qu, quality_weights),
         "cyclical_score": weighted_score(cy, cyclical_weights),
     }
-    scores.update(technical_opportunity_score(row))
-    scores["dip_score"] = dip_score(row)
-    scores["reversal_trigger"] = reversal_trigger(row) * 100.0
+    scores.update(technical_opportunity_score(r))
+    scores["dip_score"] = dip_score(r)
+    scores["reversal_trigger"] = reversal_trigger(r) * 100.0
     setup_key = max(["rebound_score", "quality_score", "cyclical_score"], key=lambda k: scores[k])
 
-    learned = _learned_score(row)
-    scores["trader_similarity_score"] = learned if learned is not None else scores["technical_opportunity_score"]
-    scores["overall_score"] = (
-        0.50 * scores["trader_similarity_score"] + 0.50 * scores["technical_opportunity_score"]
-        if learned is not None else scores["technical_opportunity_score"]
-    )
+    trader = trader_setup_score(r)
+    scores["trader_similarity_score"] = trader
+    scores["trader_setup_score"] = trader
+    scores["overall_score"] = 0.50 * trader + 0.50 * scores["technical_opportunity_score"]
 
     scores["watch_candidate"] = bool(
         scores["overall_score"] >= 65.0
-        and scores["trader_similarity_score"] >= 65.0
+        and trader >= 65.0
         and scores["technical_opportunity_score"] >= 60.0
         and scores["dip_score"] >= 55.0
     )
