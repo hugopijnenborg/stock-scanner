@@ -78,3 +78,43 @@ def main() -> None:
     parser = argparse.ArgumentParser(description="Trader-pattern stock scanner")
     sub = parser.add_subparsers(dest="command", required=True)
     u = sub.add_parser("universe", help="show current curated universe")
+    u.add_argument("--limit", type=int, default=1000)
+    s = sub.add_parser("scan", help="scan current market")
+    s.add_argument("--limit", type=int, default=1000)
+    s.add_argument("--top", type=int, default=25)
+    s.add_argument("--output", default=None)
+    s.add_argument("--web-output", default="public/data/latest_scan.json")
+    b = sub.add_parser("backtest", help="backtest supplied trader entries")
+    b.add_argument("--output", default="trader_backtest.csv")
+    v = sub.add_parser("validate-market", help="validate 80+ signals across the full curated universe")
+    v.add_argument("--start", default="2024-01-01")
+    v.add_argument("--output", default="market_validation.csv")
+    v.add_argument("--summary", default="market_validation.json")
+    args = parser.parse_args()
+    if args.command == "universe":
+        print(scanner_universe(args.limit).to_string(index=False))
+    elif args.command == "scan":
+        scanner_module.load_top_us_stocks = scanner_universe
+        universe = scanner_universe(args.limit)
+        result = apply_production_score(scan(args.limit, args.top))
+        print(result.to_string(index=False))
+        if args.output:
+            result.to_csv(args.output, index=False)
+            print(f"\nSaved {args.output}")
+        write_web_output(result, len(universe), args.web_output)
+        print(f"Saved {args.web_output}")
+    elif args.command == "backtest":
+        result = run_backtest()
+        print(result.to_string(index=False))
+        result.to_csv(args.output, index=False)
+        print(f"\nSaved {args.output}")
+    elif args.command == "validate-market":
+        signals, summary = run_market_validation(args.start)
+        print(json.dumps(summary, indent=2))
+        signals.to_csv(args.output, index=False)
+        Path(args.summary).write_text(json.dumps(summary, indent=2, allow_nan=False), encoding="utf-8")
+        print(f"Saved {args.output} and {args.summary}")
+
+
+if __name__ == "__main__":
+    main()
