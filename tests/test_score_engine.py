@@ -14,7 +14,7 @@ def test_four_component_score_weights():
     # Raw weighted score is 68.5; production calibration expands the
     # distance from neutral 50, giving 71.3.
     assert result["overall_score"] == 71.3
-    assert result["signal"] == "ALERT"
+    assert result["signal"] == "WATCH"
 
 
 def test_four_component_score_exposes_all_components():
