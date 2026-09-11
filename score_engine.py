@@ -35,8 +35,8 @@ def _weighted(parts: list[tuple[float | None, float]]) -> float | None:
 
 
 def _calibrate_overall(value: float) -> float:
-    """Expand a compressed middle range while keeping 50 as neutral."""
-    return float(max(0.0, min(100.0, 50.0 + 1.15 * (value - 50.0))))
+    """Expand the compressed production range while keeping 50 as neutral."""
+    return float(max(0.0, min(100.0, 50.0 + 1.25 * (value - 50.0))))
 
 
 def calculate_score(row: pd.Series | dict[str, Any]) -> dict[str, float | str | None]:
