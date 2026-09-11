@@ -34,25 +34,23 @@ def _weighted(parts: list[tuple[float | None, float]]) -> float | None:
     return sum(value * weight for value, weight in usable) / weight_sum
 
 
-def _calibrate_overall(value: float) -> float:
-    """Expand the compressed production range while keeping 50 as neutral."""
-    return float(max(0.0, min(100.0, 50.0 + 1.25 * (value - 50.0))))
-
-
 def calculate_score(row: pd.Series | dict[str, Any]) -> dict[str, float | str | None]:
-    """Calculate the production score from trader, technical, fundamentals and analysts."""
+    """Calculate the production score from the four component scores.
+
+    No post-hoc scaling is applied. The displayed overall score is the actual
+    weighted average of the four underlying scores.
+    """
     trader = _num(row.get("trader_similarity_score"))
     technical = _num(row.get("technical_score"))
     fundamental = _num(row.get("fundamental_score"))
     analyst = _num(row.get("analyst_score"))
 
-    weighted = _weighted([
+    overall = _weighted([
         (trader, TRADER_WEIGHT),
         (technical, TECHNICAL_WEIGHT),
         (fundamental, FUNDAMENTAL_WEIGHT),
         (analyst, ANALYST_WEIGHT),
     ])
-    overall = _calibrate_overall(weighted) if weighted is not None else None
 
     if overall is None:
         signal = "DATA_INCOMPLETE"
