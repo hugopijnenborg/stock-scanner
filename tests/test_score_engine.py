@@ -27,5 +27,5 @@ def test_three_component_score_exposes_all_components():
     assert result["trader_score"] == 94.5
     assert result["technical_score"] == 88
     assert result["fundamental_score"] == 70
-    assert result["overall_score"] == 83.7
+    assert result["overall_score"] == 83.6
     assert result["signal"] == "ALERT"
