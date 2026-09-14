@@ -6,15 +6,18 @@ import math
 from datetime import datetime, timezone
 from pathlib import Path
 
+import pandas as pd
 import scanner as scanner_module
 from backtest import run_backtest
 from market_validation import run_market_validation
+from opportunity_engine import WEIGHTS, apply_opportunity_engine
 from scanner import scan
-from score_engine import calculate_score
 from universe import load_top_us_stocks
 
 ALERT_THRESHOLD = 80.0
+WATCH_THRESHOLD = 65.0
 EXCLUDED_TICKERS = {"FLNC"}
+SCORE_CURVE_EXPONENT = 0.80
 
 
 def scanner_universe(limit: int | None = None):
@@ -23,7 +26,6 @@ def scanner_universe(limit: int | None = None):
 
 
 def _json_safe(value):
-    """Convert pandas/numpy values to strict JSON-safe Python values."""
     if value is None:
         return None
     if isinstance(value, float):
@@ -40,18 +42,53 @@ def _json_safe(value):
     return value
 
 
+def _calibrate_component(value):
+    if value is None or not math.isfinite(float(value)):
+        return None
+    x = max(0.0, min(100.0, float(value))) / 100.0
+    return round((x ** SCORE_CURVE_EXPONENT) * 100.0, 1)
+
+
 def apply_production_score(result):
-    """Replace the legacy combined score with the four-part production score."""
+    """Apply the 2.4 opportunity model with a less compressed 0-100 score curve."""
     if result is None or result.empty:
         return result
-    result = result.copy()
-    result["analyst_score"] = result.get("analyst_consensus_score")
-    scored = result.apply(calculate_score, axis=1, result_type="expand")
-    for column in ["overall_score", "trader_score", "technical_score", "fundamental_score", "analyst_score", "signal"]:
-        if column in scored:
-            result[column] = scored[column]
-    result["trader_similarity_score"] = result["trader_score"]
-    return result.sort_values(["overall_score", "trader_score", "technical_score"], ascending=[False, False, False], na_position="last").reset_index(drop=True)
+
+    result = apply_opportunity_engine(result.copy())
+
+    calibrated = {
+        component: result[f"opportunity_{component}_score"].apply(_calibrate_component)
+        for component in WEIGHTS
+    }
+    data_quality = pd.to_numeric(result.get("data_quality", 1.0), errors="coerce").fillna(1.0).clip(0, 1)
+    quality_factor = 0.90 + 0.10 * data_quality
+
+    weighted = sum(calibrated[k] * WEIGHTS[k] / 100.0 for k in WEIGHTS)
+    result["overall_score"] = (weighted * quality_factor).round(1)
+
+    # Keep the existing UI data contract intact. The visible component values
+    # are the calibrated 2.4 components, while the total uses all eight 2.4
+    # components and their original weights.
+    result["technical_score"] = calibrated["technical"]
+    result["fundamental_score"] = calibrated["fundamentals"]
+    result["analyst_consensus_score"] = calibrated["analysts"]
+    context_weight = sum(WEIGHTS[k] for k in ("valuation", "catalysts", "institutional", "macro_sector", "liquidity_risk"))
+    result["context_score"] = (
+        sum(calibrated[k] * WEIGHTS[k] for k in ("valuation", "catalysts", "institutional", "macro_sector", "liquidity_risk"))
+        / context_weight
+    ).round(1)
+    result["trader_similarity_score"] = result["context_score"]
+
+    result["signal"] = result["overall_score"].apply(
+        lambda x: "ALERT" if x >= ALERT_THRESHOLD else "WATCH" if x >= WATCH_THRESHOLD else "NO_SIGNAL"
+    )
+    result["qualifies_new_buy"] = result["signal"].eq("ALERT")
+    result["action"] = result["signal"].map({"ALERT": "BUY", "WATCH": "NONE", "NO_SIGNAL": "NONE"}).fillna("NONE")
+    result["alert_summary"] = result.apply(
+        lambda r: scanner_module._alert_summary(r) if r["signal"] == "ALERT" else None,
+        axis=1,
+    )
+    return result.sort_values(["overall_score", "technical_score"], ascending=[False, False], na_position="last").reset_index(drop=True)
 
 
 def write_web_output(result, universe_size: int, path: str) -> None:
@@ -63,10 +100,11 @@ def write_web_output(result, universe_size: int, path: str) -> None:
     payload = {
         "generated_at": datetime.now(timezone.utc).isoformat(),
         "universe_size": int(universe_size),
-        "alert_count": int((result["signal"] == "ALERT").sum()) if not result.empty and "signal" in result else 0,
+        "alert_count": int((result["signal"] == "ALERT").sum()) if not result.empty else 0,
         "top_score": top_score,
-        "score_weights": {"trader": 35, "technical": 30, "fundamental": 20, "analyst": 15},
-        "alert_threshold": 80,
+        "score_weights": {"technical": 30, "fundamentals": 20, "analysts": 15, "context": 35},
+        "alert_threshold": ALERT_THRESHOLD,
+        "score_curve_exponent": SCORE_CURVE_EXPONENT,
         "results": rows,
     }
     output = Path(path)
@@ -75,28 +113,29 @@ def write_web_output(result, universe_size: int, path: str) -> None:
 
 
 def main() -> None:
-    parser = argparse.ArgumentParser(description="Trader-pattern stock scanner")
+    parser = argparse.ArgumentParser(description="Stock opportunity scanner")
     sub = parser.add_subparsers(dest="command", required=True)
     u = sub.add_parser("universe", help="show current curated universe")
     u.add_argument("--limit", type=int, default=1000)
     s = sub.add_parser("scan", help="scan current market")
     s.add_argument("--limit", type=int, default=1000)
-    s.add_argument("--top", type=int, default=25)
+    s.add_argument("--top", type=int, default=1000)
     s.add_argument("--output", default=None)
     s.add_argument("--web-output", default="public/data/latest_scan.json")
     b = sub.add_parser("backtest", help="backtest supplied trader entries")
     b.add_argument("--output", default="trader_backtest.csv")
-    v = sub.add_parser("validate-market", help="validate 80+ signals across the full curated universe")
+    v = sub.add_parser("validate-market", help="validate signals across the full curated universe")
     v.add_argument("--start", default="2024-01-01")
     v.add_argument("--output", default="market_validation.csv")
     v.add_argument("--summary", default="market_validation.json")
     args = parser.parse_args()
+
     if args.command == "universe":
         print(scanner_universe(args.limit).to_string(index=False))
     elif args.command == "scan":
         scanner_module.load_top_us_stocks = scanner_universe
         universe = scanner_universe(args.limit)
-        result = apply_production_score(scan(args.limit, args.top))
+        result = apply_production_score(scan(args.limit, max(args.top, 1000)))
         print(result.to_string(index=False))
         if args.output:
             result.to_csv(args.output, index=False)
