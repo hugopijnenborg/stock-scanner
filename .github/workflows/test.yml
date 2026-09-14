@@ -28,8 +28,8 @@ jobs:
       - run: python -m pytest tests -q
 
   scan:
-    name: Manual market scan
-    if: github.event_name == 'workflow_dispatch'
+    name: Market scan
+    if: github.event_name == 'workflow_dispatch' || github.event_name == 'push'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -50,7 +50,7 @@ jobs:
         env:
           DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
         run: python notify_discord.py
-      - name: Publish manual scan
+      - name: Publish market scan
         run: |
           cp public/data/latest_scan.json /tmp/latest_scan.json
           cp public/data/alert_history.json /tmp/alert_history.json
@@ -62,5 +62,5 @@ jobs:
           cp /tmp/alert_history.json public/data/alert_history.json
           git add public/data/latest_scan.json public/data/alert_history.json
           git diff --cached --quiet && exit 0
-          git commit -m 'Update manual scanner result [skip ci]'
+          git commit -m 'Update scanner result [skip ci]'
           git push origin HEAD:main
