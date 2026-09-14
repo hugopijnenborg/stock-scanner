@@ -18,6 +18,8 @@ ALERT_THRESHOLD = 80.0
 WATCH_THRESHOLD = 65.0
 EXCLUDED_TICKERS = {"FLNC"}
 SCORE_CURVE_EXPONENT = 0.80
+SCORE_EXPANSION_SLOPE = 1.40
+SCORE_EXPANSION_OFFSET = 7.5
 
 
 def scanner_universe(limit: int | None = None):
@@ -50,7 +52,7 @@ def _calibrate_component(value):
 
 
 def apply_production_score(result):
-    """Apply the 2.4 opportunity model with a less compressed 0-100 score curve."""
+    """Apply the 2.4 opportunity model with a deliberately broader 0-100 score distribution."""
     if result is None or result.empty:
         return result
 
@@ -64,11 +66,17 @@ def apply_production_score(result):
     quality_factor = 0.90 + 0.10 * data_quality
 
     weighted = sum(calibrated[k] * WEIGHTS[k] / 100.0 for k in WEIGHTS)
-    result["overall_score"] = (weighted * quality_factor).round(1)
+    base_score = (weighted * quality_factor).round(1)
+
+    # The previous curve compressed the opportunity distribution too heavily.
+    # Expand the final score so a genuinely strong market pullback can produce
+    # several 70-85 scores instead of clustering everything in the 40s-60s.
+    result["overall_score_base"] = base_score
+    result["overall_score"] = (base_score * SCORE_EXPANSION_SLOPE + SCORE_EXPANSION_OFFSET).clip(0, 100).round(1)
 
     # Keep the existing UI data contract intact. The visible component values
-    # are the calibrated 2.4 components, while the total uses all eight 2.4
-    # components and their original weights.
+    # remain the calibrated 2.4 components, while the total uses all eight 2.4
+    # components and their original weights before the score expansion.
     result["technical_score"] = calibrated["technical"]
     result["fundamental_score"] = calibrated["fundamentals"]
     result["analyst_consensus_score"] = calibrated["analysts"]
@@ -105,6 +113,7 @@ def write_web_output(result, universe_size: int, path: str) -> None:
         "score_weights": {"technical": 30, "fundamentals": 20, "analysts": 15, "context": 35},
         "alert_threshold": ALERT_THRESHOLD,
         "score_curve_exponent": SCORE_CURVE_EXPONENT,
+        "score_expansion": {"slope": SCORE_EXPANSION_SLOPE, "offset": SCORE_EXPANSION_OFFSET},
         "results": rows,
     }
     output = Path(path)
