@@ -10,7 +10,10 @@ def test_three_component_score_weights():
         "fundamental_score": 60,
     })
     result = calculate_score(row)
-    assert result["overall_score"] == 69.5
+    assert result["trader_score"] == 89
+    assert result["technical_score"] == 82
+    assert result["fundamental_score"] == 60
+    assert result["overall_score"] == 76.4
     assert result["signal"] == "WATCH"
 
 
@@ -21,8 +24,8 @@ def test_three_component_score_exposes_all_components():
         "fundamental_score": 70,
     })
     result = calculate_score(row)
-    assert result["trader_score"] == 90
-    assert result["technical_score"] == 80
+    assert result["trader_score"] == 94.5
+    assert result["technical_score"] == 88
     assert result["fundamental_score"] == 70
-    assert result["overall_score"] == 79.5
-    assert result["signal"] == "WATCH"
+    assert result["overall_score"] == 83.7
+    assert result["signal"] == "ALERT"
