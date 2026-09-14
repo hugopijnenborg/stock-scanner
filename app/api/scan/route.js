@@ -7,25 +7,37 @@ const SOURCE = 'https://raw.githubusercontent.com/hugopijnenborg/stock-scanner/m
 const COMMITS = 'https://api.github.com/repos/hugopijnenborg/stock-scanner/commits?path=public/data/latest_scan.json&per_page=1';
 
 const WEIGHTS = {
-  trader_similarity_score: 0.35,
-  technical_score: 0.30,
-  fundamental_score: 0.20,
-  analyst_consensus_score: 0.15,
+  trader: 0.30,
+  technical: 0.35,
+  fundamental: 0.35,
 };
-const ALERT_THRESHOLD = 70;
-const WATCH_THRESHOLD = 55;
+const ALERT_THRESHOLD = 80;
+const WATCH_THRESHOLD = 65;
+const TRADER_RELAXATION = 0.45;
+const TECHNICAL_RELAXATION = 0.40;
 
 function numberOrNull(value) {
   const n = Number(value);
   return Number.isFinite(n) ? n : null;
 }
 
+function relaxScore(value, relaxation) {
+  if (value === null) return null;
+  const clamped = Math.max(0, Math.min(100, value));
+  return clamped + (100 - clamped) * relaxation;
+}
+
 function calculateOverallScore(row) {
+  const traderRaw = numberOrNull(row.trader_similarity_score);
+  const technicalRaw = numberOrNull(row.technical_score);
+  const fundamental = numberOrNull(row.fundamental_score);
+
+  const trader = relaxScore(traderRaw, TRADER_RELAXATION);
+  const technical = relaxScore(technicalRaw, TECHNICAL_RELAXATION);
   const parts = [
-    [numberOrNull(row.trader_similarity_score), WEIGHTS.trader_similarity_score],
-    [numberOrNull(row.technical_score), WEIGHTS.technical_score],
-    [numberOrNull(row.fundamental_score), WEIGHTS.fundamental_score],
-    [numberOrNull(row.analyst_consensus_score), WEIGHTS.analyst_consensus_score],
+    [trader, WEIGHTS.trader],
+    [technical, WEIGHTS.technical],
+    [fundamental, WEIGHTS.fundamental],
   ].filter(([value]) => value !== null);
 
   if (!parts.length) return null;
@@ -37,6 +49,12 @@ function calculateOverallScore(row) {
 
 function normalizeResult(row) {
   const overall = calculateOverallScore(row);
+  const traderRaw = numberOrNull(row.trader_similarity_score);
+  const technicalRaw = numberOrNull(row.technical_score);
+  const fundamental = numberOrNull(row.fundamental_score);
+  const trader = relaxScore(traderRaw, TRADER_RELAXATION);
+  const technical = relaxScore(technicalRaw, TECHNICAL_RELAXATION);
+
   let signal = 'DATA_INCOMPLETE';
   if (overall !== null) {
     if (overall >= ALERT_THRESHOLD) signal = 'ALERT';
@@ -47,10 +65,10 @@ function normalizeResult(row) {
   return {
     ...row,
     overall_score: overall,
-    trader_score: numberOrNull(row.trader_similarity_score),
-    technical_score: numberOrNull(row.technical_score),
-    fundamental_score: numberOrNull(row.fundamental_score),
-    analyst_score: numberOrNull(row.analyst_consensus_score),
+    trader_score: trader === null ? null : Math.round(trader * 10) / 10,
+    technical_score: technical === null ? null : Math.round(technical * 10) / 10,
+    fundamental_score: fundamental,
+    trader_similarity_score: trader === null ? null : Math.round(trader * 10) / 10,
     signal,
   };
 }
@@ -84,9 +102,6 @@ export async function GET() {
     const data = JSON.parse(cleaned);
     const originalGeneratedAt = data.generated_at;
 
-    // Recalculate the production score from the four live components at read time.
-    // This prevents an older persisted overall_score from surviving after the
-    // scoring model changed to Trader 35%, Technical 30%, Fundamentals 20%, Analyst 15%.
     if (Array.isArray(data.results)) {
       data.results = data.results.map(normalizeResult);
       data.results.sort((a, b) => {
@@ -98,12 +113,9 @@ export async function GET() {
       data.top_score = data.results.length ? data.results[0].overall_score : null;
     }
 
-    data.score_weights = { trader: 35, technical: 30, fundamental: 20, analyst: 15 };
+    data.score_weights = { trader: 30, technical: 35, fundamental: 35 };
     data.alert_threshold = ALERT_THRESHOLD;
 
-    // generated_at from the scanner is the scan timestamp. Use the GitHub
-    // commit as the refresh version because it changes only after the workflow
-    // has actually published a new result file.
     if (commitResponse.ok) {
       const commits = await commitResponse.json();
       const latestCommitDate = commits?.[0]?.commit?.committer?.date || commits?.[0]?.commit?.author?.date;
