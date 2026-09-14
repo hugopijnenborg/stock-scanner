@@ -1,0 +1,8 @@
+.detailCards > div:nth-child(4){display:none!important}
+.detailCards > div:nth-child(1) span{font-size:0}
+.detailCards > div:nth-child(1) span::after{content:'Trader · 30%';font-size:inherit}
+.detailCards > div:nth-child(2) span{font-size:0}
+.detailCards > div:nth-child(2) span::after{content:'Technical · 35%';font-size:inherit}
+.detailCards > div:nth-child(3) span{font-size:0}
+.detailCards > div:nth-child(3) span::after{content:'Fundamentals · 35%';font-size:inherit}
+.detailSection:has(.analystPanel){display:none!important}
