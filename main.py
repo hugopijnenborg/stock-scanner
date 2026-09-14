@@ -41,13 +41,12 @@ def _json_safe(value):
 
 
 def apply_production_score(result):
-    """Replace the legacy combined score with the four-part production score."""
+    """Apply the three-component production score."""
     if result is None or result.empty:
         return result
     result = result.copy()
-    result["analyst_score"] = result.get("analyst_consensus_score")
     scored = result.apply(calculate_score, axis=1, result_type="expand")
-    for column in ["overall_score", "trader_score", "technical_score", "fundamental_score", "analyst_score", "signal"]:
+    for column in ["overall_score", "trader_score", "technical_score", "fundamental_score", "signal"]:
         if column in scored:
             result[column] = scored[column]
     result["trader_similarity_score"] = result["trader_score"]
@@ -65,7 +64,7 @@ def write_web_output(result, universe_size: int, path: str) -> None:
         "universe_size": int(universe_size),
         "alert_count": int((result["signal"] == "ALERT").sum()) if not result.empty and "signal" in result else 0,
         "top_score": top_score,
-        "score_weights": {"trader": 35, "technical": 30, "fundamental": 20, "analyst": 15},
+        "score_weights": {"trader": 30, "technical": 35, "fundamental": 35},
         "alert_threshold": 80,
         "results": rows,
     }
