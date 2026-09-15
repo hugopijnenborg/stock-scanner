@@ -64,6 +64,23 @@ jobs:
           key: full-model-pit-cache-${{ github.run_id }}
           restore-keys: full-model-pit-cache-
 
+      - name: Determine the lockbox cutoff
+        id: holdout
+        run: |
+          if [ -n "${{ github.event.inputs.holdout_start }}" ]; then
+            echo "cutoff=${{ github.event.inputs.holdout_start }}" >> "$GITHUB_OUTPUT"
+          else
+            # Default for every automatic push-triggered run (and manual runs
+            # that don't override it): the most recent 9 months are always
+            # held back from the auto-published summary. Otherwise every
+            # push would publish results over the FULL window, and casually
+            # tuning model.py against that published result would be the
+            # exact leakage the lockbox exists to prevent -- there'd be no
+            # protection unless someone remembered to set holdout_start by
+            # hand on every single run.
+            echo "cutoff=$(date -d '9 months ago' +%Y-%m-%d)" >> "$GITHUB_OUTPUT"
+          fi
+
       - name: Run full model validation
         run: |
           python full_model_validation.py \
@@ -72,7 +89,7 @@ jobs:
             --step "${{ github.event.inputs.step || '5' }}" \
             --output full_model_validation.csv \
             --summary public/data/full_model_validation.json \
-            --holdout-start "${{ github.event.inputs.holdout_start || '' }}" \
+            --holdout-start "${{ steps.holdout.outputs.cutoff }}" \
             --lockbox-output full_model_validation_lockbox.json
 
       - name: Keep the raw observations for further analysis
@@ -85,7 +102,6 @@ jobs:
           retention-days: 30
 
       - name: Keep the lockbox result as a private artifact
-        if: github.event.inputs.holdout_start != ''
         uses: actions/upload-artifact@v4
         with:
           name: full-model-validation-lockbox
