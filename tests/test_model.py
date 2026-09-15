@@ -41,16 +41,60 @@ def test_market_regime_exists_and_is_bounded():
     assert ((regime >= 0) & (regime <= 1)).all()
 
 
+def _dislocated(features):
+    """A row that has actually fallen, so confirmation has something to confirm."""
+    row = features.iloc[-1].copy()
+    row["return_7d"] = -0.12
+    row["return_14d"] = -0.20
+    row["return_30d"] = -0.28
+    row["distance_52w_high"] = -0.40
+    row["rsi_14"] = 26.0
+    row["z_score"] = -1.8
+    return row
+
+
 def test_sector_strength_is_used():
-    prices = sample_prices()
     benchmark = sample_prices(trend=0.05)["Close"]
-    features = add_indicators(prices, benchmark)
-    base = features.iloc[-1].copy()
+    base = _dislocated(add_indicators(sample_prices(), benchmark))
     base["sector_relative_strength_20d"] = -0.10
     weak = technical_opportunity_score(base)["technical_opportunity_score"]
     base["sector_relative_strength_20d"] = 0.20
     strong = technical_opportunity_score(base)["technical_opportunity_score"]
     assert strong > weak
+
+
+def test_confirmation_cannot_create_an_opportunity_without_a_drawdown():
+    """Confirmation multiplies the dislocation; it never substitutes for it.
+
+    A stock making new highs on heavy volume in a strong sector is not a dip to
+    buy. Averaging confirmation into the score, as the previous version did,
+    handed every ticker roughly the same points and flattened the whole scale.
+    """
+    benchmark = sample_prices(trend=0.05)["Close"]
+    row = add_indicators(sample_prices(trend=0.10), benchmark).iloc[-1].copy()
+    row["return_7d"] = 0.06
+    row["return_14d"] = 0.11
+    row["return_30d"] = 0.18
+    row["distance_52w_high"] = -0.01
+    row["volume_ratio"] = 3.0
+    row["close_location"] = 0.95
+    row["sector_relative_strength_20d"] = 0.25
+    assert technical_opportunity_score(row)["technical_opportunity_score"] < 5.0
+
+
+def test_recent_sharp_drop_outscores_a_slow_grind():
+    """The 7/14/30 day windows exist to find the acute flush, not the slow slide."""
+    benchmark = sample_prices(trend=0.05)["Close"]
+    base = _dislocated(add_indicators(sample_prices(), benchmark))
+
+    sharp = base.copy()
+    sharp["return_7d"], sharp["return_14d"], sharp["return_30d"] = -0.20, -0.24, -0.26
+
+    grind = base.copy()
+    grind["return_7d"], grind["return_14d"], grind["return_30d"] = -0.02, -0.06, -0.26
+
+    assert (technical_opportunity_score(sharp)["technical_opportunity_score"]
+            > technical_opportunity_score(grind)["technical_opportunity_score"])
 
 
 def test_stronger_rebound_setup_scores_higher():

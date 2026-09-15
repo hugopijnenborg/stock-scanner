@@ -53,7 +53,8 @@ def apply_production_score(result):
         return result
     result = result.copy()
     scored = result.apply(calculate_score, axis=1, result_type="expand")
-    for column in ["overall_score", "trader_score", "technical_score", "fundamental_score", "signal", "model_version"]:
+    for column in ["overall_score", "trader_score", "technical_score", "fundamental_score",
+                   "earnings_adjustment", "earnings_context", "signal", "model_version"]:
         if column in scored:
             result[column] = scored[column]
     # The frontend reads the trader component under its scanner name.

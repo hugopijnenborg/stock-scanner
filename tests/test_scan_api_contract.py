@@ -89,9 +89,13 @@ def test_published_score_is_the_plain_weighted_sum(payload):
             continue
         weight_sum = sum(w for _, w in usable)
         expected = sum(v * w for v, w in usable) / weight_sum
+        # Earnings context adjusts the weighted sum by at most +/-5 points.
+        adjustment = row.get("earnings_adjustment") or 0
+        assert abs(adjustment) <= 5.0, f"{row['ticker']}: earnings adjustment exceeds its cap"
+        expected = max(0.0, min(100.0, expected + adjustment))
         assert row["overall_score"] == pytest.approx(expected, abs=0.05), (
             f"{row['ticker']}: published {row['overall_score']} but the three "
-            f"components weigh out to {expected:.1f}"
+            f"components plus the earnings adjustment weigh out to {expected:.1f}"
         )
         checked += 1
     assert checked > 50, "too few complete rows to verify the formula"

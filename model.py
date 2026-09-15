@@ -127,47 +127,99 @@ def weighted_score(components: dict[str, float], weights: dict[str, float]) -> f
     return 100.0 * sum(components[k] * w for k, w in usable) / total
 
 
+# A setup still in free fall is discounted, one being absorbed gets a modest
+# lift. Bounded on both sides so confirmation can never manufacture an
+# opportunity that the drawdown itself does not support.
+CONFIRMATION_FLOOR = 0.70
+CONFIRMATION_CEILING = 1.15
+
+
+def _drawdown_component(r: pd.Series) -> float:
+    """How hard the stock has fallen over 7, 14 and 30 days.
+
+    This is the opportunity itself: the sharper and more recent the fall, the
+    more there is to recover. The three windows answer different questions --
+    7d catches the acute flush, 30d the sustained slide -- so the strongest of
+    the three leads and the others confirm. A plain average of all three would
+    punish a stock that collapsed this week but was flat the month before,
+    which is exactly the setup worth finding.
+    """
+    windows = {
+        "return_7d": low_is_good(r.get("return_7d", np.nan), -0.03, -0.18),
+        "return_14d": low_is_good(r.get("return_14d", np.nan), -0.04, -0.25),
+        "return_30d": low_is_good(r.get("return_30d", np.nan), -0.05, -0.32),
+    }
+    present = [v for v in windows.values() if not pd.isna(v)]
+    if not present:
+        return float("nan")
+    strongest = max(present)
+    rest = sorted(present, reverse=True)[1:]
+    support = sum(rest) / len(rest) if rest else strongest
+    return float(clamp(0.70 * strongest + 0.30 * support))
+
+
 def technical_opportunity_score(r: pd.Series) -> dict[str, float]:
     """Score the opportunity itself, not whether the rebound has already started.
 
-    Persistent structural signals carry most of the score. Reversal, volume,
-    sector strength and market regime are confirmation, not requirements.
+    Three dimensions that measure genuinely different things. The previous
+    version averaged eight sub-signals of which six were near-duplicate
+    measures of "the price is down" -- return_5d, return_20d, distance_sma20,
+    distance_sma50, z_score and rsi_14 correlate between 0.75 and 0.87 on live
+    data. Each was calibrated to a different extreme, so a stock had to hit all
+    six extremes at once to score well. None ever did: across 228 tickers and
+    113 recorded scans the component never once passed 68 out of 100, which
+    capped the whole scanner regardless of its weights.
     """
-    structural = {
-        "drawdown_5d": low_is_good(r.get("return_5d", np.nan), -0.02, -0.20),
-        "rsi_14": low_is_good(r.get("rsi_14", np.nan), 48, 22),
-        "drawdown_20d": low_is_good(r.get("return_20d", np.nan), -0.03, -0.35),
-        "distance_sma20": low_is_good(r.get("distance_sma20", np.nan), -0.02, -0.20),
-        "distance_sma50": low_is_good(r.get("distance_sma50", np.nan), -0.03, -0.25),
-        "z_score": low_is_good(r.get("z_score", np.nan), -0.25, -2.50),
-        "distance_52w_high": low_is_good(r.get("distance_52w_high", np.nan), -0.05, -0.45),
+    dislocation = {
+        # How far it has fallen, over the windows where dip-buying pays.
+        "drawdown": _drawdown_component(r),
+        # How far it sits below where it has been, independent of the slide.
+        "distance_52w_high": low_is_good(r.get("distance_52w_high", np.nan), -0.08, -0.50),
+    }
+    dislocation_weights = {"drawdown": 0.65, "distance_52w_high": 0.35}
+
+    # Is the selling stretched, or is this an orderly decline with room to fall?
+    exhaustion = {
+        "rsi_14": low_is_good(r.get("rsi_14", np.nan), 45, 20),
+        "z_score": low_is_good(r.get("z_score", np.nan), -0.50, -2.50),
+    }
+    exhaustion_weights = {"rsi_14": 0.55, "z_score": 0.45}
+
+    # Signs the fall is being absorbed rather than still accelerating.
+    stabilisation = {
+        "volume_ratio": _neutral_centered_high(r.get("volume_ratio", np.nan), 1.0, 3.0),
+        "close_location": _neutral_centered_high(r.get("close_location", np.nan), 0.40, 0.90),
         "support": _technical_support_component(r),
-    }
-    structural_weights = {
-        "drawdown_5d": 0.14,
-        "rsi_14": 0.18,
-        "drawdown_20d": 0.16,
-        "distance_sma20": 0.10,
-        "distance_sma50": 0.12,
-        "z_score": 0.10,
-        "distance_52w_high": 0.15,
-        "support": 0.05,
-    }
-    confirmation = {
-        "volume_ratio": _neutral_centered_high(r.get("volume_ratio", np.nan), 1.0, 4.0),
-        "intraday_reversal": _neutral_centered_high(r.get("close_location", np.nan), 0.50, 1.00),
         "sector_relative_strength_20d": _neutral_centered_high(r.get("sector_relative_strength_20d", np.nan), 0.0, 0.20),
-        "market_regime": float(r.get("market_regime_score", 0.5)) if pd.notna(r.get("market_regime_score", np.nan)) else 0.5,
     }
-    confirmation_weights = {
-        "volume_ratio": 0.35,
-        "intraday_reversal": 0.25,
-        "sector_relative_strength_20d": 0.20,
-        "market_regime": 0.20,
+    stabilisation_weights = {
+        "volume_ratio": 0.30,
+        "close_location": 0.25,
+        "support": 0.30,
+        "sector_relative_strength_20d": 0.15,
     }
-    structural_score = weighted_score(structural, structural_weights)
-    confirmation_score = weighted_score(confirmation, confirmation_weights)
-    return {"technical_opportunity_score": float(0.80 * structural_score + 0.20 * confirmation_score)}
+
+    dislocation_score = weighted_score(dislocation, dislocation_weights)
+    exhaustion_score = weighted_score(exhaustion, exhaustion_weights)
+    stabilisation_score = weighted_score(stabilisation, stabilisation_weights)
+
+    # Dislocation sets the size of the opportunity; exhaustion and stabilisation
+    # say whether to believe it. Those are not addable quantities, and averaging
+    # them was what flattened the score: stabilisation sits near 50 for almost
+    # every ticker, so as a weighted term it handed everyone the same points
+    # instead of separating anything. As a multiplier it does its real job --
+    # discounting a stock still in free fall without capping one that has fallen
+    # hard and is being absorbed.
+    confirmation = 0.60 * exhaustion_score + 0.40 * stabilisation_score
+    confidence = CONFIRMATION_FLOOR + (CONFIRMATION_CEILING - CONFIRMATION_FLOOR) * clamp(confirmation / 100.0)
+    total = min(100.0, dislocation_score * confidence)
+    return {
+        "technical_opportunity_score": float(total),
+        "dislocation_score": float(dislocation_score),
+        "exhaustion_score": float(exhaustion_score),
+        "stabilisation_score": float(stabilisation_score),
+        "confirmation_multiplier": float(confidence),
+    }
 
 
 def dip_score(r: pd.Series) -> float:

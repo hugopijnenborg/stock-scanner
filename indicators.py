@@ -30,8 +30,11 @@ def add_indicators(df: pd.DataFrame, benchmark_close: pd.Series | None = None) -
     out["return_1d"] = close.pct_change(1)
     out["return_3d"] = close.pct_change(3)
     out["return_5d"] = close.pct_change(5)
+    out["return_7d"] = close.pct_change(7)
     out["return_10d"] = close.pct_change(10)
+    out["return_14d"] = close.pct_change(14)
     out["return_20d"] = close.pct_change(20)
+    out["return_30d"] = close.pct_change(30)
 
     out["sma_20"] = close.rolling(20).mean()
     out["sma_50"] = close.rolling(50).mean()

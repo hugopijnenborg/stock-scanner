@@ -5,10 +5,12 @@ from typing import Any
 
 import pandas as pd
 
+from event_context import earnings_adjustment
+
 # Bump whenever the formula, the weights or the thresholds change. Every scan
 # records this next to its scores so historical rows stay comparable: a score
 # from one version must never be compared with a score from another.
-MODEL_VERSION = "3.0"
+MODEL_VERSION = "4.0"
 
 # Production score: three independent components, weighted exactly as stated.
 #
@@ -77,11 +79,22 @@ def calculate_score(row: pd.Series | dict[str, Any]) -> dict[str, float | str | 
         (fundamental, FUNDAMENTAL_WEIGHT),
     ])
 
+    # Earnings context adjusts, it does not drive. Capped at +/-5 points and
+    # neutral where the data is missing, so it can separate two comparable
+    # setups without ever carrying a mediocre one over the alert line, and
+    # without renormalising the weights for the ~90 tickers that have no
+    # earnings data. See event_context.py.
+    events = earnings_adjustment(dict(row))
+    if overall is not None:
+        overall = max(0.0, min(100.0, overall + events["earnings_adjustment"]))
+
     return {
         "overall_score": round(overall, 1) if overall is not None else None,
         "trader_score": round(trader, 1) if trader is not None else None,
         "technical_score": round(technical, 1) if technical is not None else None,
         "fundamental_score": round(fundamental, 1) if fundamental is not None else None,
+        "earnings_adjustment": events["earnings_adjustment"],
+        "earnings_context": events["earnings_context"],
         "signal": signal_for(overall),
         "model_version": MODEL_VERSION,
     }
