@@ -67,7 +67,7 @@ jobs:
           git reset --hard origin/main
           cp /tmp/latest_scan.json public/data/latest_scan.json
           cp /tmp/alert_history.json public/data/alert_history.json
-          git add public/data/latest_scan.json public/data/alert_history.json
+          git add public/data/latest_scan.json public/data/alert_history.json data/pending_confirmations.json
           git diff --cached --quiet && exit 0
           git commit -m 'Update scanner result [skip ci]'
           git push origin HEAD:main
