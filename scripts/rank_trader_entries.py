@@ -147,7 +147,9 @@ def profile_buys(usable, per_day) -> list[dict]:
             value = mine.get(field)
             row[field] = value
             others = [c[field] for c in scored.values() if c.get(field) is not None]
-            if value is None or len(others) < 20:
+            # A percentile from a handful of peers is noise, but the floor has
+            # to be low enough that a small run still produces one.
+            if value is None or len(others) < 10:
                 row[f"pct_{field}"] = None
             else:
                 below = sum(1 for o in others if o < value)
