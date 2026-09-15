@@ -2,8 +2,9 @@ name: Daily Model Refresh
 
 on:
   schedule:
+    # UTC (GitHub Actions cron has no timezone option): 15:00 UTC is
+    # 17:00 Dutch in summer and 16:00 Dutch in winter.
     - cron: '0 15 * * 1-5'
-      timezone: 'Europe/Amsterdam'
   workflow_dispatch:
 
 permissions:

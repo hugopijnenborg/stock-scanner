@@ -2,8 +2,10 @@ name: Alert Evaluation
 
 on:
   schedule:
+    # UTC (GitHub Actions cron has no timezone option): 21:55 UTC is
+    # 23:55 Dutch in summer and 22:55 Dutch in winter, so this always runs
+    # after the final 22:00 Dutch market scan.
     - cron: '55 21 * * 1-5'
-      timezone: 'Europe/Amsterdam'
   workflow_dispatch:
 
 permissions:

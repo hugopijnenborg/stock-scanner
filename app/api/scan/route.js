@@ -6,69 +6,39 @@ export const revalidate = 0;
 const SOURCE = 'https://raw.githubusercontent.com/hugopijnenborg/stock-scanner/main/public/data/latest_scan.json';
 const COMMITS = 'https://api.github.com/repos/hugopijnenborg/stock-scanner/commits?path=public/data/latest_scan.json&per_page=1';
 
-const WEIGHTS = {
-  trader: 0.30,
-  technical: 0.35,
-  fundamental: 0.35,
-};
+// The score is calculated once, in score_engine.py, and published inside
+// latest_scan.json. This route must never recalculate it: the published
+// trader/technical scores are already calibrated, so scoring them again here
+// would apply the relaxation twice and promote sub-80 rows to BUY ALERT.
+const SCORE_WEIGHTS = { trader: 30, technical: 35, fundamental: 35 };
 const ALERT_THRESHOLD = 80;
 const WATCH_THRESHOLD = 65;
-const TRADER_RELAXATION = 0.45;
-const TECHNICAL_RELAXATION = 0.40;
 
 function numberOrNull(value) {
   const n = Number(value);
   return Number.isFinite(n) ? n : null;
 }
 
-function relaxScore(value, relaxation) {
-  if (value === null) return null;
-  const clamped = Math.max(0, Math.min(100, value));
-  return clamped + (100 - clamped) * relaxation;
-}
-
-function calculateOverallScore(row) {
-  const traderRaw = numberOrNull(row.trader_similarity_score);
-  const technicalRaw = numberOrNull(row.technical_score);
-  const fundamental = numberOrNull(row.fundamental_score);
-
-  const trader = relaxScore(traderRaw, TRADER_RELAXATION);
-  const technical = relaxScore(technicalRaw, TECHNICAL_RELAXATION);
-  const parts = [
-    [trader, WEIGHTS.trader],
-    [technical, WEIGHTS.technical],
-    [fundamental, WEIGHTS.fundamental],
-  ].filter(([value]) => value !== null);
-
-  if (!parts.length) return null;
-
-  const weightSum = parts.reduce((sum, [, weight]) => sum + weight, 0);
-  const weighted = parts.reduce((sum, [value, weight]) => sum + value * weight, 0) / weightSum;
-  return Math.round(weighted * 10) / 10;
+function signalFor(overall) {
+  if (overall === null) return 'DATA_INCOMPLETE';
+  if (overall >= ALERT_THRESHOLD) return 'ALERT';
+  if (overall >= WATCH_THRESHOLD) return 'WATCH';
+  return 'NO_SIGNAL';
 }
 
 function normalizeResult(row) {
-  const overall = calculateOverallScore(row);
-  const traderRaw = numberOrNull(row.trader_similarity_score);
-  const technicalRaw = numberOrNull(row.technical_score);
-  const fundamental = numberOrNull(row.fundamental_score);
-  const trader = relaxScore(traderRaw, TRADER_RELAXATION);
-  const technical = relaxScore(technicalRaw, TECHNICAL_RELAXATION);
-
-  let signal = 'DATA_INCOMPLETE';
-  if (overall !== null) {
-    if (overall >= ALERT_THRESHOLD) signal = 'ALERT';
-    else if (overall >= WATCH_THRESHOLD) signal = 'WATCH';
-    else signal = 'NO_SIGNAL';
-  }
+  const overall = numberOrNull(row.overall_score);
+  // Only fall back to deriving the signal when the published scan predates the
+  // signal field. Never re-derive the score itself.
+  const signal = row.signal || signalFor(overall);
 
   return {
     ...row,
     overall_score: overall,
-    trader_score: trader === null ? null : Math.round(trader * 10) / 10,
-    technical_score: technical === null ? null : Math.round(technical * 10) / 10,
-    fundamental_score: fundamental,
-    trader_similarity_score: trader === null ? null : Math.round(trader * 10) / 10,
+    trader_score: numberOrNull(row.trader_score ?? row.trader_similarity_score),
+    technical_score: numberOrNull(row.technical_score),
+    fundamental_score: numberOrNull(row.fundamental_score),
+    trader_similarity_score: numberOrNull(row.trader_similarity_score ?? row.trader_score),
     signal,
   };
 }
@@ -113,8 +83,8 @@ export async function GET() {
       data.top_score = data.results.length ? data.results[0].overall_score : null;
     }
 
-    data.score_weights = { trader: 30, technical: 35, fundamental: 35 };
-    data.alert_threshold = ALERT_THRESHOLD;
+    data.score_weights = data.score_weights || SCORE_WEIGHTS;
+    data.alert_threshold = data.alert_threshold ?? ALERT_THRESHOLD;
 
     if (commitResponse.ok) {
       const commits = await commitResponse.json();

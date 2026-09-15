@@ -2,13 +2,16 @@ name: Market Scanner
 
 on:
   schedule:
-    # Dutch time: first scan 15:45, then every 15 minutes through 22:00.
-    - cron: '45 15 * * 1-5'
-      timezone: 'Europe/Amsterdam'
-    - cron: '0,15,30,45 16-21 * * 1-5'
-      timezone: 'Europe/Amsterdam'
-    - cron: '0 22 * * 1-5'
-      timezone: 'Europe/Amsterdam'
+    # GitHub Actions cron is ALWAYS UTC and has no timezone option, so these
+    # crons cover the union of both Dutch offsets:
+    #   summer (CEST, UTC+2): 15:45-22:00 Dutch == 13:45-20:00 UTC
+    #   winter (CET,  UTC+1): 15:45-22:00 Dutch == 14:45-21:00 UTC
+    # Union = 13:45-21:00 UTC every 15 minutes. The extra triggers that fall
+    # outside the Dutch window are stopped by scripts/market_hours_guard.py,
+    # which is timezone aware and owns the exact 15:45-22:00 window.
+    - cron: '45 13 * * 1-5'
+    - cron: '0,15,30,45 14-20 * * 1-5'
+    - cron: '0 21 * * 1-5'
   workflow_dispatch:
 
 permissions:
