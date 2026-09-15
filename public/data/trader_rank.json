@@ -1,0 +1,1752 @@
+{
+  "model_version": "4.1",
+  "start": "2024-06-01",
+  "variants": {
+    "trader + technical": {
+      "n": 72,
+      "universe": 228.0,
+      "median_rank": 13.0,
+      "mean_rank": 23.6,
+      "top_10": 28,
+      "top_25": 45,
+      "top_50": 62,
+      "bottom_half": 1,
+      "placements": [
+        {
+          "date": "2026-01-14",
+          "ticker": "SOFI",
+          "rank": 47,
+          "of": 227
+        },
+        {
+          "date": "2026-01-29",
+          "ticker": "ORCL",
+          "rank": 13,
+          "of": 227
+        },
+        {
+          "date": "2026-01-29",
+          "ticker": "MSFT",
+          "rank": 44,
+          "of": 227
+        },
+        {
+          "date": "2026-02-03",
+          "ticker": "HOOD",
+          "rank": 6,
+          "of": 227
+        },
+        {
+          "date": "2026-02-04",
+          "ticker": "HIMS",
+          "rank": 8,
+          "of": 227
+        },
+        {
+          "date": "2026-02-05",
+          "ticker": "IREN",
+          "rank": 39,
+          "of": 227
+        },
+        {
+          "date": "2026-02-06",
+          "ticker": "AMD",
+          "rank": 57,
+          "of": 227
+        },
+        {
+          "date": "2026-02-06",
+          "ticker": "AMZN",
+          "rank": 54,
+          "of": 227
+        },
+        {
+          "date": "2026-02-06",
+          "ticker": "IREN",
+          "rank": 30,
+          "of": 227
+        },
+        {
+          "date": "2026-02-06",
+          "ticker": "MSFT",
+          "rank": 38,
+          "of": 227
+        },
+        {
+          "date": "2026-02-06",
+          "ticker": "SOFI",
+          "rank": 27,
+          "of": 227
+        },
+        {
+          "date": "2026-02-12",
+          "ticker": "HOOD",
+          "rank": 4,
+          "of": 227
+        },
+        {
+          "date": "2026-02-12",
+          "ticker": "NFLX",
+          "rank": 32,
+          "of": 227
+        },
+        {
+          "date": "2026-03-13",
+          "ticker": "META",
+          "rank": 55,
+          "of": 227
+        },
+        {
+          "date": "2026-03-13",
+          "ticker": "MSFT",
+          "rank": 84,
+          "of": 227
+        },
+        {
+          "date": "2026-03-18",
+          "ticker": "ADBE",
+          "rank": 13,
+          "of": 227
+        },
+        {
+          "date": "2026-03-19",
+          "ticker": "NVO",
+          "rank": 3,
+          "of": 227
+        },
+        {
+          "date": "2026-03-26",
+          "ticker": "META",
+          "rank": 20,
+          "of": 227
+        },
+        {
+          "date": "2026-03-27",
+          "ticker": "AVGO",
+          "rank": 72,
+          "of": 227
+        },
+        {
+          "date": "2026-03-27",
+          "ticker": "BABA",
+          "rank": 33,
+          "of": 227
+        },
+        {
+          "date": "2026-03-27",
+          "ticker": "ORCL",
+          "rank": 32,
+          "of": 227
+        },
+        {
+          "date": "2026-03-27",
+          "ticker": "RDDT",
+          "rank": 11,
+          "of": 227
+        },
+        {
+          "date": "2026-04-01",
+          "ticker": "AMZN",
+          "rank": 117,
+          "of": 228
+        },
+        {
+          "date": "2026-04-01",
+          "ticker": "IREN",
+          "rank": 5,
+          "of": 228
+        },
+        {
+          "date": "2026-04-01",
+          "ticker": "ORCL",
+          "rank": 37,
+          "of": 228
+        },
+        {
+          "date": "2026-04-01",
+          "ticker": "RDDT",
+          "rank": 41,
+          "of": 228
+        },
+        {
+          "date": "2026-04-14",
+          "ticker": "NKE",
+          "rank": 3,
+          "of": 228
+        },
+        {
+          "date": "2026-04-22",
+          "ticker": "DUOL",
+          "rank": 22,
+          "of": 228
+        },
+        {
+          "date": "2026-04-29",
+          "ticker": "HOOD",
+          "rank": 6,
+          "of": 228
+        },
+        {
+          "date": "2026-05-07",
+          "ticker": "SOFI",
+          "rank": 4,
+          "of": 228
+        },
+        {
+          "date": "2026-05-12",
+          "ticker": "META",
+          "rank": 59,
+          "of": 228
+        },
+        {
+          "date": "2026-05-12",
+          "ticker": "SOFI",
+          "rank": 9,
+          "of": 228
+        },
+        {
+          "date": "2026-05-18",
+          "ticker": "NKE",
+          "rank": 19,
+          "of": 228
+        },
+        {
+          "date": "2026-05-26",
+          "ticker": "DUOL",
+          "rank": 26,
+          "of": 228
+        },
+        {
+          "date": "2026-05-26",
+          "ticker": "HOOD",
+          "rank": 8,
+          "of": 228
+        },
+        {
+          "date": "2026-05-26",
+          "ticker": "META",
+          "rank": 77,
+          "of": 228
+        },
+        {
+          "date": "2026-05-26",
+          "ticker": "MSFT",
+          "rank": 79,
+          "of": 228
+        },
+        {
+          "date": "2026-05-26",
+          "ticker": "NKE",
+          "rank": 28,
+          "of": 228
+        },
+        {
+          "date": "2026-05-26",
+          "ticker": "RDDT",
+          "rank": 5,
+          "of": 228
+        },
+        {
+          "date": "2026-05-26",
+          "ticker": "SOFI",
+          "rank": 14,
+          "of": 228
+        },
+        {
+          "date": "2026-06-09",
+          "ticker": "BABA",
+          "rank": 17,
+          "of": 228
+        },
+        {
+          "date": "2026-06-09",
+          "ticker": "COIN",
+          "rank": 3,
+          "of": 228
+        },
+        {
+          "date": "2026-06-09",
+          "ticker": "CRWV",
+          "rank": 12,
+          "of": 228
+        },
+        {
+          "date": "2026-06-16",
+          "ticker": "ADBE",
+          "rank": 1,
+          "of": 228
+        },
+        {
+          "date": "2026-06-17",
+          "ticker": "MSFT",
+          "rank": 32,
+          "of": 228
+        },
+        {
+          "date": "2026-06-18",
+          "ticker": "ASTS",
+          "rank": 15,
+          "of": 228
+        },
+        {
+          "date": "2026-06-23",
+          "ticker": "BABA",
+          "rank": 3,
+          "of": 228
+        },
+        {
+          "date": "2026-06-23",
+          "ticker": "META",
+          "rank": 57,
+          "of": 228
+        },
+        {
+          "date": "2026-06-23",
+          "ticker": "NFLX",
+          "rank": 10,
+          "of": 228
+        },
+        {
+          "date": "2026-07-01",
+          "ticker": "CRWV",
+          "rank": 3,
+          "of": 228
+        },
+        {
+          "date": "2026-07-02",
+          "ticker": "AAOI",
+          "rank": 5,
+          "of": 228
+        },
+        {
+          "date": "2026-07-07",
+          "ticker": "ORCL",
+          "rank": 1,
+          "of": 228
+        },
+        {
+          "date": "2026-07-16",
+          "ticker": "AAOI",
+          "rank": 12,
+          "of": 228
+        },
+        {
+          "date": "2026-07-16",
+          "ticker": "ASTS",
+          "rank": 2,
+          "of": 228
+        },
+        {
+          "date": "2026-07-16",
+          "ticker": "CRWV",
+          "rank": 4,
+          "of": 228
+        },
+        {
+          "date": "2026-07-16",
+          "ticker": "QCOM",
+          "rank": 35,
+          "of": 228
+        },
+        {
+          "date": "2026-07-21",
+          "ticker": "AAOI",
+          "rank": 11,
+          "of": 228
+        },
+        {
+          "date": "2026-07-21",
+          "ticker": "ASTS",
+          "rank": 7,
+          "of": 228
+        },
+        {
+          "date": "2026-07-21",
+          "ticker": "CRWV",
+          "rank": 12,
+          "of": 228
+        },
+        {
+          "date": "2026-07-21",
+          "ticker": "QCOM",
+          "rank": 34,
+          "of": 228
+        },
+        {
+          "date": "2026-07-23",
+          "ticker": "GOOGL",
+          "rank": 43,
+          "of": 228
+        },
+        {
+          "date": "2026-07-27",
+          "ticker": "AAOI",
+          "rank": 9,
+          "of": 228
+        },
+        {
+          "date": "2026-07-29",
+          "ticker": "AAOI",
+          "rank": 6,
+          "of": 228
+        },
+        {
+          "date": "2026-07-29",
+          "ticker": "CRWV",
+          "rank": 2,
+          "of": 228
+        },
+        {
+          "date": "2026-07-29",
+          "ticker": "TSLA",
+          "rank": 20,
+          "of": 228
+        },
+        {
+          "date": "2026-07-30",
+          "ticker": "META",
+          "rank": 21,
+          "of": 228
+        },
+        {
+          "date": "2026-08-06",
+          "ticker": "DUOL",
+          "rank": 11,
+          "of": 228
+        },
+        {
+          "date": "2026-08-11",
+          "ticker": "APP",
+          "rank": 1,
+          "of": 228
+        },
+        {
+          "date": "2026-08-18",
+          "ticker": "META",
+          "rank": 12,
+          "of": 228
+        },
+        {
+          "date": "2026-08-21",
+          "ticker": "VST",
+          "rank": 8,
+          "of": 228
+        },
+        {
+          "date": "2026-08-25",
+          "ticker": "ASTS",
+          "rank": 9,
+          "of": 228
+        },
+        {
+          "date": "2026-09-04",
+          "ticker": "CRDO",
+          "rank": 2,
+          "of": 228
+        }
+      ]
+    },
+    "alleen technical": {
+      "n": 72,
+      "universe": 228.0,
+      "median_rank": 18.0,
+      "mean_rank": 25.1,
+      "top_10": 27,
+      "top_25": 44,
+      "top_50": 63,
+      "bottom_half": 1,
+      "placements": [
+        {
+          "date": "2026-01-14",
+          "ticker": "SOFI",
+          "rank": 35,
+          "of": 227
+        },
+        {
+          "date": "2026-01-29",
+          "ticker": "ORCL",
+          "rank": 18,
+          "of": 227
+        },
+        {
+          "date": "2026-01-29",
+          "ticker": "MSFT",
+          "rank": 48,
+          "of": 227
+        },
+        {
+          "date": "2026-02-03",
+          "ticker": "HOOD",
+          "rank": 6,
+          "of": 227
+        },
+        {
+          "date": "2026-02-04",
+          "ticker": "HIMS",
+          "rank": 7,
+          "of": 227
+        },
+        {
+          "date": "2026-02-05",
+          "ticker": "IREN",
+          "rank": 34,
+          "of": 227
+        },
+        {
+          "date": "2026-02-06",
+          "ticker": "AMD",
+          "rank": 51,
+          "of": 227
+        },
+        {
+          "date": "2026-02-06",
+          "ticker": "AMZN",
+          "rank": 52,
+          "of": 227
+        },
+        {
+          "date": "2026-02-06",
+          "ticker": "IREN",
+          "rank": 21,
+          "of": 227
+        },
+        {
+          "date": "2026-02-06",
+          "ticker": "MSFT",
+          "rank": 35,
+          "of": 227
+        },
+        {
+          "date": "2026-02-06",
+          "ticker": "SOFI",
+          "rank": 27,
+          "of": 227
+        },
+        {
+          "date": "2026-02-12",
+          "ticker": "HOOD",
+          "rank": 4,
+          "of": 227
+        },
+        {
+          "date": "2026-02-12",
+          "ticker": "NFLX",
+          "rank": 40,
+          "of": 227
+        },
+        {
+          "date": "2026-03-13",
+          "ticker": "META",
+          "rank": 48,
+          "of": 227
+        },
+        {
+          "date": "2026-03-13",
+          "ticker": "MSFT",
+          "rank": 103,
+          "of": 227
+        },
+        {
+          "date": "2026-03-18",
+          "ticker": "ADBE",
+          "rank": 12,
+          "of": 227
+        },
+        {
+          "date": "2026-03-19",
+          "ticker": "NVO",
+          "rank": 7,
+          "of": 227
+        },
+        {
+          "date": "2026-03-26",
+          "ticker": "META",
+          "rank": 18,
+          "of": 227
+        },
+        {
+          "date": "2026-03-27",
+          "ticker": "AVGO",
+          "rank": 62,
+          "of": 227
+        },
+        {
+          "date": "2026-03-27",
+          "ticker": "BABA",
+          "rank": 38,
+          "of": 227
+        },
+        {
+          "date": "2026-03-27",
+          "ticker": "ORCL",
+          "rank": 42,
+          "of": 227
+        },
+        {
+          "date": "2026-03-27",
+          "ticker": "RDDT",
+          "rank": 15,
+          "of": 227
+        },
+        {
+          "date": "2026-04-01",
+          "ticker": "AMZN",
+          "rank": 126,
+          "of": 228
+        },
+        {
+          "date": "2026-04-01",
+          "ticker": "IREN",
+          "rank": 3,
+          "of": 228
+        },
+        {
+          "date": "2026-04-01",
+          "ticker": "ORCL",
+          "rank": 36,
+          "of": 228
+        },
+        {
+          "date": "2026-04-01",
+          "ticker": "RDDT",
+          "rank": 46,
+          "of": 228
+        },
+        {
+          "date": "2026-04-14",
+          "ticker": "NKE",
+          "rank": 3,
+          "of": 228
+        },
+        {
+          "date": "2026-04-22",
+          "ticker": "DUOL",
+          "rank": 19,
+          "of": 228
+        },
+        {
+          "date": "2026-04-29",
+          "ticker": "HOOD",
+          "rank": 4,
+          "of": 228
+        },
+        {
+          "date": "2026-05-07",
+          "ticker": "SOFI",
+          "rank": 4,
+          "of": 228
+        },
+        {
+          "date": "2026-05-12",
+          "ticker": "META",
+          "rank": 53,
+          "of": 228
+        },
+        {
+          "date": "2026-05-12",
+          "ticker": "SOFI",
+          "rank": 9,
+          "of": 228
+        },
+        {
+          "date": "2026-05-18",
+          "ticker": "NKE",
+          "rank": 28,
+          "of": 228
+        },
+        {
+          "date": "2026-05-26",
+          "ticker": "DUOL",
+          "rank": 34,
+          "of": 228
+        },
+        {
+          "date": "2026-05-26",
+          "ticker": "HOOD",
+          "rank": 9,
+          "of": 228
+        },
+        {
+          "date": "2026-05-26",
+          "ticker": "META",
+          "rank": 87,
+          "of": 228
+        },
+        {
+          "date": "2026-05-26",
+          "ticker": "MSFT",
+          "rank": 85,
+          "of": 228
+        },
+        {
+          "date": "2026-05-26",
+          "ticker": "NKE",
+          "rank": 41,
+          "of": 228
+        },
+        {
+          "date": "2026-05-26",
+          "ticker": "RDDT",
+          "rank": 5,
+          "of": 228
+        },
+        {
+          "date": "2026-05-26",
+          "ticker": "SOFI",
+          "rank": 24,
+          "of": 228
+        },
+        {
+          "date": "2026-06-09",
+          "ticker": "BABA",
+          "rank": 26,
+          "of": 228
+        },
+        {
+          "date": "2026-06-09",
+          "ticker": "COIN",
+          "rank": 2,
+          "of": 228
+        },
+        {
+          "date": "2026-06-09",
+          "ticker": "CRWV",
+          "rank": 19,
+          "of": 228
+        },
+        {
+          "date": "2026-06-16",
+          "ticker": "ADBE",
+          "rank": 1,
+          "of": 228
+        },
+        {
+          "date": "2026-06-17",
+          "ticker": "MSFT",
+          "rank": 34,
+          "of": 228
+        },
+        {
+          "date": "2026-06-18",
+          "ticker": "ASTS",
+          "rank": 11,
+          "of": 228
+        },
+        {
+          "date": "2026-06-23",
+          "ticker": "BABA",
+          "rank": 4,
+          "of": 228
+        },
+        {
+          "date": "2026-06-23",
+          "ticker": "META",
+          "rank": 69,
+          "of": 228
+        },
+        {
+          "date": "2026-06-23",
+          "ticker": "NFLX",
+          "rank": 16,
+          "of": 228
+        },
+        {
+          "date": "2026-07-01",
+          "ticker": "CRWV",
+          "rank": 3,
+          "of": 228
+        },
+        {
+          "date": "2026-07-02",
+          "ticker": "AAOI",
+          "rank": 4,
+          "of": 228
+        },
+        {
+          "date": "2026-07-07",
+          "ticker": "ORCL",
+          "rank": 5,
+          "of": 228
+        },
+        {
+          "date": "2026-07-16",
+          "ticker": "AAOI",
+          "rank": 12,
+          "of": 228
+        },
+        {
+          "date": "2026-07-16",
+          "ticker": "ASTS",
+          "rank": 2,
+          "of": 228
+        },
+        {
+          "date": "2026-07-16",
+          "ticker": "CRWV",
+          "rank": 7,
+          "of": 228
+        },
+        {
+          "date": "2026-07-16",
+          "ticker": "QCOM",
+          "rank": 38,
+          "of": 228
+        },
+        {
+          "date": "2026-07-21",
+          "ticker": "AAOI",
+          "rank": 12,
+          "of": 228
+        },
+        {
+          "date": "2026-07-21",
+          "ticker": "ASTS",
+          "rank": 5,
+          "of": 228
+        },
+        {
+          "date": "2026-07-21",
+          "ticker": "CRWV",
+          "rank": 14,
+          "of": 228
+        },
+        {
+          "date": "2026-07-21",
+          "ticker": "QCOM",
+          "rank": 38,
+          "of": 228
+        },
+        {
+          "date": "2026-07-23",
+          "ticker": "GOOGL",
+          "rank": 33,
+          "of": 228
+        },
+        {
+          "date": "2026-07-27",
+          "ticker": "AAOI",
+          "rank": 10,
+          "of": 228
+        },
+        {
+          "date": "2026-07-29",
+          "ticker": "AAOI",
+          "rank": 5,
+          "of": 228
+        },
+        {
+          "date": "2026-07-29",
+          "ticker": "CRWV",
+          "rank": 1,
+          "of": 228
+        },
+        {
+          "date": "2026-07-29",
+          "ticker": "TSLA",
+          "rank": 22,
+          "of": 228
+        },
+        {
+          "date": "2026-07-30",
+          "ticker": "META",
+          "rank": 18,
+          "of": 228
+        },
+        {
+          "date": "2026-08-06",
+          "ticker": "DUOL",
+          "rank": 10,
+          "of": 228
+        },
+        {
+          "date": "2026-08-11",
+          "ticker": "APP",
+          "rank": 1,
+          "of": 228
+        },
+        {
+          "date": "2026-08-18",
+          "ticker": "META",
+          "rank": 21,
+          "of": 228
+        },
+        {
+          "date": "2026-08-21",
+          "ticker": "VST",
+          "rank": 16,
+          "of": 228
+        },
+        {
+          "date": "2026-08-25",
+          "ticker": "ASTS",
+          "rank": 9,
+          "of": 228
+        },
+        {
+          "date": "2026-09-04",
+          "ticker": "CRDO",
+          "rank": 2,
+          "of": 228
+        }
+      ]
+    },
+    "alleen trader": {
+      "n": 72,
+      "universe": 228.0,
+      "median_rank": 12.5,
+      "mean_rank": 23.8,
+      "top_10": 29,
+      "top_25": 47,
+      "top_50": 61,
+      "bottom_half": 0,
+      "placements": [
+        {
+          "date": "2026-01-14",
+          "ticker": "SOFI",
+          "rank": 77,
+          "of": 227
+        },
+        {
+          "date": "2026-01-29",
+          "ticker": "ORCL",
+          "rank": 8,
+          "of": 227
+        },
+        {
+          "date": "2026-01-29",
+          "ticker": "MSFT",
+          "rank": 38,
+          "of": 227
+        },
+        {
+          "date": "2026-02-03",
+          "ticker": "HOOD",
+          "rank": 6,
+          "of": 227
+        },
+        {
+          "date": "2026-02-04",
+          "ticker": "HIMS",
+          "rank": 8,
+          "of": 227
+        },
+        {
+          "date": "2026-02-05",
+          "ticker": "IREN",
+          "rank": 49,
+          "of": 227
+        },
+        {
+          "date": "2026-02-06",
+          "ticker": "AMD",
+          "rank": 74,
+          "of": 227
+        },
+        {
+          "date": "2026-02-06",
+          "ticker": "AMZN",
+          "rank": 55,
+          "of": 227
+        },
+        {
+          "date": "2026-02-06",
+          "ticker": "IREN",
+          "rank": 45,
+          "of": 227
+        },
+        {
+          "date": "2026-02-06",
+          "ticker": "MSFT",
+          "rank": 42,
+          "of": 227
+        },
+        {
+          "date": "2026-02-06",
+          "ticker": "SOFI",
+          "rank": 25,
+          "of": 227
+        },
+        {
+          "date": "2026-02-12",
+          "ticker": "HOOD",
+          "rank": 4,
+          "of": 227
+        },
+        {
+          "date": "2026-02-12",
+          "ticker": "NFLX",
+          "rank": 25,
+          "of": 227
+        },
+        {
+          "date": "2026-03-13",
+          "ticker": "META",
+          "rank": 60,
+          "of": 227
+        },
+        {
+          "date": "2026-03-13",
+          "ticker": "MSFT",
+          "rank": 63,
+          "of": 227
+        },
+        {
+          "date": "2026-03-18",
+          "ticker": "ADBE",
+          "rank": 10,
+          "of": 227
+        },
+        {
+          "date": "2026-03-19",
+          "ticker": "NVO",
+          "rank": 1,
+          "of": 227
+        },
+        {
+          "date": "2026-03-26",
+          "ticker": "META",
+          "rank": 25,
+          "of": 227
+        },
+        {
+          "date": "2026-03-27",
+          "ticker": "AVGO",
+          "rank": 76,
+          "of": 227
+        },
+        {
+          "date": "2026-03-27",
+          "ticker": "BABA",
+          "rank": 34,
+          "of": 227
+        },
+        {
+          "date": "2026-03-27",
+          "ticker": "ORCL",
+          "rank": 30,
+          "of": 227
+        },
+        {
+          "date": "2026-03-27",
+          "ticker": "RDDT",
+          "rank": 10,
+          "of": 227
+        },
+        {
+          "date": "2026-04-01",
+          "ticker": "AMZN",
+          "rank": 109,
+          "of": 228
+        },
+        {
+          "date": "2026-04-01",
+          "ticker": "IREN",
+          "rank": 10,
+          "of": 228
+        },
+        {
+          "date": "2026-04-01",
+          "ticker": "ORCL",
+          "rank": 32,
+          "of": 228
+        },
+        {
+          "date": "2026-04-01",
+          "ticker": "RDDT",
+          "rank": 33,
+          "of": 228
+        },
+        {
+          "date": "2026-04-14",
+          "ticker": "NKE",
+          "rank": 1,
+          "of": 228
+        },
+        {
+          "date": "2026-04-22",
+          "ticker": "DUOL",
+          "rank": 15,
+          "of": 228
+        },
+        {
+          "date": "2026-04-29",
+          "ticker": "HOOD",
+          "rank": 12,
+          "of": 228
+        },
+        {
+          "date": "2026-05-07",
+          "ticker": "SOFI",
+          "rank": 7,
+          "of": 228
+        },
+        {
+          "date": "2026-05-12",
+          "ticker": "META",
+          "rank": 66,
+          "of": 228
+        },
+        {
+          "date": "2026-05-12",
+          "ticker": "SOFI",
+          "rank": 7,
+          "of": 228
+        },
+        {
+          "date": "2026-05-18",
+          "ticker": "NKE",
+          "rank": 5,
+          "of": 228
+        },
+        {
+          "date": "2026-05-26",
+          "ticker": "DUOL",
+          "rank": 23,
+          "of": 228
+        },
+        {
+          "date": "2026-05-26",
+          "ticker": "HOOD",
+          "rank": 13,
+          "of": 228
+        },
+        {
+          "date": "2026-05-26",
+          "ticker": "META",
+          "rank": 65,
+          "of": 228
+        },
+        {
+          "date": "2026-05-26",
+          "ticker": "MSFT",
+          "rank": 77,
+          "of": 228
+        },
+        {
+          "date": "2026-05-26",
+          "ticker": "NKE",
+          "rank": 16,
+          "of": 228
+        },
+        {
+          "date": "2026-05-26",
+          "ticker": "RDDT",
+          "rank": 12,
+          "of": 228
+        },
+        {
+          "date": "2026-05-26",
+          "ticker": "SOFI",
+          "rank": 5,
+          "of": 228
+        },
+        {
+          "date": "2026-06-09",
+          "ticker": "BABA",
+          "rank": 12,
+          "of": 228
+        },
+        {
+          "date": "2026-06-09",
+          "ticker": "COIN",
+          "rank": 3,
+          "of": 228
+        },
+        {
+          "date": "2026-06-09",
+          "ticker": "CRWV",
+          "rank": 13,
+          "of": 228
+        },
+        {
+          "date": "2026-06-16",
+          "ticker": "ADBE",
+          "rank": 3,
+          "of": 228
+        },
+        {
+          "date": "2026-06-17",
+          "ticker": "MSFT",
+          "rank": 26,
+          "of": 228
+        },
+        {
+          "date": "2026-06-18",
+          "ticker": "ASTS",
+          "rank": 30,
+          "of": 228
+        },
+        {
+          "date": "2026-06-23",
+          "ticker": "BABA",
+          "rank": 2,
+          "of": 228
+        },
+        {
+          "date": "2026-06-23",
+          "ticker": "META",
+          "rank": 43,
+          "of": 228
+        },
+        {
+          "date": "2026-06-23",
+          "ticker": "NFLX",
+          "rank": 3,
+          "of": 228
+        },
+        {
+          "date": "2026-07-01",
+          "ticker": "CRWV",
+          "rank": 3,
+          "of": 228
+        },
+        {
+          "date": "2026-07-02",
+          "ticker": "AAOI",
+          "rank": 5,
+          "of": 228
+        },
+        {
+          "date": "2026-07-07",
+          "ticker": "ORCL",
+          "rank": 1,
+          "of": 228
+        },
+        {
+          "date": "2026-07-16",
+          "ticker": "AAOI",
+          "rank": 12,
+          "of": 228
+        },
+        {
+          "date": "2026-07-16",
+          "ticker": "ASTS",
+          "rank": 2,
+          "of": 228
+        },
+        {
+          "date": "2026-07-16",
+          "ticker": "CRWV",
+          "rank": 3,
+          "of": 228
+        },
+        {
+          "date": "2026-07-16",
+          "ticker": "QCOM",
+          "rank": 37,
+          "of": 228
+        },
+        {
+          "date": "2026-07-21",
+          "ticker": "AAOI",
+          "rank": 11,
+          "of": 228
+        },
+        {
+          "date": "2026-07-21",
+          "ticker": "ASTS",
+          "rank": 18,
+          "of": 228
+        },
+        {
+          "date": "2026-07-21",
+          "ticker": "CRWV",
+          "rank": 8,
+          "of": 228
+        },
+        {
+          "date": "2026-07-21",
+          "ticker": "QCOM",
+          "rank": 33,
+          "of": 228
+        },
+        {
+          "date": "2026-07-23",
+          "ticker": "GOOGL",
+          "rank": 59,
+          "of": 228
+        },
+        {
+          "date": "2026-07-27",
+          "ticker": "AAOI",
+          "rank": 6,
+          "of": 228
+        },
+        {
+          "date": "2026-07-29",
+          "ticker": "AAOI",
+          "rank": 10,
+          "of": 228
+        },
+        {
+          "date": "2026-07-29",
+          "ticker": "CRWV",
+          "rank": 2,
+          "of": 228
+        },
+        {
+          "date": "2026-07-29",
+          "ticker": "TSLA",
+          "rank": 24,
+          "of": 228
+        },
+        {
+          "date": "2026-07-30",
+          "ticker": "META",
+          "rank": 26,
+          "of": 228
+        },
+        {
+          "date": "2026-08-06",
+          "ticker": "DUOL",
+          "rank": 20,
+          "of": 228
+        },
+        {
+          "date": "2026-08-11",
+          "ticker": "APP",
+          "rank": 1,
+          "of": 228
+        },
+        {
+          "date": "2026-08-18",
+          "ticker": "META",
+          "rank": 11,
+          "of": 228
+        },
+        {
+          "date": "2026-08-21",
+          "ticker": "VST",
+          "rank": 5,
+          "of": 228
+        },
+        {
+          "date": "2026-08-25",
+          "ticker": "ASTS",
+          "rank": 11,
+          "of": 228
+        },
+        {
+          "date": "2026-09-04",
+          "ticker": "CRDO",
+          "rank": 1,
+          "of": 228
+        }
+      ]
+    },
+    "productieweging 30/35/35 (indicatief)": {
+      "n": 67,
+      "universe": 216,
+      "median_rank": 17,
+      "mean_rank": 21.4,
+      "top_10": 24,
+      "top_25": 43,
+      "top_50": 64,
+      "bottom_half": 1,
+      "placements": [
+        {
+          "date": "2026-01-29",
+          "ticker": "ORCL",
+          "rank": 11,
+          "of": 215
+        },
+        {
+          "date": "2026-01-29",
+          "ticker": "MSFT",
+          "rank": 28,
+          "of": 215
+        },
+        {
+          "date": "2026-02-03",
+          "ticker": "HOOD",
+          "rank": 4,
+          "of": 215
+        },
+        {
+          "date": "2026-02-04",
+          "ticker": "HIMS",
+          "rank": 16,
+          "of": 215
+        },
+        {
+          "date": "2026-02-05",
+          "ticker": "IREN",
+          "rank": 52,
+          "of": 215
+        },
+        {
+          "date": "2026-02-06",
+          "ticker": "AMD",
+          "rank": 43,
+          "of": 215
+        },
+        {
+          "date": "2026-02-06",
+          "ticker": "AMZN",
+          "rank": 48,
+          "of": 215
+        },
+        {
+          "date": "2026-02-06",
+          "ticker": "IREN",
+          "rank": 40,
+          "of": 215
+        },
+        {
+          "date": "2026-02-06",
+          "ticker": "MSFT",
+          "rank": 22,
+          "of": 215
+        },
+        {
+          "date": "2026-02-12",
+          "ticker": "HOOD",
+          "rank": 5,
+          "of": 215
+        },
+        {
+          "date": "2026-02-12",
+          "ticker": "NFLX",
+          "rank": 22,
+          "of": 215
+        },
+        {
+          "date": "2026-03-13",
+          "ticker": "META",
+          "rank": 31,
+          "of": 215
+        },
+        {
+          "date": "2026-03-13",
+          "ticker": "MSFT",
+          "rank": 41,
+          "of": 215
+        },
+        {
+          "date": "2026-03-18",
+          "ticker": "ADBE",
+          "rank": 5,
+          "of": 215
+        },
+        {
+          "date": "2026-03-19",
+          "ticker": "NVO",
+          "rank": 5,
+          "of": 215
+        },
+        {
+          "date": "2026-03-26",
+          "ticker": "META",
+          "rank": 10,
+          "of": 215
+        },
+        {
+          "date": "2026-03-27",
+          "ticker": "AVGO",
+          "rank": 37,
+          "of": 215
+        },
+        {
+          "date": "2026-03-27",
+          "ticker": "BABA",
+          "rank": 52,
+          "of": 215
+        },
+        {
+          "date": "2026-03-27",
+          "ticker": "ORCL",
+          "rank": 23,
+          "of": 215
+        },
+        {
+          "date": "2026-03-27",
+          "ticker": "RDDT",
+          "rank": 5,
+          "of": 215
+        },
+        {
+          "date": "2026-04-01",
+          "ticker": "AMZN",
+          "rank": 109,
+          "of": 216
+        },
+        {
+          "date": "2026-04-01",
+          "ticker": "IREN",
+          "rank": 13,
+          "of": 216
+        },
+        {
+          "date": "2026-04-01",
+          "ticker": "ORCL",
+          "rank": 23,
+          "of": 216
+        },
+        {
+          "date": "2026-04-01",
+          "ticker": "RDDT",
+          "rank": 29,
+          "of": 216
+        },
+        {
+          "date": "2026-04-14",
+          "ticker": "NKE",
+          "rank": 8,
+          "of": 216
+        },
+        {
+          "date": "2026-04-22",
+          "ticker": "DUOL",
+          "rank": 3,
+          "of": 216
+        },
+        {
+          "date": "2026-04-29",
+          "ticker": "HOOD",
+          "rank": 3,
+          "of": 216
+        },
+        {
+          "date": "2026-05-12",
+          "ticker": "META",
+          "rank": 37,
+          "of": 216
+        },
+        {
+          "date": "2026-05-18",
+          "ticker": "NKE",
+          "rank": 39,
+          "of": 216
+        },
+        {
+          "date": "2026-05-26",
+          "ticker": "DUOL",
+          "rank": 3,
+          "of": 216
+        },
+        {
+          "date": "2026-05-26",
+          "ticker": "HOOD",
+          "rank": 7,
+          "of": 216
+        },
+        {
+          "date": "2026-05-26",
+          "ticker": "META",
+          "rank": 50,
+          "of": 216
+        },
+        {
+          "date": "2026-05-26",
+          "ticker": "MSFT",
+          "rank": 43,
+          "of": 216
+        },
+        {
+          "date": "2026-05-26",
+          "ticker": "NKE",
+          "rank": 47,
+          "of": 216
+        },
+        {
+          "date": "2026-05-26",
+          "ticker": "RDDT",
+          "rank": 2,
+          "of": 216
+        },
+        {
+          "date": "2026-06-09",
+          "ticker": "BABA",
+          "rank": 43,
+          "of": 216
+        },
+        {
+          "date": "2026-06-09",
+          "ticker": "COIN",
+          "rank": 3,
+          "of": 216
+        },
+        {
+          "date": "2026-06-09",
+          "ticker": "CRWV",
+          "rank": 32,
+          "of": 216
+        },
+        {
+          "date": "2026-06-16",
+          "ticker": "ADBE",
+          "rank": 1,
+          "of": 216
+        },
+        {
+          "date": "2026-06-17",
+          "ticker": "MSFT",
+          "rank": 19,
+          "of": 216
+        },
+        {
+          "date": "2026-06-18",
+          "ticker": "ASTS",
+          "rank": 29,
+          "of": 216
+        },
+        {
+          "date": "2026-06-23",
+          "ticker": "BABA",
+          "rank": 12,
+          "of": 216
+        },
+        {
+          "date": "2026-06-23",
+          "ticker": "META",
+          "rank": 42,
+          "of": 216
+        },
+        {
+          "date": "2026-06-23",
+          "ticker": "NFLX",
+          "rank": 4,
+          "of": 216
+        },
+        {
+          "date": "2026-07-01",
+          "ticker": "CRWV",
+          "rank": 5,
+          "of": 216
+        },
+        {
+          "date": "2026-07-02",
+          "ticker": "AAOI",
+          "rank": 6,
+          "of": 216
+        },
+        {
+          "date": "2026-07-07",
+          "ticker": "ORCL",
+          "rank": 1,
+          "of": 216
+        },
+        {
+          "date": "2026-07-16",
+          "ticker": "AAOI",
+          "rank": 17,
+          "of": 216
+        },
+        {
+          "date": "2026-07-16",
+          "ticker": "ASTS",
+          "rank": 12,
+          "of": 216
+        },
+        {
+          "date": "2026-07-16",
+          "ticker": "CRWV",
+          "rank": 8,
+          "of": 216
+        },
+        {
+          "date": "2026-07-16",
+          "ticker": "QCOM",
+          "rank": 33,
+          "of": 216
+        },
+        {
+          "date": "2026-07-21",
+          "ticker": "AAOI",
+          "rank": 19,
+          "of": 216
+        },
+        {
+          "date": "2026-07-21",
+          "ticker": "ASTS",
+          "rank": 18,
+          "of": 216
+        },
+        {
+          "date": "2026-07-21",
+          "ticker": "CRWV",
+          "rank": 16,
+          "of": 216
+        },
+        {
+          "date": "2026-07-21",
+          "ticker": "QCOM",
+          "rank": 29,
+          "of": 216
+        },
+        {
+          "date": "2026-07-23",
+          "ticker": "GOOGL",
+          "rank": 17,
+          "of": 216
+        },
+        {
+          "date": "2026-07-27",
+          "ticker": "AAOI",
+          "rank": 12,
+          "of": 216
+        },
+        {
+          "date": "2026-07-29",
+          "ticker": "AAOI",
+          "rank": 20,
+          "of": 216
+        },
+        {
+          "date": "2026-07-29",
+          "ticker": "CRWV",
+          "rank": 15,
+          "of": 216
+        },
+        {
+          "date": "2026-07-29",
+          "ticker": "TSLA",
+          "rank": 30,
+          "of": 216
+        },
+        {
+          "date": "2026-07-30",
+          "ticker": "META",
+          "rank": 10,
+          "of": 216
+        },
+        {
+          "date": "2026-08-06",
+          "ticker": "DUOL",
+          "rank": 4,
+          "of": 216
+        },
+        {
+          "date": "2026-08-11",
+          "ticker": "APP",
+          "rank": 1,
+          "of": 216
+        },
+        {
+          "date": "2026-08-18",
+          "ticker": "META",
+          "rank": 6,
+          "of": 216
+        },
+        {
+          "date": "2026-08-21",
+          "ticker": "VST",
+          "rank": 25,
+          "of": 216
+        },
+        {
+          "date": "2026-08-25",
+          "ticker": "ASTS",
+          "rank": 31,
+          "of": 216
+        },
+        {
+          "date": "2026-09-04",
+          "ticker": "CRDO",
+          "rank": 1,
+          "of": 216
+        }
+      ]
+    }
+  }
+}
