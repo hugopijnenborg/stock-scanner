@@ -8,20 +8,24 @@ from pathlib import Path
 
 import scanner as scanner_module
 from backtest import run_backtest
+from config import ALERT_THRESHOLD, WATCH_THRESHOLD
 from market_validation import run_market_validation
 from scanner import scan
-from score_engine import (
-    ALERT_THRESHOLD as SCORE_ALERT_THRESHOLD,
-    FUNDAMENTAL_WEIGHT,
-    MODEL_VERSION,
-    TECHNICAL_WEIGHT,
-    TRADER_WEIGHT,
-    WATCH_THRESHOLD,
-    calculate_score,
-)
 from universe import load_top_us_stocks
 
 EXCLUDED_TICKERS = {"FLNC"}
+
+# Reflects scanner.py / model.py's assemble_new_score(): Technical
+# (dislocation x confirmation) 55%, Fundamentals 30%, Valuation 10%,
+# Analyst direction 5%, plus an earnings adjustment and a regime
+# multiplier. score_engine.py ("model 4.1", Trader/Technical/Fundamental
+# 30/35/35) is retired — it was silently overwriting overall_score and
+# signal after scan() ran, so the live app was never actually driven by
+# the new methodology despite showing its component breakdown. If you
+# still want model 4.1 for comparison, run it as a separate, clearly
+# labeled report — never let it touch the fields the live app reads.
+MODEL_VERSION = "5.0-technical-fundamentals-valuation-analyst"
+SCORE_WEIGHTS = {"technical": 55, "fundamentals": 30, "valuation": 10, "analyst": 5}
 
 
 def scanner_universe(limit: int | None = None):
@@ -47,76 +51,6 @@ def _json_safe(value):
     return value
 
 
-def apply_production_score(result):
-    """Apply the three-component production score."""
-    if result is None or result.empty:
-        return result
-    result = result.copy()
-    scored = result.apply(calculate_score, axis=1, result_type="expand")
-    for column in ["overall_score", "trader_score", "technical_score", "fundamental_score",
-                   "earnings_adjustment", "earnings_context", "signal", "model_version"]:
-        if column in scored:
-            result[column] = scored[column]
-    # The frontend reads the trader component under its scanner name.
-    result["trader_similarity_score"] = result["trader_score"]
-    return result.sort_values(["overall_score", "trader_score", "technical_score"], ascending=[False, False, False], na_position="last").reset_index(drop=True)
-
-
-def _previous_scores(path: str) -> dict[str, float]:
-    """Scores from the scan this run is about to replace."""
-    previous = Path(path)
-    if not previous.exists():
-        return {}
-    try:
-        payload = json.loads(previous.read_text(encoding="utf-8"))
-    except (OSError, ValueError):
-        return {}
-    scores = {}
-    for row in payload.get("results", []):
-        ticker, score = row.get("ticker"), row.get("overall_score")
-        if ticker and isinstance(score, (int, float)):
-            scores[ticker] = float(score)
-    return scores
-
-
-def confirm_alerts(result, previous: dict[str, float]):
-    """Hold a first-time alert back until a second scan agrees with it.
-
-    Scores are recomputed every fifteen minutes on a day bar that is still
-    forming, so a ticker hovering near the threshold can alert at 16:00 and
-    fall back at 16:15. One confirming scan costs fifteen minutes and removes
-    the alerts that only ever existed because of where the bar happened to be.
-
-    The very first scan after a deploy has nothing to compare against; those
-    alerts are allowed through rather than swallowed.
-    """
-    if result is None or result.empty or "signal" not in result:
-        return result
-    if not previous:
-        result["alert_confirmed"] = result["signal"] == "ALERT"
-        return result
-
-    result = result.copy()
-    confirmed, pending = [], 0
-    for _, row in result.iterrows():
-        if row.get("signal") != "ALERT":
-            confirmed.append(False)
-            continue
-        before = previous.get(row.get("ticker"))
-        if before is not None and before >= SCORE_ALERT_THRESHOLD:
-            confirmed.append(True)
-        else:
-            confirmed.append(False)
-            pending += 1
-    result["alert_confirmed"] = confirmed
-    held = (result["signal"] == "ALERT") & (~result["alert_confirmed"])
-    result.loc[held, "signal"] = "WATCH"
-    result.loc[held, "alert_pending_confirmation"] = True
-    if pending:
-        print(f"{pending} alert(s) wachten op bevestiging door een tweede scan.")
-    return result
-
-
 def write_web_output(result, universe_size: int, path: str) -> None:
     rows = result.where(result.notna(), None).to_dict(orient="records")
     rows = [_json_safe(row) for row in rows]
@@ -129,12 +63,8 @@ def write_web_output(result, universe_size: int, path: str) -> None:
         "alert_count": int((result["signal"] == "ALERT").sum()) if not result.empty and "signal" in result else 0,
         "top_score": top_score,
         "model_version": MODEL_VERSION,
-        "score_weights": {
-            "trader": round(TRADER_WEIGHT * 100),
-            "technical": round(TECHNICAL_WEIGHT * 100),
-            "fundamental": round(FUNDAMENTAL_WEIGHT * 100),
-        },
-        "alert_threshold": SCORE_ALERT_THRESHOLD,
+        "score_weights": SCORE_WEIGHTS,
+        "alert_threshold": ALERT_THRESHOLD,
         "watch_threshold": WATCH_THRESHOLD,
         "results": rows,
     }
@@ -144,7 +74,7 @@ def write_web_output(result, universe_size: int, path: str) -> None:
 
 
 def main() -> None:
-    parser = argparse.ArgumentParser(description="Trader-pattern stock scanner")
+    parser = argparse.ArgumentParser(description="Technical/Fundamentals/Valuation/Analyst stock scanner")
     sub = parser.add_subparsers(dest="command", required=True)
     u = sub.add_parser("universe", help="show current curated universe")
     u.add_argument("--limit", type=int, default=1000)
@@ -165,8 +95,12 @@ def main() -> None:
     elif args.command == "scan":
         scanner_module.load_top_us_stocks = scanner_universe
         universe = scanner_universe(args.limit)
-        previous = _previous_scores(args.web_output)
-        result = confirm_alerts(apply_production_score(scan(args.limit, args.top)), previous)
+        # scan() is the single source of truth now: it already computes
+        # overall_score/signal via assemble_new_score() and already holds
+        # first-time ALERTs back to WATCH until a second scan confirms them
+        # (see scanner.py's _new_signal() / data/pending_confirmations.json).
+        # No post-processing step here anymore.
+        result = scan(args.limit, args.top)
         print(result.to_string(index=False))
         if args.output:
             result.to_csv(args.output, index=False)
