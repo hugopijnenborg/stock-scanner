@@ -93,7 +93,12 @@ def test_published_score_is_the_plain_weighted_sum(payload):
         adjustment = row.get("earnings_adjustment") or 0
         assert abs(adjustment) <= 5.0, f"{row['ticker']}: earnings adjustment exceeds its cap"
         expected = max(0.0, min(100.0, expected + adjustment))
-        assert row["overall_score"] == pytest.approx(expected, abs=0.05), (
+        # Each published component is rounded to one decimal before this test
+        # re-derives the formula from them, and the score itself is rounded
+        # again, so the re-derivation can drift by about a tenth. A relaxation
+        # applied twice moved scores by four to nine points; this still fails
+        # on anything near that.
+        assert row["overall_score"] == pytest.approx(expected, abs=0.15), (
             f"{row['ticker']}: published {row['overall_score']} but the three "
             f"components plus the earnings adjustment weigh out to {expected:.1f}"
         )
@@ -102,9 +107,23 @@ def test_published_score_is_the_plain_weighted_sum(payload):
 
 
 def test_published_signals_match_the_80_threshold(payload):
+    """Two rules hold an otherwise qualifying row back, and both are visible.
+
+    A row with no fundamentals cannot alert, and a first-time alert is held as
+    WATCH until a second scan confirms it. Anything else must match the score
+    on screen: a published 80.0 without a BUY ALERT beside it reads as a broken
+    scanner, whatever the unrounded value was.
+    """
     for row in payload["results"]:
         overall = row.get("overall_score")
-        assert row["signal"] == expected_signal(overall), (
+        expected = expected_signal(overall)
+        if expected == "ALERT" and row["signal"] == "WATCH":
+            held_back = row.get("fundamentals_missing") or row.get("alert_confirmed") is False
+            assert held_back, (
+                f"{row['ticker']} scores {overall} but shows WATCH with no reason recorded"
+            )
+            continue
+        assert row["signal"] == expected, (
             f"{row['ticker']} has score {overall} but signal {row['signal']}"
         )
         if row["signal"] == "ALERT":

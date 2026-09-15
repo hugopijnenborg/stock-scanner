@@ -7,10 +7,11 @@ import pandas as pd
 
 from event_context import earnings_adjustment
 
-# Bump whenever the formula, the weights or the thresholds change. Every scan
+# Bump whenever the formula, the weights, the thresholds or the boundary
+# behaviour change. Every scan
 # records this next to its scores so historical rows stay comparable: a score
 # from one version must never be compared with a score from another.
-MODEL_VERSION = "4.0"
+MODEL_VERSION = "4.1"
 
 # Production score: three independent components, weighted exactly as stated.
 #
@@ -96,9 +97,14 @@ def calculate_score(row: pd.Series | dict[str, Any]) -> dict[str, float | str | 
     events = earnings_adjustment(dict(row))
     if overall is not None:
         overall = max(0.0, min(100.0, overall + events["earnings_adjustment"]))
+        # Judge the score that gets published, not the one before rounding.
+        # Deciding on 49.96 while showing 50.0 puts a row on screen whose
+        # number and signal contradict each other, and at the alert line that
+        # reads as a broken scanner: 80.0 with no BUY ALERT next to it.
+        overall = round(overall, 1)
 
     return {
-        "overall_score": round(overall, 1) if overall is not None else None,
+        "overall_score": overall,
         "trader_score": round(trader, 1) if trader is not None else None,
         "technical_score": round(technical, 1) if technical is not None else None,
         "fundamental_score": round(fundamental, 1) if fundamental is not None else None,
