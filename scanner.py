@@ -1,8 +1,6 @@
 from __future__ import annotations
 
 from datetime import datetime, timedelta, timezone
-import json
-from pathlib import Path
 
 import numpy as np
 import pandas as pd
@@ -14,8 +12,6 @@ from analyst import download_analyst_data
 from indicators import add_indicators
 from model import score_row, assemble_new_score
 from universe import load_top_us_stocks
-
-PENDING_CONFIRMATIONS_PATH = Path("data/pending_confirmations.json")
 
 FEATURE_COLUMNS = ["rsi_7", "rsi_14", "rsi_21", "macd", "macd_signal", "macd_histogram", "macd_histogram_change", "atr_pct", "bollinger_pct", "bollinger_width", "return_1d", "return_3d", "return_5d", "return_7d", "return_10d", "return_14d", "return_20d", "return_30d", "distance_sma20", "distance_sma50", "distance_sma200", "distance_1m_high", "distance_3m_high", "distance_6m_high", "distance_52w_high", "high_52w", "distance_support_20d", "distance_support_60d", "distance_support_120d", "volume_ratio", "volume_ratio_5d", "volatility_20d", "z_score", "close_location", "relative_strength_5d", "relative_strength_20d", "sector_relative_strength_20d"]
 FUNDAMENTAL_COLUMNS = ["revenue", "revenue_growth", "eps", "eps_growth", "net_margin", "gross_margin", "fcf", "fcf_growth", "fcf_margin", "roe", "debt", "debt_equity", "cash", "pe", "forward_pe", "peg", "ev_sales", "fundamental_score", "fundamental_completeness", "sector", "sector_median_pe", "sector_median_forward_pe", "sector_median_peg", "pe_vs_sector", "forward_pe_vs_sector", "peg_vs_sector"]
@@ -206,32 +202,20 @@ def _alert_summary(row):
     return " ".join(sections)
 
 
-def _load_pending_confirmations() -> dict:
-    try:
-        return json.loads(PENDING_CONFIRMATIONS_PATH.read_text(encoding="utf-8"))
-    except (FileNotFoundError, json.JSONDecodeError, OSError):
-        return {}
-
-
-def _save_pending_confirmations(pending: dict) -> None:
-    PENDING_CONFIRMATIONS_PATH.parent.mkdir(parents=True, exist_ok=True)
-    PENDING_CONFIRMATIONS_PATH.write_text(json.dumps(pending, indent=2), encoding="utf-8")
-
-
-def _new_signal(overall: float, gate_excluded: bool, risk_reward_value: float | None, confirmed: bool) -> str:
+def _new_signal(overall: float, gate_excluded: bool, risk_reward_value: float | None) -> str:
     """gate and R/R are hard blocks on ALERT (never override with a high
-    score); ALERT itself additionally requires the same ticker to have
-    qualified on the immediately preceding scan too, so one noisy 15-minute
-    tick can't fire an alert alone."""
+    score). No cross-scan confirmation anymore — a score of 80+ that
+    clears the gate and R/R fires immediately. This trades away the
+    noise-filtering a confirming second scan gave (a ticker hovering near
+    80 could alert then fall back 15 minutes later) for not missing a
+    fast-moving setup — an explicit choice, not a free win."""
     if overall is None or pd.isna(overall):
         return "DATA_INCOMPLETE"
     if gate_excluded:
         return "NO_SIGNAL" if overall < WATCH_THRESHOLD else "WATCH"
     rr_blocked = risk_reward_value is not None and risk_reward_value < 2.0
     if overall >= ALERT_THRESHOLD:
-        if rr_blocked:
-            return "WATCH"
-        return "ALERT" if confirmed else "WATCH"
+        return "WATCH" if rr_blocked else "ALERT"
     if overall >= WATCH_THRESHOLD:
         return "WATCH"
     return "NO_SIGNAL"
@@ -256,12 +240,12 @@ def scan(limit: int = 1000, top_n: int = 25) -> pd.DataFrame:
     intraday_benchmarks = download_intraday_benchmarks(period="10d", interval="15m")
     fundamentals = download_fundamentals(tickers)
     analyst_data = download_analyst_data(tickers)
-    pending = _load_pending_confirmations()
-    pending_next: dict = {}
 
     rows = []
+    skipped_no_data, skipped_liquidity = [], []
     for ticker, prices in market.items():
         if prices.empty or "Close" not in prices.columns:
+            skipped_no_data.append(ticker)
             continue
         features = add_indicators(prices, benchmark_close)
         row = features.iloc[-1].copy()
@@ -284,6 +268,7 @@ def scan(limit: int = 1000, top_n: int = 25) -> pd.DataFrame:
 
         avg_dollar_volume = (features["Close"] * features["Volume"]).rolling(20).mean().iloc[-1]
         if row.get("Close", 0) < MIN_PRICE or (pd.notna(avg_dollar_volume) and avg_dollar_volume < MIN_AVG_DOLLAR_VOLUME):
+            skipped_liquidity.append(ticker)
             continue
         scores = score_row(row, REBOUND_WEIGHTS, QUALITY_WEIGHTS, CYCLICAL_WEIGHTS)
         daily_technical = scores.get("technical_opportunity_score")
@@ -300,15 +285,7 @@ def scan(limit: int = 1000, top_n: int = 25) -> pd.DataFrame:
 
         new_scores = assemble_new_score(row, f, a, bear_regime)
         overall = new_scores["overall_score_v2"]
-        was_pending = pending.get(ticker) is not None
-        signal = _new_signal(overall, new_scores["gate_excluded"], new_scores["risk_reward"], was_pending)
-        qualifies_for_next_confirmation = (
-            overall is not None and pd.notna(overall) and overall >= ALERT_THRESHOLD
-            and not new_scores["gate_excluded"]
-            and (new_scores["risk_reward"] is None or new_scores["risk_reward"] >= 2.0)
-        )
-        if qualifies_for_next_confirmation:
-            pending_next[ticker] = True
+        signal = _new_signal(overall, new_scores["gate_excluded"], new_scores["risk_reward"])
         result = {
             "ticker": ticker,
             "company_name": company_map.get(ticker, ticker),
@@ -332,7 +309,6 @@ def scan(limit: int = 1000, top_n: int = 25) -> pd.DataFrame:
             "sector_relative_strength_20d": round(float(sector_rs), 4) if sector_rs is not None else None,
             "overall_score": overall,
             "signal": signal,
-            "awaiting_confirmation": signal == "WATCH" and qualifies_for_next_confirmation,
             **new_scores,
         }
         result.update({k: float(v) if isinstance(v, (int, float)) else v for k, v in scores.items() if k not in {"overall_score", "trader_similarity_score", "technical_opportunity_score"}})
@@ -356,7 +332,16 @@ def scan(limit: int = 1000, top_n: int = 25) -> pd.DataFrame:
             today_points = [p for p in week_points if str(p["date"])[:10] == latest_day]
         result["history_today"] = today_points
         rows.append(result)
-    _save_pending_confirmations(pending_next)
+
+    never_returned = sorted(set(tickers) - set(market.keys()))
+    if never_returned:
+        print(f"{len(never_returned)} ticker(s) kregen helemaal geen prijsdata terug van yfinance: {never_returned}")
+    if skipped_no_data:
+        print(f"{len(skipped_no_data)} ticker(s) overgeslagen — lege/onbruikbare koersdata: {skipped_no_data}")
+    if skipped_liquidity:
+        print(f"{len(skipped_liquidity)} ticker(s) overgeslagen — onder MIN_PRICE of MIN_AVG_DOLLAR_VOLUME: {skipped_liquidity}")
+    print(f"Universe: {len(tickers)} tickers aangevraagd, {len(rows)} daadwerkelijk gescoord.")
+
     if not rows:
         return pd.DataFrame()
     return pd.DataFrame(rows).sort_values(["overall_score", "confidence", "reversal_trigger"], ascending=[False, False, False]).head(top_n).reset_index(drop=True)
