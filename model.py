@@ -127,23 +127,11 @@ def weighted_score(components: dict[str, float], weights: dict[str, float]) -> f
     return 100.0 * sum(components[k] * w for k, w in usable) / total
 
 
-# A setup still in free fall is discounted, one being absorbed gets a modest
-# lift. Bounded on both sides so confirmation can never manufacture an
-# opportunity that the drawdown itself does not support.
 CONFIRMATION_FLOOR = 0.70
 CONFIRMATION_CEILING = 1.15
 
 
 def _drawdown_component(r: pd.Series) -> float:
-    """How hard the stock has fallen over 7, 14 and 30 days.
-
-    This is the opportunity itself: the sharper and more recent the fall, the
-    more there is to recover. The three windows answer different questions --
-    7d catches the acute flush, 30d the sustained slide -- so the strongest of
-    the three leads and the others confirm. A plain average of all three would
-    punish a stock that collapsed this week but was flat the month before,
-    which is exactly the setup worth finding.
-    """
     windows = {
         "return_7d": low_is_good(r.get("return_7d", np.nan), -0.03, -0.18),
         "return_14d": low_is_good(r.get("return_14d", np.nan), -0.04, -0.25),
@@ -159,57 +147,28 @@ def _drawdown_component(r: pd.Series) -> float:
 
 
 def technical_opportunity_score(r: pd.Series) -> dict[str, float]:
-    """Score the opportunity itself, not whether the rebound has already started.
-
-    Three dimensions that measure genuinely different things. The previous
-    version averaged eight sub-signals of which six were near-duplicate
-    measures of "the price is down" -- return_5d, return_20d, distance_sma20,
-    distance_sma50, z_score and rsi_14 correlate between 0.75 and 0.87 on live
-    data. Each was calibrated to a different extreme, so a stock had to hit all
-    six extremes at once to score well. None ever did: across 228 tickers and
-    113 recorded scans the component never once passed 68 out of 100, which
-    capped the whole scanner regardless of its weights.
-    """
     dislocation = {
-        # How far it has fallen, over the windows where dip-buying pays.
         "drawdown": _drawdown_component(r),
-        # How far it sits below where it has been, independent of the slide.
         "distance_52w_high": low_is_good(r.get("distance_52w_high", np.nan), -0.08, -0.50),
     }
-    dislocation_weights = {"drawdown": 0.65, "distance_52w_high": 0.35}
-
-    # Is the selling stretched, or is this an orderly decline with room to fall?
     exhaustion = {
         "rsi_14": low_is_good(r.get("rsi_14", np.nan), 45, 20),
         "z_score": low_is_good(r.get("z_score", np.nan), -0.50, -2.50),
     }
-    exhaustion_weights = {"rsi_14": 0.55, "z_score": 0.45}
-
-    # Signs the fall is being absorbed rather than still accelerating.
     stabilisation = {
         "volume_ratio": _neutral_centered_high(r.get("volume_ratio", np.nan), 1.0, 3.0),
         "close_location": _neutral_centered_high(r.get("close_location", np.nan), 0.40, 0.90),
         "support": _technical_support_component(r),
         "sector_relative_strength_20d": _neutral_centered_high(r.get("sector_relative_strength_20d", np.nan), 0.0, 0.20),
     }
-    stabilisation_weights = {
+    dislocation_score = weighted_score(dislocation, {"drawdown": 0.65, "distance_52w_high": 0.35})
+    exhaustion_score = weighted_score(exhaustion, {"rsi_14": 0.55, "z_score": 0.45})
+    stabilisation_score = weighted_score(stabilisation, {
         "volume_ratio": 0.30,
         "close_location": 0.25,
         "support": 0.30,
         "sector_relative_strength_20d": 0.15,
-    }
-
-    dislocation_score = weighted_score(dislocation, dislocation_weights)
-    exhaustion_score = weighted_score(exhaustion, exhaustion_weights)
-    stabilisation_score = weighted_score(stabilisation, stabilisation_weights)
-
-    # Dislocation sets the size of the opportunity; exhaustion and stabilisation
-    # say whether to believe it. Those are not addable quantities, and averaging
-    # them was what flattened the score: stabilisation sits near 50 for almost
-    # every ticker, so as a weighted term it handed everyone the same points
-    # instead of separating anything. As a multiplier it does its real job --
-    # discounting a stock still in free fall without capping one that has fallen
-    # hard and is being absorbed.
+    })
     confirmation = 0.60 * exhaustion_score + 0.40 * stabilisation_score
     confidence = CONFIRMATION_FLOOR + (CONFIRMATION_CEILING - CONFIRMATION_FLOOR) * clamp(confirmation / 100.0)
     total = min(100.0, dislocation_score * confidence)
@@ -223,7 +182,6 @@ def technical_opportunity_score(r: pd.Series) -> dict[str, float]:
 
 
 def dip_score(r: pd.Series) -> float:
-    """Measure how close the current setup is to the desired beaten-down/oversold zone."""
     components = {
         "drawdown_5d": low_is_good(r.get("return_5d", np.nan), -0.04, -0.25),
         "drawdown_20d": low_is_good(r.get("return_20d", np.nan), -0.05, -0.35),
@@ -236,15 +194,9 @@ def dip_score(r: pd.Series) -> float:
         "support": _technical_support_component(r),
     }
     weights = {
-        "drawdown_5d": 0.18,
-        "drawdown_20d": 0.15,
-        "rsi_14": 0.18,
-        "z_score": 0.12,
-        "distance_sma20": 0.08,
-        "distance_sma50": 0.08,
-        "distance_52w_high": 0.10,
-        "volume": 0.06,
-        "support": 0.05,
+        "drawdown_5d": 0.18, "drawdown_20d": 0.15, "rsi_14": 0.18,
+        "z_score": 0.12, "distance_sma20": 0.08, "distance_sma50": 0.08,
+        "distance_52w_high": 0.10, "volume": 0.06, "support": 0.05,
     }
     return weighted_score(components, weights)
 
@@ -281,14 +233,6 @@ def _learned_score(row: pd.Series) -> float | None:
 
 
 def trader_setup_score(r: pd.Series) -> float:
-    """Stable trader opportunity score from persistent price structure.
-
-    The score is deliberately independent of the learned probability. The
-    scanner should keep rating a stock highly while the opportunity remains:
-    materially below its 52-week high, below key moving averages, oversold and
-    near support. It should not lose 20-30 points simply because a classifier
-    probability changed while the actual setup barely changed.
-    """
     structural = {
         "drawdown_20d": low_is_good(r.get("return_20d", np.nan), -0.03, -0.35),
         "distance_52w_high": low_is_good(r.get("distance_52w_high", np.nan), -0.05, -0.45),
@@ -297,26 +241,18 @@ def trader_setup_score(r: pd.Series) -> float:
         "distance_sma50": low_is_good(r.get("distance_sma50", np.nan), -0.03, -0.25),
         "support": _technical_support_component(r),
     }
-    structural_weights = {
-        "drawdown_20d": 0.20,
-        "distance_52w_high": 0.45,
-        "rsi_14": 0.10,
-        "z_score": 0.03,
-        "distance_sma50": 0.07,
-        "support": 0.15,
-    }
     confirmation = {
         "relative_strength_20d": _neutral_centered_high(r.get("relative_strength_20d", np.nan), 0.0, 0.15),
         "volume_ratio": _neutral_centered_high(r.get("volume_ratio", np.nan), 1.0, 3.0),
         "reversal": _neutral_centered_high(r.get("close_location", np.nan), 0.50, 1.00),
     }
-    confirmation_weights = {
-        "relative_strength_20d": 0.40,
-        "volume_ratio": 0.30,
-        "reversal": 0.30,
-    }
-    structural_score = weighted_score(structural, structural_weights)
-    confirmation_score = weighted_score(confirmation, confirmation_weights)
+    structural_score = weighted_score(structural, {
+        "drawdown_20d": 0.20, "distance_52w_high": 0.45, "rsi_14": 0.10,
+        "z_score": 0.03, "distance_sma50": 0.07, "support": 0.15,
+    })
+    confirmation_score = weighted_score(confirmation, {
+        "relative_strength_20d": 0.40, "volume_ratio": 0.30, "reversal": 0.30,
+    })
     return float(0.90 * structural_score + 0.10 * confirmation_score)
 
 
@@ -332,18 +268,19 @@ def score_row(r: pd.Series, rebound_weights: dict, quality_weights: dict, cyclic
     scores.update(technical_opportunity_score(r))
     scores["dip_score"] = dip_score(r)
     scores["reversal_trigger"] = reversal_trigger(r) * 100.0
-    setup_key = max(["rebound_score", "quality_score", "cyclical_score"], key=lambda k: scores[k])
 
-    trader = trader_setup_score(r)
-    scores["trader_similarity_score"] = trader
-    scores["trader_setup_score"] = trader
-    scores["overall_score"] = 0.50 * trader + 0.50 * scores["technical_opportunity_score"]
+    # This is intentionally the same scoring structure used by the current
+    # walk-forward model validation: 70% learned trader-pattern probability
+    # and 30% technical opportunity score. Fundamentals and analyst data do
+    # not enter the production score.
+    learned = _learned_score(r)
+    if learned is None:
+        raise RuntimeError("Validated trader-pattern model is unavailable. Refusing to fall back to the old scanner score.")
 
-    scores["watch_candidate"] = bool(
-        scores["overall_score"] >= 65.0
-        and trader >= 65.0
-        and scores["technical_opportunity_score"] >= 60.0
-        and scores["dip_score"] >= 55.0
-    )
-    scores["setup_type"] = "watch" if scores["watch_candidate"] else setup_key.replace("_score", "")
+    scores["trader_similarity_score"] = float(learned)
+    scores["trader_pattern_score"] = float(learned)
+    scores["trader_setup_score"] = float(learned)
+    scores["overall_score"] = 0.70 * float(learned) + 0.30 * float(scores["technical_opportunity_score"])
+    scores["watch_candidate"] = bool(scores["overall_score"] >= 65.0 and learned >= 65.0 and scores["technical_opportunity_score"] >= 60.0)
+    scores["setup_type"] = "validated_model" if scores["watch_candidate"] else "no_signal"
     return scores
