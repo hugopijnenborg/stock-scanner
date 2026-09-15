@@ -39,8 +39,8 @@ import pandas as pd
 
 from data import SECTOR_ETFS, download_benchmarks, download_ohlcv, download_sector_benchmarks
 from indicators import add_indicators
-from model import technical_opportunity_score, trader_setup_score
-from score_engine import FUNDAMENTAL_WEIGHT, MODEL_VERSION, TECHNICAL_WEIGHT, TRADER_WEIGHT
+from main import MODEL_VERSION
+from model import new_technical_score
 from universe import load_top_us_stocks
 
 TRADES = Path("data/trader_discord_trades.csv")
@@ -122,11 +122,10 @@ def score_universe(features: dict[str, pd.DataFrame], day: pd.Timestamp) -> dict
         if len(eligible) < WARMUP_DAYS:
             continue
         row = eligible.iloc[-1]
-        technical = technical_opportunity_score(row)["technical_opportunity_score"]
-        trader = trader_setup_score(row)
-        if not (np.isfinite(technical) and np.isfinite(trader)):
+        technical = new_technical_score(row)
+        if not np.isfinite(technical):
             continue
-        entry = {"technical": float(technical), "trader": float(trader)}
+        entry = {"technical": float(technical)}
         for field in PROFILE_FIELDS:
             value = row.get(field)
             entry[field] = float(value) if value is not None and np.isfinite(value) else None
@@ -159,28 +158,28 @@ def profile_buys(usable, per_day) -> list[dict]:
 
 
 def variants(fundamentals: dict[str, float]) -> dict[str, callable]:
-    price_sum = TRADER_WEIGHT + TECHNICAL_WEIGHT
-
-    def price_only(t, c):
-        return (TRADER_WEIGHT * c["trader"] + TECHNICAL_WEIGHT * c["technical"]) / price_sum
+    """The old trader+technical split is gone — the new methodology folds
+    trader-pattern similarity into Technical itself (dislocation x
+    confirmation). Two variants remain: technical alone, and technical
+    blended with current-day fundamentals (labelled indicative, same
+    look-ahead caveat as before — no point-in-time fundamentals exist).
+    Valuation (10%) and Analyst direction (5%) aren't available per
+    historical day here, so this can't reproduce the full live formula."""
 
     def technical_only(t, c):
         return c["technical"]
 
-    def trader_only(t, c):
-        return c["trader"]
-
-    def production(t, c):
+    def technical_plus_fundamentals(t, c):
         f = fundamentals.get(t)
         if f is None:
             return None
-        return TRADER_WEIGHT * c["trader"] + TECHNICAL_WEIGHT * c["technical"] + FUNDAMENTAL_WEIGHT * f
+        # Renormalized Technical 55% / Fundamentals 30% from the live
+        # formula (the two components this script can actually compute).
+        return (0.55 * c["technical"] + 0.30 * f) / 0.85
 
     return {
-        "trader + technical": price_only,
-        "alleen technical": technical_only,
-        "alleen trader": trader_only,
-        "productieweging 30/35/35 (indicatief)": production,
+        "alleen technical (nieuwe methode)": technical_only,
+        "technical 55% + fundamentals 30%, genormaliseerd (indicatief)": technical_plus_fundamentals,
     }
 
 
