@@ -2,7 +2,7 @@ import numpy as np
 import pandas as pd
 
 from indicators import add_indicators
-from model import technical_opportunity_score, trader_setup_score
+from model import technical_opportunity_score, new_technical_score
 
 
 def sample_prices(n=320, trend=0.08):
@@ -79,7 +79,7 @@ def test_confirmation_cannot_create_an_opportunity_without_a_drawdown():
     row["volume_ratio"] = 3.0
     row["close_location"] = 0.95
     row["sector_relative_strength_20d"] = 0.25
-    assert technical_opportunity_score(row)["technical_opportunity_score"] < 5.0
+    assert new_technical_score(row) < 5.0
 
 
 def test_recent_sharp_drop_outscores_a_slow_grind():
@@ -93,8 +93,7 @@ def test_recent_sharp_drop_outscores_a_slow_grind():
     grind = base.copy()
     grind["return_7d"], grind["return_14d"], grind["return_30d"] = -0.02, -0.06, -0.26
 
-    assert (technical_opportunity_score(sharp)["technical_opportunity_score"]
-            > technical_opportunity_score(grind)["technical_opportunity_score"])
+    assert new_technical_score(sharp) > new_technical_score(grind)
 
 
 def test_stronger_rebound_setup_scores_higher():
@@ -111,44 +110,44 @@ def test_stronger_rebound_setup_scores_higher():
     assert rebound_score > normal_score
 
 
-def test_trader_score_stays_high_when_setup_is_unchanged():
+def test_technical_score_stays_high_when_setup_is_unchanged():
     row = pd.Series({
-        "return_20d": -0.22,
+        "return_7d": -0.20,
+        "return_14d": -0.24,
+        "return_30d": -0.30,
         "distance_52w_high": -0.45,
+        "atr_pct": 0.03,
         "rsi_14": 32,
         "z_score": -1.4,
-        "distance_sma50": -0.16,
+        "volume_ratio": 1.8,
         "distance_support_20d": 0.04,
         "distance_support_60d": 0.05,
         "distance_support_120d": 0.06,
-        "relative_strength_20d": -0.02,
-        "volume_ratio": 1.2,
-        "close_location": 0.48,
+        "sector_relative_strength_20d": 0.05,
     })
-    first = trader_setup_score(row)
-    second = trader_setup_score(row.copy())
+    first = new_technical_score(row)
+    second = new_technical_score(row.copy())
     assert 0 <= first <= 100
-    assert first >= 75
+    assert first >= 60
     assert second == first
 
 
-def test_trader_score_does_not_depend_strongly_on_learned_probability():
+def test_technical_score_does_not_jump_on_a_tiny_input_change():
     row = pd.Series({
-        "return_20d": -0.22,
+        "return_7d": -0.20,
+        "return_14d": -0.24,
+        "return_30d": -0.30,
         "distance_52w_high": -0.45,
+        "atr_pct": 0.03,
         "rsi_14": 32,
         "z_score": -1.4,
-        "distance_sma50": -0.16,
+        "volume_ratio": 1.8,
         "distance_support_20d": 0.04,
         "distance_support_60d": 0.05,
         "distance_support_120d": 0.06,
-        "relative_strength_20d": -0.02,
-        "volume_ratio": 1.2,
-        "close_location": 0.48,
+        "sector_relative_strength_20d": 0.05,
     })
-    # The learned model, when present, is only a small confirmation factor.
-    # This test verifies the transparent setup score remains dominant.
-    base = trader_setup_score(row)
-    row["return_20d"] = -0.221
-    changed = trader_setup_score(row)
+    base = new_technical_score(row)
+    row["return_14d"] = -0.241
+    changed = new_technical_score(row)
     assert abs(changed - base) < 2.0
