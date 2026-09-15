@@ -271,11 +271,19 @@ def _drawdown_leg(value, full_point: float) -> float | None:
 
 def dislocation_score(r: pd.Series) -> float:
     """65% drawdown (7/14/30D, strongest window leads: 70% strongest +
-    30% average of the other two) + 35% distance to the 52-week high."""
+    30% average of the other two) + 35% distance to the 52-week high.
+
+    Thresholds loosened from the original design (-18/-25/-32/-50%) after
+    a live run showed almost the entire universe sitting at Technical
+    30-55 during an ordinary bad week — the bar was calibrated for
+    single-stock capitulation events (CRDO-style -20% days), not the more
+    common "meaningfully down, not a crash" setups this is now tuned to
+    also recognize. Still not backtested — this is a deliberate, disclosed
+    loosening on request, not a validated recalibration."""
     legs = [
-        _drawdown_leg(r.get("return_7d"), -0.18),
-        _drawdown_leg(r.get("return_14d"), -0.25),
-        _drawdown_leg(r.get("return_30d"), -0.32),
+        _drawdown_leg(r.get("return_7d"), -0.11),
+        _drawdown_leg(r.get("return_14d"), -0.15),
+        _drawdown_leg(r.get("return_30d"), -0.20),
     ]
     legs = [v for v in legs if v is not None]
     drawdown = None
@@ -283,7 +291,7 @@ def dislocation_score(r: pd.Series) -> float:
         strongest = max(legs)
         others = [v for v in legs if v != strongest]
         drawdown = 0.70 * strongest + 0.30 * (float(np.mean(others)) if others else strongest)
-    high52 = _drawdown_leg(r.get("distance_52w_high"), -0.50)
+    high52 = _drawdown_leg(r.get("distance_52w_high"), -0.35)
     score, _ = _weighted_or_none({"drawdown": drawdown, "high52": high52}, {"drawdown": 0.65, "high52": 0.35})
     return score if score is not None else 0.0
 
@@ -291,11 +299,15 @@ def dislocation_score(r: pd.Series) -> float:
 def confirmation_score(r: pd.Series) -> float:
     """0-100. Turned into a 0.70-1.15 multiplier by the caller — a falling
     knife (low confirmation) drags the score down, a stabilizing move
-    (high confirmation) lifts it."""
+    (high confirmation) lifts it.
+
+    Oversold/volume bands loosened alongside dislocation_score, same
+    disclosed reasoning: RSI 30 and a volume spike of 2.5x now earn full
+    credit instead of needing RSI 20 / 3.5x."""
     components = {
-        "rsi_14": low_is_good(r.get("rsi_14", np.nan), 50, 20),
-        "z_score": low_is_good(r.get("z_score", np.nan), -0.5, -3.0),
-        "volume_ratio": high_is_good(r.get("volume_ratio", np.nan), 1.0, 3.5),
+        "rsi_14": low_is_good(r.get("rsi_14", np.nan), 55, 30),
+        "z_score": low_is_good(r.get("z_score", np.nan), -0.3, -2.0),
+        "volume_ratio": high_is_good(r.get("volume_ratio", np.nan), 1.0, 2.5),
         "support": _technical_support_component(r),
         "sector_strength": high_is_good(r.get("sector_relative_strength_20d", np.nan), 0.0, 0.20),
     }
@@ -362,6 +374,12 @@ def analyst_direction_score(analyst: dict | None) -> tuple[float | None, float]:
     Without direction, that second sub-metric can't be built separately,
     so this collapses to one signal (net grade actions) rather than
     pretending to combine two independent ones.
+
+    Completeness is reported as 0.5, not 1.0, when there were literally
+    zero rating actions in 30 days: that reads as a neutral 50 score, but
+    "nothing happened" carries far less information than "actions
+    happened and roughly balanced" — treating both as fully complete data
+    was part of why confidence used to swing to a clean 100 too easily.
     """
     if not analyst:
         return None, 0.0
@@ -371,7 +389,8 @@ def analyst_direction_score(analyst: dict | None) -> tuple[float | None, float]:
         return None, 0.0
     net = (bullish or 0) - (bearish or 0)
     score = _score_range(net, -3, 3)
-    return score, 1.0
+    completeness = 0.5 if not bullish and not bearish else 1.0
+    return score, completeness
 
 
 def earnings_adjustment(analyst: dict | None) -> float:
@@ -420,22 +439,49 @@ def earnings_adjustment(analyst: dict | None) -> float:
     return float(np.clip(adjustment, -5.0, 5.0))
 
 
-def confidence_score(fund_completeness: float, val_completeness: float, analyst_completeness: float,
-                      technical_value: float | None, fundamentals_value: float | None) -> float:
-    """data completeness x component agreement. Technical is always
-    available (pure price data), so it always contributes full weight.
+def confidence_score(components: dict[str, float | None], completeness: dict[str, float],
+                      weights: dict[str, float]) -> float:
+    """Replaces the old version, which snapped to almost exactly 100 or 40
+    for roughly half of all tickers — reported back directly from a live
+    run. Two things caused that:
 
-    Agreement is intentionally simple: do Technical and Fundamentals sit
-    on the same side of their own midpoint (both > 50 or both < 50)?
-    Disagreement is a real reason for caution (asks you to trust a setup
-    where the two most-weighted components point opposite ways) but this
-    is a coarse proxy, not a validated "reliability" measure."""
-    data_completeness = (1.0 + fund_completeness + val_completeness + analyst_completeness) / 4.0
-    if technical_value is not None and fundamentals_value is not None:
-        agreement = 1.0 if (technical_value - 50) * (fundamentals_value - 50) >= 0 else 0.4
+    1. Completeness was a flat 1/4-per-category average, so Analyst
+       (only 5% of the live score) counted as much as Technical (55%).
+       Missing or fully-present Analyst data swung "how complete is this"
+       by 25 points regardless of how little it actually matters to the
+       score. Now completeness is weighted by each category's actual
+       share of the live formula.
+    2. Agreement was binary: Technical and Fundamentals either sat on the
+       same side of 50 (agreement = 1.0) or didn't (agreement = 0.4) —
+       nothing in between, and Valuation/Analyst were never even checked.
+       Now agreement is a continuous, weighted spread across every
+       available component (not just two), so a near-miss and a wide
+       split land at different confidence levels instead of both being
+       forced into one of two buckets.
+
+    Still not a validated reliability measure — it's a more honest proxy
+    for the same idea, not a backtested one.
+    """
+    weighted_completeness, total_weight = 0.0, 0.0
+    for key, weight in weights.items():
+        weighted_completeness += weight * completeness.get(key, 0.0)
+        total_weight += weight
+    weighted_completeness = weighted_completeness / total_weight if total_weight else 0.0
+
+    available = [(k, v) for k, v in components.items() if v is not None]
+    if len(available) < 2:
+        agreement = 0.6  # can't measure spread with fewer than two signals
     else:
-        agreement = 0.7
-    return float(np.clip(data_completeness * agreement * 100.0, 0.0, 100.0))
+        w_sum = sum(weights.get(k, 0.0) for k, _ in available)
+        if w_sum <= 0:
+            agreement = 0.6
+        else:
+            mean = sum(weights.get(k, 0.0) * v for k, v in available) / w_sum
+            variance = sum(weights.get(k, 0.0) * (v - mean) ** 2 for k, v in available) / w_sum
+            spread = variance ** 0.5  # weighted standard deviation, roughly 0-50
+            agreement = float(np.clip(1.0 - spread / 40.0, 0.3, 1.0))
+
+    return float(np.clip(weighted_completeness * agreement * 100.0, 0.0, 100.0))
 
 
 def risk_reward(r: pd.Series) -> dict:
@@ -483,7 +529,11 @@ def assemble_new_score(row: pd.Series, fundamentals: dict | None, analyst: dict 
     regime_multiplier = 0.8 if bear_regime else 1.0
     overall = round(overall * regime_multiplier, 1)
 
-    confidence = confidence_score(fund_completeness, val_completeness, analyst_completeness, technical, fund_score)
+    confidence = confidence_score(
+        components=components,
+        completeness={"technical": 1.0, "fundamentals": fund_completeness, "valuation": val_completeness, "analyst": analyst_completeness},
+        weights=weights,
+    )
     rr = risk_reward(row)
 
     fcf = fundamentals.get("fcf") if fundamentals else None
