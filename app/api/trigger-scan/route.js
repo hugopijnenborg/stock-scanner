@@ -4,7 +4,7 @@ export const dynamic = 'force-dynamic';
 
 const OWNER = 'hugopijnenborg';
 const REPO = 'stock-scanner';
-const WORKFLOW = 'market_scan.yml';
+const WORKFLOW = 'market_scan_local.yml';
 const BRANCH = 'main';
 
 export async function POST() {
