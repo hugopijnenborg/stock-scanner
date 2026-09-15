@@ -10,10 +10,17 @@ import scanner as scanner_module
 from backtest import run_backtest
 from market_validation import run_market_validation
 from scanner import scan
-from score_engine import calculate_score
+from score_engine import (
+    ALERT_THRESHOLD as SCORE_ALERT_THRESHOLD,
+    FUNDAMENTAL_WEIGHT,
+    MODEL_VERSION,
+    TECHNICAL_WEIGHT,
+    TRADER_WEIGHT,
+    WATCH_THRESHOLD,
+    calculate_score,
+)
 from universe import load_top_us_stocks
 
-ALERT_THRESHOLD = 80.0
 EXCLUDED_TICKERS = {"FLNC"}
 
 
@@ -46,9 +53,10 @@ def apply_production_score(result):
         return result
     result = result.copy()
     scored = result.apply(calculate_score, axis=1, result_type="expand")
-    for column in ["overall_score", "trader_score", "technical_score", "fundamental_score", "signal"]:
+    for column in ["overall_score", "trader_score", "technical_score", "fundamental_score", "signal", "model_version"]:
         if column in scored:
             result[column] = scored[column]
+    # The frontend reads the trader component under its scanner name.
     result["trader_similarity_score"] = result["trader_score"]
     return result.sort_values(["overall_score", "trader_score", "technical_score"], ascending=[False, False, False], na_position="last").reset_index(drop=True)
 
@@ -64,8 +72,14 @@ def write_web_output(result, universe_size: int, path: str) -> None:
         "universe_size": int(universe_size),
         "alert_count": int((result["signal"] == "ALERT").sum()) if not result.empty and "signal" in result else 0,
         "top_score": top_score,
-        "score_weights": {"trader": 30, "technical": 35, "fundamental": 35},
-        "alert_threshold": 80,
+        "model_version": MODEL_VERSION,
+        "score_weights": {
+            "trader": round(TRADER_WEIGHT * 100),
+            "technical": round(TECHNICAL_WEIGHT * 100),
+            "fundamental": round(FUNDAMENTAL_WEIGHT * 100),
+        },
+        "alert_threshold": SCORE_ALERT_THRESHOLD,
+        "watch_threshold": WATCH_THRESHOLD,
         "results": rows,
     }
     output = Path(path)

@@ -27,3 +27,22 @@ jobs:
           SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
           SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
         run: python scripts/evaluate_alerts.py
+
+      # No workflow ran this before, which is why public/data/alert_history.json
+      # sat empty. Once a day after the close is the right cadence: the script
+      # re-downloads price history for every recorded alert.
+      - name: Refresh published alert history
+        run: python scripts/update_alert_history.py
+
+      - name: Publish alert history
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          cp public/data/alert_history.json /tmp/alert_history.json
+          git fetch origin main
+          git reset --hard origin/main
+          cp /tmp/alert_history.json public/data/alert_history.json
+          git add public/data/alert_history.json
+          git diff --cached --quiet && exit 0
+          git commit -m 'Update alert history [skip ci]'
+          git push origin HEAD:main

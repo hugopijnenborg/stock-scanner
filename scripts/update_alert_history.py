@@ -33,6 +33,7 @@ def main():
                 'alert_date': today, 'alert_price': r.get('price'),
                 'score': r.get('overall_score'), 'trader_score': r.get('trader_similarity_score'),
                 'technical_score': r.get('technical_score'), 'fundamental_score': r.get('fundamental_score'),
+                'model_version': r.get('model_version') or scan.get('model_version'),
                 'returns': {}
             })
 

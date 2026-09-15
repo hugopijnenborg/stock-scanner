@@ -10,9 +10,11 @@ const COMMITS = 'https://api.github.com/repos/hugopijnenborg/stock-scanner/commi
 // latest_scan.json. This route must never recalculate it: the published
 // trader/technical scores are already calibrated, so scoring them again here
 // would apply the relaxation twice and promote sub-80 rows to BUY ALERT.
+// Fallbacks only, for a published scan that predates these fields. The
+// live values come from latest_scan.json, written by score_engine.py.
 const SCORE_WEIGHTS = { trader: 30, technical: 35, fundamental: 35 };
 const ALERT_THRESHOLD = 80;
-const WATCH_THRESHOLD = 65;
+const WATCH_THRESHOLD = 50;
 
 function numberOrNull(value) {
   const n = Number(value);
@@ -85,6 +87,7 @@ export async function GET() {
 
     data.score_weights = data.score_weights || SCORE_WEIGHTS;
     data.alert_threshold = data.alert_threshold ?? ALERT_THRESHOLD;
+    data.watch_threshold = data.watch_threshold ?? WATCH_THRESHOLD;
 
     if (commitResponse.ok) {
       const commits = await commitResponse.json();

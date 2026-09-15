@@ -5,8 +5,13 @@ from typing import Any
 
 import requests
 
+from score_engine import ALERT_THRESHOLD
 
-def send_alerts(results: list[dict[str, Any]], webhook_url: str | None = None, threshold: float = 85.0) -> int:
+
+# Discord used its own 85 while the scanner alerted at 80, so it silently
+# skipped real alerts. It now follows the one threshold in score_engine.py.
+def send_alerts(results: list[dict[str, Any]], webhook_url: str | None = None, threshold: float | None = None) -> int:
+    threshold = ALERT_THRESHOLD if threshold is None else threshold
     webhook_url = webhook_url or os.getenv("DISCORD_WEBHOOK_URL")
     if not webhook_url:
         print("DISCORD_WEBHOOK_URL not configured; skipping Discord alerts")
