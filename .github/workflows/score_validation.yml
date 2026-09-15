@@ -1,0 +1,74 @@
+name: Score Validation
+
+# Answers the one question the scanner could not: does a high score predict a
+# higher forward return? Runs against years of price history instead of the
+# handful of live alerts on record. Weekly, plus on demand after a model change.
+on:
+  schedule:
+    # UTC. Sunday 06:00 UTC, well away from any market scan.
+    - cron: '0 6 * * 0'
+  workflow_dispatch:
+    inputs:
+      start:
+        description: 'History start date (YYYY-MM-DD)'
+        required: false
+        default: '2023-01-01'
+      step:
+        description: 'Score every Nth trading day'
+        required: false
+        default: '5'
+
+permissions:
+  contents: write
+
+concurrency:
+  group: score-validation
+  cancel-in-progress: false
+
+env:
+  PYTHONUNBUFFERED: '1'
+
+jobs:
+  validate:
+    name: Validate score against forward returns
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: pip
+
+      - run: pip install -r requirements.txt
+
+      - name: Validate score
+        run: |
+          python scripts/validate_score.py \
+            --limit 1000 \
+            --start "${{ github.event.inputs.start || '2023-01-01' }}" \
+            --step "${{ github.event.inputs.step || '5' }}" \
+            --output public/data/score_validation.json \
+            --rows score_validation_rows.csv
+
+      - name: Keep the raw observations for further analysis
+        uses: actions/upload-artifact@v4
+        with:
+          name: score-validation-rows
+          path: score_validation_rows.csv
+          retention-days: 30
+
+      - name: Publish validation report
+        run: |
+          cp public/data/score_validation.json /tmp/score_validation.json
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git fetch origin main
+          git reset --hard origin/main
+          mkdir -p public/data
+          cp /tmp/score_validation.json public/data/score_validation.json
+          git add public/data/score_validation.json
+          git diff --cached --quiet && exit 0
+          git commit -m 'Update score validation [skip ci]'
+          git push origin HEAD:main

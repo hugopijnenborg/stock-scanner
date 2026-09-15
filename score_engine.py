@@ -51,10 +51,19 @@ def _weighted(parts: list[tuple[float | None, float]]) -> float | None:
     return sum(value * weight for value, weight in usable) / weight_sum
 
 
-def signal_for(overall: float | None) -> str:
+def signal_for(overall: float | None, has_fundamentals: bool = True) -> str:
+    """Map a score to a signal.
+
+    An alert needs fundamentals. Without them the remaining weights renormalise
+    onto trader and technical, which are both measures of how far the price has
+    fallen -- so a company in genuine trouble scores highest exactly as it
+    collapses. The quality check is what separates a dislocation from a falling
+    knife, and roughly a dozen tickers per scan have no fundamentals at all.
+    Those can still reach WATCH; they cannot reach ALERT.
+    """
     if overall is None:
         return "DATA_INCOMPLETE"
-    if overall >= ALERT_THRESHOLD:
+    if overall >= ALERT_THRESHOLD and has_fundamentals:
         return "ALERT"
     if overall >= WATCH_THRESHOLD:
         return "WATCH"
@@ -95,6 +104,7 @@ def calculate_score(row: pd.Series | dict[str, Any]) -> dict[str, float | str | 
         "fundamental_score": round(fundamental, 1) if fundamental is not None else None,
         "earnings_adjustment": events["earnings_adjustment"],
         "earnings_context": events["earnings_context"],
-        "signal": signal_for(overall),
+        "signal": signal_for(overall, has_fundamentals=fundamental is not None),
+        "fundamentals_missing": fundamental is None,
         "model_version": MODEL_VERSION,
     }

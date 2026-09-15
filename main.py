@@ -62,6 +62,61 @@ def apply_production_score(result):
     return result.sort_values(["overall_score", "trader_score", "technical_score"], ascending=[False, False, False], na_position="last").reset_index(drop=True)
 
 
+def _previous_scores(path: str) -> dict[str, float]:
+    """Scores from the scan this run is about to replace."""
+    previous = Path(path)
+    if not previous.exists():
+        return {}
+    try:
+        payload = json.loads(previous.read_text(encoding="utf-8"))
+    except (OSError, ValueError):
+        return {}
+    scores = {}
+    for row in payload.get("results", []):
+        ticker, score = row.get("ticker"), row.get("overall_score")
+        if ticker and isinstance(score, (int, float)):
+            scores[ticker] = float(score)
+    return scores
+
+
+def confirm_alerts(result, previous: dict[str, float]):
+    """Hold a first-time alert back until a second scan agrees with it.
+
+    Scores are recomputed every fifteen minutes on a day bar that is still
+    forming, so a ticker hovering near the threshold can alert at 16:00 and
+    fall back at 16:15. One confirming scan costs fifteen minutes and removes
+    the alerts that only ever existed because of where the bar happened to be.
+
+    The very first scan after a deploy has nothing to compare against; those
+    alerts are allowed through rather than swallowed.
+    """
+    if result is None or result.empty or "signal" not in result:
+        return result
+    if not previous:
+        result["alert_confirmed"] = result["signal"] == "ALERT"
+        return result
+
+    result = result.copy()
+    confirmed, pending = [], 0
+    for _, row in result.iterrows():
+        if row.get("signal") != "ALERT":
+            confirmed.append(False)
+            continue
+        before = previous.get(row.get("ticker"))
+        if before is not None and before >= SCORE_ALERT_THRESHOLD:
+            confirmed.append(True)
+        else:
+            confirmed.append(False)
+            pending += 1
+    result["alert_confirmed"] = confirmed
+    held = (result["signal"] == "ALERT") & (~result["alert_confirmed"])
+    result.loc[held, "signal"] = "WATCH"
+    result.loc[held, "alert_pending_confirmation"] = True
+    if pending:
+        print(f"{pending} alert(s) wachten op bevestiging door een tweede scan.")
+    return result
+
+
 def write_web_output(result, universe_size: int, path: str) -> None:
     rows = result.where(result.notna(), None).to_dict(orient="records")
     rows = [_json_safe(row) for row in rows]
@@ -110,7 +165,8 @@ def main() -> None:
     elif args.command == "scan":
         scanner_module.load_top_us_stocks = scanner_universe
         universe = scanner_universe(args.limit)
-        result = apply_production_score(scan(args.limit, args.top))
+        previous = _previous_scores(args.web_output)
+        result = confirm_alerts(apply_production_score(scan(args.limit, args.top)), previous)
         print(result.to_string(index=False))
         if args.output:
             result.to_csv(args.output, index=False)
