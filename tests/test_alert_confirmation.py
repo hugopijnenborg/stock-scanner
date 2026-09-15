@@ -1,39 +1,37 @@
-"""A first-time alert waits for a second scan to agree with it.
+"""A score of 80+ that clears the gate and R/R fires ALERT immediately.
 
-This now lives in scanner.py's _new_signal() / data/pending_confirmations.json
-rather than main.py's confirm_alerts(), which was model 4.1's separate,
-redundant confirmation gate and has been removed along with the rest of
-model 4.1 (score_engine.py). Same behaviour, single source of truth.
+The two-scan confirmation this used to require (a first hit held as WATCH
+until a second scan agreed) was removed on request: the user wants an
+80+ read as a buy the moment it happens, not one cycle later. That trades
+away the noise-filtering the confirmation step gave — a ticker hovering
+right at 80 can now alert then drop back below it 15 minutes later — for
+not missing a fast-moving setup. Kept as its own test file (same name) so
+the intent stays documented rather than just disappearing.
 """
 from __future__ import annotations
 
 from scanner import _new_signal
 
 
-def test_a_first_time_alert_is_held_as_watch():
-    assert _new_signal(overall=84.0, gate_excluded=False, risk_reward_value=2.5, confirmed=False) == "WATCH"
+def test_a_qualifying_score_alerts_immediately():
+    assert _new_signal(overall=84.0, gate_excluded=False, risk_reward_value=2.5) == "ALERT"
 
 
-def test_an_alert_confirmed_by_the_previous_scan_goes_through():
-    assert _new_signal(overall=84.0, gate_excluded=False, risk_reward_value=2.5, confirmed=True) == "ALERT"
+def test_watch_band_is_unaffected():
+    assert _new_signal(overall=68.0, gate_excluded=False, risk_reward_value=None) == "WATCH"
 
 
-def test_watch_rows_are_unaffected_by_confirmation():
-    assert _new_signal(overall=68.0, gate_excluded=False, risk_reward_value=None, confirmed=False) == "WATCH"
-    assert _new_signal(overall=68.0, gate_excluded=False, risk_reward_value=None, confirmed=True) == "WATCH"
+def test_below_watch_threshold_is_no_signal():
+    assert _new_signal(overall=32.0, gate_excluded=False, risk_reward_value=None) == "NO_SIGNAL"
 
 
-def test_no_signal_rows_are_unaffected_by_confirmation():
-    assert _new_signal(overall=32.0, gate_excluded=False, risk_reward_value=None, confirmed=False) == "NO_SIGNAL"
+def test_gate_exclusion_blocks_alert_even_at_a_high_score():
+    assert _new_signal(overall=88.0, gate_excluded=True, risk_reward_value=2.5) == "WATCH"
 
 
-def test_gate_exclusion_blocks_alert_even_when_confirmed():
-    assert _new_signal(overall=88.0, gate_excluded=True, risk_reward_value=2.5, confirmed=True) == "WATCH"
-
-
-def test_weak_risk_reward_blocks_alert_even_when_confirmed():
-    assert _new_signal(overall=90.0, gate_excluded=False, risk_reward_value=1.2, confirmed=True) == "WATCH"
+def test_weak_risk_reward_blocks_alert_even_at_a_high_score():
+    assert _new_signal(overall=90.0, gate_excluded=False, risk_reward_value=1.2) == "WATCH"
 
 
 def test_missing_score_is_data_incomplete():
-    assert _new_signal(overall=None, gate_excluded=False, risk_reward_value=None, confirmed=False) == "DATA_INCOMPLETE"
+    assert _new_signal(overall=None, gate_excluded=False, risk_reward_value=None) == "DATA_INCOMPLETE"
