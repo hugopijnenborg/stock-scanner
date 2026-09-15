@@ -62,7 +62,7 @@ def trades(tmp_path_factory):
 
 
 def test_it_imports_its_project_modules(tool):
-    for name in ("technical_opportunity_score", "trader_setup_score", "add_indicators", "MODEL_VERSION"):
+    for name in ("new_technical_score", "add_indicators", "MODEL_VERSION"):
         assert hasattr(tool, name)
 
 
@@ -77,7 +77,7 @@ def test_scoring_a_day_covers_the_universe(tool):
     scored = tool.score_universe(features, pd.Timestamp("2026-07-29"))
     assert len(scored) == len(TICKERS)
     for components in scored.values():
-        assert np.isfinite(components["technical"]) and np.isfinite(components["trader"])
+        assert np.isfinite(components["technical"])
 
 
 def test_a_day_without_enough_history_is_skipped(tool):
@@ -93,7 +93,7 @@ def test_the_full_run_produces_ranked_placements(tool, trades, tmp_path, monkeyp
     tool.main()
     report = json.loads(out.read_text(encoding="utf-8"))
     assert report["model_version"]
-    variant = report["variants"]["trader + technical"]
+    variant = report["variants"]["alleen technical (nieuwe methode)"]
     assert variant["n"] == len(BUY_DATES)
     for placement in variant["placements"]:
         assert 1 <= placement["rank"] <= placement["of"]
@@ -106,7 +106,10 @@ def test_every_variant_is_reported(tool, trades, tmp_path, monkeypatch):
                                      "--start", "2024-01-01", "--trades", str(trades), "--output", str(out)])
     tool.main()
     variants = json.loads(out.read_text(encoding="utf-8"))["variants"]
-    assert {"trader + technical", "alleen technical", "alleen trader"} <= set(variants)
+    # "technical + fundamentals" needs public/data/latest_scan.json, which
+    # doesn't exist in this isolated test — only the technical-only variant
+    # is guaranteed here.
+    assert "alleen technical (nieuwe methode)" in variants
 
 
 def test_the_setup_profile_places_each_buy_inside_its_own_day(tool, trades, tmp_path, monkeypatch):
