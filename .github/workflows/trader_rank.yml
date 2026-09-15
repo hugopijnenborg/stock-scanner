@@ -1,0 +1,65 @@
+name: Trader Rank
+
+# Measures the scanner against what it was built for: does it surface the setups
+# the trader actually buys? His calls are the only labelled examples there are.
+on:
+  workflow_dispatch:
+    inputs:
+      start:
+        description: 'History start date (YYYY-MM-DD)'
+        required: false
+        default: '2024-06-01'
+  push:
+    branches: [main]
+    paths:
+      - 'model.py'
+      - 'score_engine.py'
+      - 'indicators.py'
+      - 'data/trader_discord_trades.csv'
+      - 'scripts/rank_trader_entries.py'
+
+permissions:
+  contents: write
+
+concurrency:
+  group: trader-rank
+  cancel-in-progress: false
+
+env:
+  PYTHONUNBUFFERED: '1'
+
+jobs:
+  rank:
+    name: Rank the trader's entries
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: pip
+
+      - run: pip install -r requirements.txt
+
+      - name: Rank trader entries
+        run: |
+          python scripts/rank_trader_entries.py \
+            --limit 1000 \
+            --start "${{ github.event.inputs.start || '2024-06-01' }}" \
+            --output public/data/trader_rank.json
+
+      - name: Publish ranking report
+        run: |
+          cp public/data/trader_rank.json /tmp/trader_rank.json
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git fetch origin main
+          git reset --hard origin/main
+          mkdir -p public/data
+          cp /tmp/trader_rank.json public/data/trader_rank.json
+          git add public/data/trader_rank.json
+          git diff --cached --quiet && exit 0
+          git commit -m 'Update trader rank report [skip ci]'
+          git push origin HEAD:main
