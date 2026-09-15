@@ -223,8 +223,80 @@ def build_analyst_dict(pit: dict, date: pd.Timestamp) -> dict:
     }
 
 
+def _build_summary(df: pd.DataFrame, eval_start: pd.Timestamp, step: int, method_note: str) -> dict:
+    if df.empty:
+        return {"method": method_note, "evaluation_start": eval_start.date().isoformat(), "step_days": step,
+                "scenarios": 0, "alerts_80_plus": 0, "trade_events_80_plus": 0, "unique_dates": 0, "unique_tickers": 0,
+                "thresholds": {}, "score_bands": {}, "trade_events": {}}
+
+    events = build_trade_events(df)
+    summary: dict[str, object] = {
+        "method": method_note,
+        "evaluation_start": eval_start.date().isoformat(),
+        "step_days": step,
+        "scenarios": int(len(df)),
+        "alerts_80_plus": int((df["score"] >= 80).sum()),
+        "trade_events_80_plus": int(len(events)),
+        "unique_dates": int(df["date"].nunique()),
+        "unique_tickers": int(df["ticker"].nunique()),
+        "trade_event_rule": f"First 80+ signal per ticker, then no new event for {TRADE_EVENT_COOLDOWN_DAYS} calendar days.",
+        "min_rank_n": MIN_RANK_N,
+        "horizons": {"1d": "1 trading day", "5d": "5 trading days", "10d": "10 trading days", "20d": "20 trading days", "30d": "30 trading days", "60d": "60 calendar days"},
+        "thresholds": {},
+        "score_bands": {},
+        "trade_events": {},
+    }
+
+    for threshold in THRESHOLDS:
+        x = df[df["score"] >= threshold]
+        threshold_summary: dict[str, object] = {"alerts": int(len(x))}
+        for horizon in ["1d", "5d", "10d", "20d", "30d", "60d"]:
+            stats = _summary_horizon(x, horizon)
+            threshold_summary[f"n_{horizon}"] = stats["n"]
+            threshold_summary[f"winrate_{horizon}"] = stats["winrate"]
+            threshold_summary[f"avg_return_{horizon}"] = stats["avg_return"]
+            threshold_summary[f"median_return_{horizon}"] = stats["median_return"]
+        threshold_summary["avg_max_gain_60d"] = float(x["max_gain_60d"].mean()) if x["max_gain_60d"].notna().any() else None
+        threshold_summary["avg_max_drawdown_60d"] = float(x["max_drawdown_60d"].mean()) if x["max_drawdown_60d"].notna().any() else None
+        summary["thresholds"][str(threshold)] = threshold_summary
+
+    for lo, hi in SCORE_BANDS:
+        x = df[(df["score"] >= lo) & (df["score"] < hi)]
+        key = _band_key(lo, hi)
+        summary["score_bands"][key] = {"scenarios": int(len(x))}
+        for horizon in ["5d", "20d", "30d", "60d"]:
+            stats = _summary_horizon(x, horizon)
+            summary["score_bands"][key][f"n_{horizon}"] = stats["n"]
+            summary["score_bands"][key][f"winrate_{horizon}"] = stats["winrate"]
+            summary["score_bands"][key][f"avg_return_{horizon}"] = stats["avg_return"]
+            summary["score_bands"][key][f"median_return_{horizon}"] = stats["median_return"]
+
+    for threshold in THRESHOLDS:
+        x = events[events["entry_score"] >= threshold] if not events.empty else events
+        summary["trade_events"][str(threshold)] = _event_summary(x, str(threshold))
+
+    return summary
+
+
 def run(output_csv: str = "full_model_validation.csv", summary_json: str = "public/data/full_model_validation.json",
-        start: str = "2022-01-01", step: int = 5, limit: int = 1000) -> dict:
+        start: str = "2022-01-01", step: int = 5, limit: int = 1000,
+        holdout_start: str | None = None, lockbox_json: str = "full_model_validation_lockbox.json") -> dict:
+    """holdout_start splits results into a development period (before the
+    cutoff, always reported in summary_json -- iterate on this freely) and
+    a lockbox period (from the cutoff onward, written ONLY to lockbox_json,
+    a file the app never reads and the workflow never auto-publishes).
+
+    This is a discipline tool, not a technical guarantee: nothing stops you
+    from opening lockbox_json and looking. The friction is the point --
+    checking it should be a deliberate, occasional act ("I'm done
+    iterating, let's see the honest number"), not something that happens
+    automatically every run while you're tuning weights. If a lockbox
+    result disappoints and you adjust the model because of it, you've
+    spent that lockbox -- move the cutoff forward to a fresh, still-unseen
+    period before checking again. Re-checking the same lockbox after
+    adjusting in response to it is exactly the leakage this exists to
+    prevent.
+    """
     eval_start = pd.Timestamp(start)
     universe = load_top_us_stocks(limit)
     tickers = universe["ticker"].tolist()
@@ -302,65 +374,44 @@ def run(output_csv: str = "full_model_validation.csv", summary_json: str = "publ
     df = df[~df["gate_excluded"]]  # the gate blocks ALERT live, so gated rows shouldn't count as 80+ opportunities
     df.to_csv(output_csv, index=False)
 
-    events = build_trade_events(df)
-    event_csv = Path(output_csv).with_name("full_model_validation_trade_events.csv")
-    events.to_csv(event_csv, index=False)
+    method_note = (
+        "Daily walk-forward validation of the full live methodology (Technical dislocation x confirmation 55%, "
+        "Fundamentals 30%, Valuation 10%, Analyst direction 5%, earnings adjustment, regime multiplier), calling "
+        "model.assemble_new_score() directly so this cannot drift from what the live scanner computes. Point-in-time "
+        "fundamentals are approximated with a 45-day publication lag; forward P/E and sector-relative valuation are "
+        "not reconstructable historically and are approximated or omitted (see the script's docstring for the full list "
+        "of limitations). Rows the live fundamentals gate would exclude are dropped before scoring, same as live."
+    )
 
-    summary: dict[str, object] = {
-        "method": (
-            "Daily walk-forward validation of the full live methodology (Technical dislocation x confirmation 55%, "
-            "Fundamentals 30%, Valuation 10%, Analyst direction 5%, earnings adjustment, regime multiplier), calling "
-            "model.assemble_new_score() directly so this cannot drift from what the live scanner computes. Point-in-time "
-            "fundamentals are approximated with a 45-day publication lag; forward P/E and sector-relative valuation are "
-            "not reconstructable historically and are approximated or omitted (see the script's docstring for the full list "
-            "of limitations). Rows the live fundamentals gate would exclude are dropped before scoring, same as live."
-        ),
-        "evaluation_start": eval_start.date().isoformat(),
-        "step_days": step,
-        "scenarios": int(len(df)),
-        "alerts_80_plus": int((df["score"] >= 80).sum()),
-        "trade_events_80_plus": int(len(events)),
-        "unique_dates": int(df["date"].nunique()),
-        "unique_tickers": int(df["ticker"].nunique()),
-        "trade_event_rule": f"First 80+ signal per ticker, then no new event for {TRADE_EVENT_COOLDOWN_DAYS} calendar days.",
-        "min_rank_n": MIN_RANK_N,
-        "horizons": {"1d": "1 trading day", "5d": "5 trading days", "10d": "10 trading days", "20d": "20 trading days", "30d": "30 trading days", "60d": "60 calendar days"},
-        "thresholds": {},
-        "score_bands": {},
-        "trade_events": {},
-    }
+    if holdout_start:
+        cutoff = pd.Timestamp(holdout_start)
+        dev_df = df[pd.to_datetime(df["date"]) < cutoff]
+        lockbox_df = df[pd.to_datetime(df["date"]) >= cutoff]
+        print(f"Lockbox-splitsing bij {cutoff.date()}: {len(dev_df)} ontwikkel-scenario's, {len(lockbox_df)} lockbox-scenario's (apart, niet gepubliceerd).")
+    else:
+        dev_df, lockbox_df = df, pd.DataFrame()
 
-    for threshold in THRESHOLDS:
-        x = df[df["score"] >= threshold]
-        threshold_summary: dict[str, object] = {"alerts": int(len(x))}
-        for horizon in ["1d", "5d", "10d", "20d", "30d", "60d"]:
-            stats = _summary_horizon(x, horizon)
-            threshold_summary[f"n_{horizon}"] = stats["n"]
-            threshold_summary[f"winrate_{horizon}"] = stats["winrate"]
-            threshold_summary[f"avg_return_{horizon}"] = stats["avg_return"]
-            threshold_summary[f"median_return_{horizon}"] = stats["median_return"]
-        threshold_summary["avg_max_gain_60d"] = float(x["max_gain_60d"].mean()) if x["max_gain_60d"].notna().any() else None
-        threshold_summary["avg_max_drawdown_60d"] = float(x["max_drawdown_60d"].mean()) if x["max_drawdown_60d"].notna().any() else None
-        summary["thresholds"][str(threshold)] = threshold_summary
-
-    for lo, hi in SCORE_BANDS:
-        x = df[(df["score"] >= lo) & (df["score"] < hi)]
-        key = _band_key(lo, hi)
-        summary["score_bands"][key] = {"scenarios": int(len(x))}
-        for horizon in ["5d", "20d", "30d", "60d"]:
-            stats = _summary_horizon(x, horizon)
-            summary["score_bands"][key][f"n_{horizon}"] = stats["n"]
-            summary["score_bands"][key][f"winrate_{horizon}"] = stats["winrate"]
-            summary["score_bands"][key][f"avg_return_{horizon}"] = stats["avg_return"]
-            summary["score_bands"][key][f"median_return_{horizon}"] = stats["median_return"]
-
-    for threshold in THRESHOLDS:
-        x = events[events["entry_score"] >= threshold] if not events.empty else events
-        summary["trade_events"][str(threshold)] = _event_summary(x, str(threshold))
+    dev_summary = _build_summary(dev_df, eval_start, step, method_note + (
+        f" This report covers only the development period (before {holdout_start}); a held-out period from that date "
+        f"onward exists but is deliberately not shown here -- see lockbox_json." if holdout_start else ""
+    ))
+    dev_events = build_trade_events(dev_df) if not dev_df.empty else pd.DataFrame()
+    if not dev_events.empty:
+        dev_events.to_csv(Path(output_csv).with_name("full_model_validation_trade_events.csv"), index=False)
 
     Path(summary_json).parent.mkdir(parents=True, exist_ok=True)
-    Path(summary_json).write_text(json.dumps(summary, indent=2, allow_nan=False), encoding="utf-8")
-    return summary
+    Path(summary_json).write_text(json.dumps(dev_summary, indent=2, allow_nan=False), encoding="utf-8")
+
+    if holdout_start:
+        lockbox_summary = _build_summary(lockbox_df, cutoff, step, method_note + (
+            f" LOCKBOX report: only the held-out period from {holdout_start} onward, never used to tune the model. "
+            f"Do not adjust the model in response to this and re-check the same lockbox -- that spends it. Move the "
+            f"cutoff forward to a fresh period first."
+        ))
+        Path(lockbox_json).write_text(json.dumps(lockbox_summary, indent=2, allow_nan=False), encoding="utf-8")
+        print(f"Lockbox-resultaat weggeschreven naar {lockbox_json} (NIET automatisch gepubliceerd door de workflow).")
+
+    return dev_summary
 
 
 if __name__ == "__main__":
@@ -371,6 +422,9 @@ if __name__ == "__main__":
     parser.add_argument("--limit", type=int, default=1000)
     parser.add_argument("--output", default="full_model_validation.csv")
     parser.add_argument("--summary", default="public/data/full_model_validation.json")
+    parser.add_argument("--holdout-start", default=None, help="Date (YYYY-MM-DD): everything from this date onward is scored but withheld into --lockbox-output, not into --summary. Omit to disable the split.")
+    parser.add_argument("--lockbox-output", default="full_model_validation_lockbox.json")
     args = parser.parse_args()
-    result = run(output_csv=args.output, summary_json=args.summary, start=args.start, step=args.step, limit=args.limit)
+    result = run(output_csv=args.output, summary_json=args.summary, start=args.start, step=args.step, limit=args.limit,
+                 holdout_start=args.holdout_start, lockbox_json=args.lockbox_output)
     print(json.dumps(result, indent=2))
