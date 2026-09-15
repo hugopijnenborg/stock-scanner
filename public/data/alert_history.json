@@ -1,4 +1,41 @@
 {
-  "updated_at": "2026-09-01T23:28:54.922926+00:00",
-  "alerts": []
+  "updated_at": "2026-09-15T23:46:27.177330+00:00",
+  "alerts": [
+    {
+      "ticker": "WDC",
+      "company_name": "Western Digital",
+      "alert_date": "2026-09-15",
+      "alert_price": 412.239990234375,
+      "score": 89.4,
+      "trader_score": 85.8,
+      "technical_score": 54.8,
+      "fundamental_score": 99.2,
+      "model_version": "5.0-technical-fundamentals-valuation-analyst",
+      "returns": {}
+    },
+    {
+      "ticker": "LRCX",
+      "company_name": "Lam Research",
+      "alert_date": "2026-09-15",
+      "alert_price": 267.7049865722656,
+      "score": 86.0,
+      "trader_score": 82.6,
+      "technical_score": 56.0,
+      "fundamental_score": 84.4,
+      "model_version": "5.0-technical-fundamentals-valuation-analyst",
+      "returns": {}
+    },
+    {
+      "ticker": "CRDO",
+      "company_name": "Credo Technology",
+      "alert_date": "2026-09-15",
+      "alert_price": 150.3699951171875,
+      "score": 84.6,
+      "trader_score": 89.6,
+      "technical_score": 59.7,
+      "fundamental_score": 92.4,
+      "model_version": "5.0-technical-fundamentals-valuation-analyst",
+      "returns": {}
+    }
+  ]
 }
