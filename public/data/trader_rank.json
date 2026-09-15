@@ -1,5 +1,5 @@
 {
-  "model_version": "4.1",
+  "model_version": "5.0-technical-fundamentals-valuation-analyst",
   "start": "2024-06-01",
   "setup_profile": [
     {
@@ -59,9 +59,9 @@
       "pct_bollinger_pct": 28.6,
       "close_location": 0.6437773721133933,
       "pct_close_location": 54.2,
-      "relative_strength_5d": -0.013353256812583703,
+      "relative_strength_5d": -0.013353345793577831,
       "pct_relative_strength_5d": 32.6,
-      "relative_strength_20d": 0.015776980227804716,
+      "relative_strength_20d": 0.015776981777626098,
       "pct_relative_strength_20d": 52.9,
       "sector_relative_strength_20d": null,
       "pct_sector_relative_strength_20d": null
@@ -69,15 +69,15 @@
     {
       "date": "2026-01-29",
       "ticker": "ORCL",
-      "rsi_14": 33.7085876998548,
+      "rsi_14": 33.708587685917536,
       "pct_rsi_14": 10.1,
-      "rsi_7": 27.910068618786653,
+      "rsi_7": 27.91006861877422,
       "pct_rsi_7": 11.9,
-      "z_score": -1.7523118425271502,
+      "z_score": -1.7523118425272775,
       "pct_z_score": 10.6,
-      "macd_histogram": -1.2681278366267463,
+      "macd_histogram": -1.2681278319384317,
       "pct_macd_histogram": 16.3,
-      "macd_histogram_change": -0.207743853226666,
+      "macd_histogram_change": -0.2077438535990428,
       "pct_macd_histogram_change": 23.8,
       "return_1d": -0.021932882936475107,
       "pct_return_1d": 21.6,
@@ -99,7 +99,7 @@
       "pct_distance_sma20": 8.4,
       "distance_sma50": -0.13855154081154253,
       "pct_distance_sma50": 5.3,
-      "distance_sma200": -0.2267406259209448,
+      "distance_sma200": -0.2267406278235493,
       "pct_distance_sma200": 4.8,
       "distance_1m_high": -0.1742719831026166,
       "pct_distance_1m_high": 8.8,
@@ -115,17 +115,17 @@
       "pct_volume_ratio": 82.8,
       "volume_ratio_5d": 1.2904887399838993,
       "pct_volume_ratio_5d": 67.0,
-      "volatility_20d": 0.42974682305669415,
+      "volatility_20d": 0.42974682305669537,
       "pct_volatility_20d": 67.8,
-      "atr_pct": 0.05003063353463398,
+      "atr_pct": 0.050030633530045145,
       "pct_atr_pct": 81.1,
-      "bollinger_pct": 0.06192203936821249,
+      "bollinger_pct": 0.061922039368180554,
       "pct_bollinger_pct": 10.6,
       "close_location": 0.8599308360983713,
       "pct_close_location": 85.9,
       "relative_strength_5d": -0.05880882436000401,
       "pct_relative_strength_5d": 18.5,
-      "relative_strength_20d": -0.150962133097453,
+      "relative_strength_20d": -0.15096204286966797,
       "pct_relative_strength_20d": 6.2,
       "sector_relative_strength_20d": null,
       "pct_sector_relative_strength_20d": null
@@ -133,63 +133,63 @@
     {
       "date": "2026-01-29",
       "ticker": "MSFT",
-      "rsi_14": 33.57870607958229,
+      "rsi_14": 33.578730144552,
       "pct_rsi_14": 9.7,
-      "rsi_7": 29.17540355943879,
+      "rsi_7": 29.175422782760876,
       "pct_rsi_7": 14.5,
-      "z_score": -2.415840981443219,
+      "z_score": -2.4158391676553874,
       "pct_z_score": 2.6,
-      "macd_histogram": -0.19930961311629147,
+      "macd_histogram": -0.1993080243059424,
       "pct_macd_histogram": 41.0,
-      "macd_histogram_change": -2.4984380212677815,
+      "macd_histogram_change": -2.4984365262722124,
       "pct_macd_histogram_change": 0.4,
-      "return_1d": -0.09993152265519933,
+      "return_1d": -0.09993145889009569,
       "pct_return_1d": 1.8,
-      "return_3d": -0.07820877794776426,
+      "return_3d": -0.07820871264371865,
       "pct_return_3d": 6.6,
-      "return_5d": -0.039100976523716025,
+      "return_5d": -0.0391009738619319,
       "pct_return_5d": 22.9,
-      "return_7d": -0.04624664666507072,
+      "return_7d": -0.0462465146530856,
       "pct_return_7d": 13.2,
-      "return_10d": -0.05633682480496982,
+      "return_10d": -0.056336821038652896,
       "pct_return_10d": 19.4,
-      "return_14d": -0.09330488255930036,
+      "return_14d": -0.09330487656590214,
       "pct_return_14d": 14.5,
-      "return_20d": -0.11073282478143454,
+      "return_20d": -0.11073276178154612,
       "pct_return_20d": 11.0,
-      "return_30d": -0.08702244998080633,
+      "return_30d": -0.08702244435222561,
       "pct_return_30d": 15.4,
-      "distance_sma20": -0.07314760149481714,
+      "distance_sma20": -0.07314755104710002,
       "pct_distance_sma20": 12.8,
-      "distance_sma50": -0.09234771278124854,
+      "distance_sma50": -0.09234766015171236,
       "pct_distance_sma50": 14.5,
-      "distance_sma200": -0.10545558302345825,
+      "distance_sma200": -0.10545552050006479,
       "pct_distance_sma200": 10.6,
-      "distance_1m_high": -0.11073282478143454,
+      "distance_1m_high": -0.11073276178154612,
       "pct_distance_1m_high": 20.3,
-      "distance_3m_high": -0.1980216577798969,
+      "distance_3m_high": -0.19802160096396193,
       "pct_distance_3m_high": 17.6,
-      "distance_52w_high": -0.19879097011873814,
+      "distance_52w_high": -0.1987910043128467,
       "pct_distance_52w_high": 28.2,
-      "distance_support_20d": 0.029642324146093912,
+      "distance_support_20d": 0.02964232414609369,
       "pct_distance_support_20d": 18.5,
-      "distance_support_60d": 0.029642324146093912,
+      "distance_support_60d": 0.02964232414609369,
       "pct_distance_support_60d": 8.4,
       "volume_ratio": 4.0198353635500625,
       "pct_volume_ratio": 99.6,
       "volume_ratio_5d": 2.4568575634161594,
       "pct_volume_ratio_5d": 99.1,
-      "volatility_20d": 0.4268369728636851,
+      "volatility_20d": 0.42683687625996125,
       "pct_volatility_20d": 67.4,
-      "atr_pct": 0.031022896429694066,
+      "atr_pct": 0.03102290508109608,
       "pct_atr_pct": 57.7,
-      "bollinger_pct": -0.10396024536080468,
+      "bollinger_pct": -0.10395979191384676,
       "pct_bollinger_pct": 2.6,
-      "close_location": 0.5810058008942159,
+      "close_location": 0.5810058008942155,
       "pct_close_location": 56.8,
-      "relative_strength_5d": -0.046445095017092264,
+      "relative_strength_5d": -0.04644509235530814,
       "pct_relative_strength_5d": 22.9,
-      "relative_strength_20d": -0.12096560350544316,
+      "relative_strength_20d": -0.12096545027776973,
       "pct_relative_strength_20d": 11.0,
       "sector_relative_strength_20d": null,
       "pct_sector_relative_strength_20d": null
@@ -253,7 +253,7 @@
       "pct_close_location": 41.0,
       "relative_strength_5d": -0.16408351137820587,
       "pct_relative_strength_5d": 4.0,
-      "relative_strength_20d": -0.2961242230663921,
+      "relative_strength_20d": -0.29612431252286875,
       "pct_relative_strength_20d": 2.6,
       "sector_relative_strength_20d": null,
       "pct_sector_relative_strength_20d": null
@@ -443,7 +443,7 @@
       "pct_bollinger_pct": 26.0,
       "close_location": 0.9353581712286523,
       "pct_close_location": 78.9,
-      "relative_strength_5d": -0.1175522074541997,
+      "relative_strength_5d": -0.1175522959548656,
       "pct_relative_strength_5d": 8.8,
       "relative_strength_20d": 0.016760357497171974,
       "pct_relative_strength_20d": 44.5,
@@ -507,7 +507,7 @@
       "pct_bollinger_pct": 0.0,
       "close_location": 0.8993715520361495,
       "pct_close_location": 66.1,
-      "relative_strength_5d": -0.11915220044863895,
+      "relative_strength_5d": -0.11915228894930485,
       "pct_relative_strength_5d": 8.4,
       "relative_strength_20d": -0.1476571191717274,
       "pct_relative_strength_20d": 20.7,
@@ -571,7 +571,7 @@
       "pct_bollinger_pct": 8.8,
       "close_location": 0.6896104996311634,
       "pct_close_location": 29.5,
-      "relative_strength_5d": -0.2196716198329407,
+      "relative_strength_5d": -0.2196717083336066,
       "pct_relative_strength_5d": 0.9,
       "relative_strength_20d": -0.08589175712941444,
       "pct_relative_strength_20d": 26.9,
@@ -581,63 +581,63 @@
     {
       "date": "2026-02-06",
       "ticker": "MSFT",
-      "rsi_14": 29.1344145310416,
+      "rsi_14": 29.134432757145817,
       "pct_rsi_14": 11.0,
-      "rsi_7": 26.408444198384657,
+      "rsi_7": 26.408455149938504,
       "pct_rsi_7": 10.1,
-      "z_score": -1.691295096600768,
+      "z_score": -1.6912947810246892,
       "pct_z_score": 11.9,
-      "macd_histogram": -6.00565622180336,
+      "macd_histogram": -6.00565353224418,
       "pct_macd_histogram": 5.7,
-      "macd_histogram_change": 0.16177272347580818,
+      "macd_histogram_change": 0.16177283629383155,
       "pct_macd_histogram_change": 52.9,
-      "return_1d": 0.018975296244727158,
+      "return_1d": 0.018975294764416617,
       "pct_return_1d": 38.8,
-      "return_3d": -0.024488664060710486,
+      "return_3d": -0.024488662231776592,
       "pct_return_3d": 25.1,
-      "return_5d": -0.0677450399889914,
+      "return_5d": -0.06774496861576484,
       "pct_return_5d": 23.3,
-      "return_7d": -0.1671199834159719,
+      "return_7d": -0.16711991965086825,
       "pct_return_7d": 10.6,
-      "return_10d": -0.13909218009284996,
+      "return_10d": -0.13909211418194412,
       "pct_return_10d": 16.7,
-      "return_14d": -0.1276909273228819,
+      "return_14d": -0.12769091879519923,
       "pct_return_14d": 20.3,
-      "return_20d": -0.1609880098474159,
+      "return_20d": -0.16098799950642162,
       "pct_return_20d": 18.5,
-      "return_30d": -0.17605008008501355,
+      "return_30d": -0.17605001700359613,
       "pct_return_30d": 14.1,
-      "distance_sma20": -0.1044592607549859,
+      "distance_sma20": -0.10445921675275982,
       "pct_distance_sma20": 19.8,
-      "distance_sma50": -0.1444715517699624,
+      "distance_sma50": -0.14447150196106806,
       "pct_distance_sma50": 16.3,
-      "distance_sma200": -0.17433534113959637,
+      "distance_sma200": -0.1743352794926738,
       "pct_distance_sma200": 15.0,
-      "distance_1m_high": -0.1671199834159719,
+      "distance_1m_high": -0.16711991965086825,
       "pct_distance_1m_high": 22.0,
-      "distance_3m_high": -0.21373640281585604,
+      "distance_3m_high": -0.21373634261969476,
       "pct_distance_3m_high": 22.5,
-      "distance_52w_high": -0.2585997544727442,
+      "distance_52w_high": -0.2585997818771889,
       "pct_distance_52w_high": 25.1,
-      "distance_support_20d": 0.022481675841945048,
+      "distance_support_20d": 0.022481674356540804,
       "pct_distance_support_20d": 6.2,
-      "distance_support_60d": 0.022481675841945048,
+      "distance_support_60d": 0.022481674356540804,
       "pct_distance_support_60d": 4.4,
       "volume_ratio": 1.281900157508871,
       "pct_volume_ratio": 74.9,
       "volume_ratio_5d": 0.9967056655177718,
       "pct_volume_ratio_5d": 68.3,
-      "volatility_20d": 0.46118605275095426,
+      "volatility_20d": 0.461185887211125,
       "pct_volatility_20d": 62.1,
-      "atr_pct": 0.03316026280578796,
+      "atr_pct": 0.03316026369132008,
       "pct_atr_pct": 50.7,
-      "bollinger_pct": 0.07717622584980781,
+      "bollinger_pct": 0.07717630474382775,
       "pct_bollinger_pct": 11.9,
-      "close_location": 0.9267199262348079,
+      "close_location": 0.9267199262348124,
       "pct_close_location": 75.3,
-      "relative_strength_5d": -0.06579404211769124,
+      "relative_strength_5d": -0.0657940592451306,
       "pct_relative_strength_5d": 23.3,
-      "relative_strength_20d": -0.16259783947244566,
+      "relative_strength_20d": -0.16259782913145138,
       "pct_relative_strength_20d": 18.5,
       "sector_relative_strength_20d": null,
       "pct_sector_relative_strength_20d": null
@@ -699,7 +699,7 @@
       "pct_bollinger_pct": 15.9,
       "close_location": 0.7321432828907258,
       "pct_close_location": 33.5,
-      "relative_strength_5d": -0.08353777465157364,
+      "relative_strength_5d": -0.08353786315223954,
       "pct_relative_strength_5d": 16.7,
       "relative_strength_20d": -0.24908453644069806,
       "pct_relative_strength_20d": 7.0,
@@ -765,7 +765,7 @@
       "pct_close_location": 17.6,
       "relative_strength_5d": -0.026850465083849362,
       "pct_relative_strength_5d": 26.0,
-      "relative_strength_20d": -0.3925320434161119,
+      "relative_strength_20d": -0.3925319557059357,
       "pct_relative_strength_20d": 2.2,
       "sector_relative_strength_20d": null,
       "pct_sector_relative_strength_20d": null
@@ -829,7 +829,7 @@
       "pct_close_location": 38.3,
       "relative_strength_5d": -0.06733785134001702,
       "pct_relative_strength_5d": 11.0,
-      "relative_strength_20d": -0.13014195754198243,
+      "relative_strength_20d": -0.1301418698318062,
       "pct_relative_strength_20d": 23.8,
       "sector_relative_strength_20d": null,
       "pct_sector_relative_strength_20d": null
@@ -837,15 +837,15 @@
     {
       "date": "2026-03-13",
       "ticker": "META",
-      "rsi_14": 35.82124389945558,
+      "rsi_14": 35.821243847144004,
       "pct_rsi_14": 23.3,
-      "rsi_7": 24.739423928713094,
+      "rsi_7": 24.739423926546706,
       "pct_rsi_7": 17.2,
-      "z_score": -2.9214029690576635,
+      "z_score": -2.921402969051432,
       "pct_z_score": 0.0,
-      "macd_histogram": -2.7358466272387956,
+      "macd_histogram": -2.735846596421645,
       "pct_macd_histogram": 18.1,
-      "macd_histogram_change": -2.1016887017807884,
+      "macd_histogram_change": -2.1016887041434997,
       "pct_macd_histogram_change": 0.0,
       "return_1d": -0.0383434526266937,
       "pct_return_1d": 2.2,
@@ -867,13 +867,13 @@
       "pct_distance_sma20": 30.0,
       "distance_sma50": -0.06198018592764043,
       "pct_distance_sma50": 37.4,
-      "distance_sma200": -0.11187550666213053,
+      "distance_sma200": -0.11187550548335834,
       "pct_distance_sma200": 23.8,
       "distance_1m_high": -0.08090099012802221,
       "pct_distance_1m_high": 48.0,
       "distance_3m_high": -0.16876384893927354,
       "pct_distance_3m_high": 37.4,
-      "distance_52w_high": -0.22199363665529626,
+      "distance_52w_high": -0.22199357634975558,
       "pct_distance_52w_high": 33.0,
       "distance_support_20d": 0.006824762961196829,
       "pct_distance_support_20d": 12.8,
@@ -883,15 +883,15 @@
       "pct_volume_ratio": 98.2,
       "volume_ratio_5d": 1.5069322891577757,
       "pct_volume_ratio_5d": 98.7,
-      "volatility_20d": 0.2651726628012335,
+      "volatility_20d": 0.26517266280123475,
       "pct_volatility_20d": 32.2,
-      "atr_pct": 0.0318917370570183,
+      "atr_pct": 0.03189173711232609,
       "pct_atr_pct": 40.1,
-      "bollinger_pct": -0.23035074226441607,
+      "bollinger_pct": -0.23035074226285848,
       "pct_bollinger_pct": 0.0,
       "close_location": 0.2120303371555472,
       "pct_close_location": 43.2,
-      "relative_strength_5d": -0.033298740404135496,
+      "relative_strength_5d": -0.03329865051637593,
       "pct_relative_strength_5d": 16.7,
       "relative_strength_20d": -0.02769499322957647,
       "pct_relative_strength_20d": 29.5,
@@ -901,17 +901,17 @@
     {
       "date": "2026-03-13",
       "ticker": "MSFT",
-      "rsi_14": 38.93419234905838,
+      "rsi_14": 38.93418322932286,
       "pct_rsi_14": 31.7,
-      "rsi_7": 34.28033762114191,
+      "rsi_7": 34.28033251900236,
       "pct_rsi_7": 32.2,
-      "z_score": -0.6942247995160329,
+      "z_score": -0.6942247932855953,
       "pct_z_score": 55.9,
-      "macd_histogram": 2.164188568306196,
+      "macd_histogram": 2.164187745641831,
       "pct_macd_histogram": 95.6,
-      "macd_histogram_change": -0.8002168894477233,
+      "macd_histogram_change": -0.8002160005563663,
       "pct_macd_histogram_change": 8.4,
-      "return_1d": -0.015702020587114007,
+      "return_1d": -0.015701945535794515,
       "pct_return_1d": 12.3,
       "return_3d": -0.02516273632637278,
       "pct_return_3d": 42.3,
@@ -921,43 +921,43 @@
       "pct_return_7d": 63.0,
       "return_10d": 0.0071548263987550875,
       "pct_return_10d": 76.7,
-      "return_14d": 0.028818891211801922,
+      "return_14d": 0.028818809217638686,
       "pct_return_14d": 73.6,
-      "return_20d": -0.013406262471834962,
+      "return_20d": -0.013406413275449003,
       "pct_return_20d": 49.3,
-      "return_30d": -0.0854606292130915,
+      "return_30d": -0.08546069400337708,
       "pct_return_30d": 36.6,
-      "distance_sma20": -0.011625698184495548,
+      "distance_sma20": -0.011625694400784203,
       "pct_distance_sma20": 60.4,
-      "distance_sma50": -0.07730909933174024,
+      "distance_sma50": -0.07730911120281625,
       "pct_distance_sma50": 31.7,
-      "distance_sma200": -0.17836448266493876,
+      "distance_sma200": -0.17836448501823188,
       "pct_distance_sma200": 16.3,
       "distance_1m_high": -0.036841351691920377,
       "pct_distance_1m_high": 79.7,
-      "distance_3m_high": -0.18762993903638148,
+      "distance_3m_high": -0.18762999015897797,
       "pct_distance_3m_high": 33.0,
-      "distance_52w_high": -0.2672627979436014,
+      "distance_52w_high": -0.2672628811260196,
       "pct_distance_52w_high": 26.4,
-      "distance_support_20d": 0.036257824361906055,
+      "distance_support_20d": 0.036257905987192585,
       "pct_distance_support_20d": 40.1,
-      "distance_support_60d": 0.036257824361906055,
+      "distance_support_60d": 0.036257905987192585,
       "pct_distance_support_60d": 20.7,
       "volume_ratio": 0.7905373433787639,
       "pct_volume_ratio": 47.1,
       "volume_ratio_5d": 0.9489454080698533,
       "pct_volume_ratio_5d": 68.7,
-      "volatility_20d": 0.22279082187141847,
+      "volatility_20d": 0.222790558570459,
       "pct_volatility_20d": 16.7,
-      "atr_pct": 0.023888389239089286,
+      "atr_pct": 0.02388838859535283,
       "pct_atr_pct": 14.5,
-      "bollinger_pct": 0.3264438001209915,
+      "bollinger_pct": 0.32644380167860093,
       "pct_bollinger_pct": 55.9,
       "close_location": 0.12322173432609586,
       "pct_close_location": 21.1,
-      "relative_strength_5d": -0.017784208431708914,
+      "relative_strength_5d": -0.017784118543949345,
       "pct_relative_strength_5d": 32.6,
-      "relative_strength_20d": 0.01445351572713316,
+      "relative_strength_20d": 0.014453364923519119,
       "pct_relative_strength_20d": 49.3,
       "sector_relative_strength_20d": null,
       "pct_sector_relative_strength_20d": null
@@ -1029,23 +1029,23 @@
     {
       "date": "2026-03-19",
       "ticker": "NVO",
-      "rsi_14": 31.82265753174306,
+      "rsi_14": 31.82266122249962,
       "pct_rsi_14": 10.1,
-      "rsi_7": 29.755044287413554,
+      "rsi_7": 29.755051157799357,
       "pct_rsi_7": 21.1,
-      "z_score": -0.7442659277561331,
+      "z_score": -0.7442656589650483,
       "pct_z_score": 49.3,
-      "macd_histogram": 0.4008606033935638,
+      "macd_histogram": 0.4008605746989202,
       "pct_macd_histogram": 74.4,
-      "macd_histogram_change": -0.03135401058016507,
+      "macd_histogram_change": -0.031353904718385284,
       "pct_macd_histogram_change": 41.4,
       "return_1d": -0.009879793581069829,
       "pct_return_1d": 22.9,
-      "return_3d": -0.03888031502896716,
+      "return_3d": -0.03888021525154539,
       "pct_return_3d": 14.1,
-      "return_5d": -0.024723748990815753,
+      "return_5d": -0.02472385172915481,
       "pct_return_5d": 22.9,
-      "return_7d": -0.04235542394058167,
+      "return_7d": -0.04235532488338356,
       "pct_return_7d": 29.5,
       "return_10d": -0.05093418951140849,
       "pct_return_10d": 30.4,
@@ -1055,17 +1055,17 @@
       "pct_return_20d": 0.4,
       "return_30d": -0.21424021655392622,
       "pct_return_30d": 2.6,
-      "distance_sma20": -0.04221928020085797,
+      "distance_sma20": -0.042219265338054424,
       "pct_distance_sma20": 27.3,
-      "distance_sma50": -0.23875996839050662,
+      "distance_sma50": -0.23875995837574748,
       "pct_distance_sma50": 0.4,
-      "distance_sma200": -0.3244175281781617,
+      "distance_sma200": -0.3244175237412933,
       "pct_distance_sma200": 4.0,
       "distance_1m_high": -0.234674886463342,
       "pct_distance_1m_high": 0.4,
       "distance_3m_high": -0.4204438487171145,
       "pct_distance_3m_high": 1.8,
-      "distance_52w_high": -0.5373493443667129,
+      "distance_52w_high": -0.537349298127153,
       "pct_distance_52w_high": 4.0,
       "distance_support_20d": 0.03430972933953935,
       "pct_distance_support_20d": 38.3,
@@ -1075,17 +1075,17 @@
       "pct_volume_ratio": 28.2,
       "volume_ratio_5d": 1.2915837430144632,
       "pct_volume_ratio_5d": 86.8,
-      "volatility_20d": 0.6551423659075716,
+      "volatility_20d": 0.6551423924328571,
       "pct_volatility_20d": 83.7,
-      "atr_pct": 0.04054391556774626,
+      "atr_pct": 0.0405439150398122,
       "pct_atr_pct": 63.0,
-      "bollinger_pct": 0.3139335180609668,
+      "bollinger_pct": 0.31393358525873793,
       "pct_bollinger_pct": 49.3,
       "close_location": 0.8089906904178199,
       "pct_close_location": 67.4,
-      "relative_strength_5d": -0.015325165475692848,
+      "relative_strength_5d": -0.015325360337137828,
       "pct_relative_strength_5d": 22.9,
-      "relative_strength_20d": -0.19861828238192303,
+      "relative_strength_20d": -0.19861845843765324,
       "pct_relative_strength_20d": 0.4,
       "sector_relative_strength_20d": null,
       "pct_sector_relative_strength_20d": null
@@ -1093,15 +1093,15 @@
     {
       "date": "2026-03-26",
       "ticker": "META",
-      "rsi_14": 25.77793493994153,
+      "rsi_14": 25.777934910970814,
       "pct_rsi_14": 1.3,
-      "rsi_7": 16.64190450332353,
+      "rsi_7": 16.641904502842024,
       "pct_rsi_7": 1.3,
-      "z_score": -2.5988598468933106,
+      "z_score": -2.598859846892549,
       "pct_z_score": 0.4,
-      "macd_histogram": -6.897344851757731,
+      "macd_histogram": -6.897344836058462,
       "pct_macd_histogram": 2.2,
-      "macd_histogram_change": -2.436955571137318,
+      "macd_histogram_change": -2.4369555723701435,
       "pct_macd_histogram_change": 3.1,
       "return_1d": -0.07959464154247431,
       "pct_return_1d": 9.7,
@@ -1123,13 +1123,13 @@
       "pct_distance_sma20": 2.6,
       "distance_sma50": -0.15096553610028596,
       "pct_distance_sma50": 11.0,
-      "distance_sma200": -0.20341309531022378,
+      "distance_sma200": -0.20341309495622417,
       "pct_distance_sma200": 16.7,
       "distance_1m_high": -0.17929587803169933,
       "pct_distance_1m_high": 8.4,
       "distance_3m_high": -0.25775250742612876,
       "pct_distance_3m_high": 19.4,
-      "distance_52w_high": -0.3052837371639593,
+      "distance_52w_high": -0.305283683314477,
       "pct_distance_52w_high": 22.5,
       "distance_support_20d": 0.007711424734836436,
       "pct_distance_support_20d": 11.9,
@@ -1139,15 +1139,15 @@
       "pct_volume_ratio": 99.6,
       "volume_ratio_5d": 1.9040536326453288,
       "pct_volume_ratio_5d": 99.6,
-      "volatility_20d": 0.3715533752969465,
+      "volatility_20d": 0.3715533752969474,
       "pct_volatility_20d": 57.7,
-      "atr_pct": 0.035867068365553076,
+      "atr_pct": 0.03586706839734376,
       "pct_atr_pct": 55.5,
-      "bollinger_pct": -0.14971496172332707,
+      "bollinger_pct": -0.14971496172313695,
       "pct_bollinger_pct": 0.4,
       "close_location": 0.10567464972153107,
       "pct_close_location": 28.2,
-      "relative_strength_5d": -0.07788678573042329,
+      "relative_strength_5d": -0.07788669455830177,
       "pct_relative_strength_5d": 8.4,
       "relative_strength_20d": -0.10432343011374257,
       "pct_relative_strength_20d": 7.0,
@@ -1157,15 +1157,15 @@
     {
       "date": "2026-03-27",
       "ticker": "AVGO",
-      "rsi_14": 36.74143366338297,
+      "rsi_14": 36.74143353923784,
       "pct_rsi_14": 34.4,
-      "rsi_7": 28.933749425035785,
+      "rsi_7": 28.933749423956712,
       "pct_rsi_7": 32.2,
-      "z_score": -1.8898175002373707,
+      "z_score": -1.8898175002360882,
       "pct_z_score": 22.9,
-      "macd_histogram": -1.969927195943458,
+      "macd_histogram": -1.969927189166543,
       "pct_macd_histogram": 16.7,
-      "macd_histogram_change": -0.7191992423452676,
+      "macd_histogram_change": -0.7191992428719334,
       "pct_macd_histogram_change": 15.0,
       "return_1d": -0.028246419336142914,
       "pct_return_1d": 30.0,
@@ -1187,7 +1187,7 @@
       "pct_distance_sma20": 27.3,
       "distance_sma50": -0.07968863173223295,
       "pct_distance_sma50": 40.5,
-      "distance_sma200": -0.07615397550821412,
+      "distance_sma200": -0.07615397464059015,
       "pct_distance_sma200": 38.3,
       "distance_1m_high": -0.1285300241301479,
       "pct_distance_1m_high": 33.5,
@@ -1203,11 +1203,11 @@
       "pct_volume_ratio": 38.8,
       "volume_ratio_5d": 1.062732758108135,
       "pct_volume_ratio_5d": 65.2,
-      "volatility_20d": 0.39513778308889747,
+      "volatility_20d": 0.39513778308889885,
       "pct_volatility_20d": 61.7,
-      "atr_pct": 0.04157467649333297,
+      "atr_pct": 0.04157467647265485,
       "pct_atr_pct": 62.6,
-      "bollinger_pct": 0.02754562494065682,
+      "bollinger_pct": 0.027545624940978106,
       "pct_bollinger_pct": 22.9,
       "close_location": 0.209733086269573,
       "pct_close_location": 44.9,
@@ -1285,15 +1285,15 @@
     {
       "date": "2026-03-27",
       "ticker": "ORCL",
-      "rsi_14": 36.84688785632212,
+      "rsi_14": 36.84688785549275,
       "pct_rsi_14": 35.2,
-      "rsi_7": 28.309459967266463,
+      "rsi_7": 28.30945996726645,
       "pct_rsi_7": 29.1,
-      "z_score": -2.231728857035914,
+      "z_score": -2.23172885703651,
       "pct_z_score": 13.7,
-      "macd_histogram": -0.8798520026435419,
+      "macd_histogram": -0.8798520024265608,
       "pct_macd_histogram": 37.9,
-      "macd_histogram_change": -0.41012133547318985,
+      "macd_histogram_change": -0.4101213354905435,
       "pct_macd_histogram_change": 27.8,
       "return_1d": -0.022057310898909055,
       "pct_return_1d": 42.7,
@@ -1315,7 +1315,7 @@
       "pct_distance_sma20": 20.3,
       "distance_sma50": -0.11225413769666126,
       "pct_distance_sma50": 26.4,
-      "distance_sma200": -0.36126379074505766,
+      "distance_sma200": -0.36126379366266537,
       "pct_distance_sma200": 7.0,
       "distance_1m_high": -0.14382043787864685,
       "pct_distance_1m_high": 25.6,
@@ -1331,11 +1331,11 @@
       "pct_volume_ratio": 7.5,
       "volume_ratio_5d": 0.8821425373406032,
       "pct_volume_ratio_5d": 27.3,
-      "volatility_20d": 0.4837745447053632,
+      "volatility_20d": 0.48377454470536424,
       "pct_volatility_20d": 72.2,
-      "atr_pct": 0.050137347709231346,
+      "atr_pct": 0.05013734770894481,
       "pct_atr_pct": 71.4,
-      "bollinger_pct": -0.05793221425897836,
+      "bollinger_pct": -0.057932214259126966,
       "pct_bollinger_pct": 13.7,
       "close_location": 0.40118019327803034,
       "pct_close_location": 73.6,
@@ -1469,7 +1469,7 @@
       "pct_close_location": 47.4,
       "relative_strength_5d": -0.0029792103095170885,
       "pct_relative_strength_5d": 50.9,
-      "relative_strength_20d": 0.012189193203223203,
+      "relative_strength_20d": 0.012189107317537307,
       "pct_relative_strength_20d": 61.0,
       "sector_relative_strength_20d": null,
       "pct_sector_relative_strength_20d": null
@@ -1533,7 +1533,7 @@
       "pct_close_location": 25.0,
       "relative_strength_5d": -0.17476079596430516,
       "pct_relative_strength_5d": 0.4,
-      "relative_strength_20d": -0.18138468795120954,
+      "relative_strength_20d": -0.18138477383689544,
       "pct_relative_strength_20d": 2.6,
       "sector_relative_strength_20d": null,
       "pct_sector_relative_strength_20d": null
@@ -1541,15 +1541,15 @@
     {
       "date": "2026-04-01",
       "ticker": "ORCL",
-      "rsi_14": 44.26146153681676,
+      "rsi_14": 44.261461536228644,
       "pct_rsi_14": 32.9,
-      "rsi_7": 45.56502915297085,
+      "rsi_7": 45.56502915297079,
       "pct_rsi_7": 36.4,
-      "z_score": -0.8806992657708742,
+      "z_score": -0.8806992657710477,
       "pct_z_score": 25.9,
-      "macd_histogram": -0.4263954475800702,
+      "macd_histogram": -0.42639544740779733,
       "pct_macd_histogram": 36.0,
-      "macd_histogram_change": 0.2330952198546563,
+      "macd_histogram_change": 0.23309521984089088,
       "pct_macd_histogram_change": 49.1,
       "return_1d": -0.01277953169256596,
       "pct_return_1d": 17.1,
@@ -1571,7 +1571,7 @@
       "pct_distance_sma20": 24.6,
       "distance_sma50": -0.06136934614156775,
       "pct_distance_sma50": 29.8,
-      "distance_sma200": -0.3334038973658975,
+      "distance_sma200": -0.33340390042169843,
       "pct_distance_sma200": 7.0,
       "distance_1m_high": -0.10967378579612908,
       "pct_distance_1m_high": 23.2,
@@ -1587,17 +1587,17 @@
       "pct_volume_ratio": 14.9,
       "volume_ratio_5d": 1.0247427381203558,
       "pct_volume_ratio_5d": 68.4,
-      "volatility_20d": 0.5175626207830333,
+      "volatility_20d": 0.5175626207830343,
       "pct_volatility_20d": 73.2,
-      "atr_pct": 0.046782436246770316,
+      "atr_pct": 0.0467824362465497,
       "pct_atr_pct": 67.5,
-      "bollinger_pct": 0.2798251835572813,
+      "bollinger_pct": 0.2798251835572379,
       "pct_bollinger_pct": 25.9,
       "close_location": 0.11244940542759757,
       "pct_close_location": 11.4,
       "relative_strength_5d": -0.0030046671697874228,
       "pct_relative_strength_5d": 50.4,
-      "relative_strength_20d": -0.005844590140585582,
+      "relative_strength_20d": -0.005844676026271478,
       "pct_relative_strength_20d": 49.6,
       "sector_relative_strength_20d": null,
       "pct_sector_relative_strength_20d": null
@@ -1661,7 +1661,7 @@
       "pct_close_location": 52.2,
       "relative_strength_5d": -0.022302732808991088,
       "pct_relative_strength_5d": 30.3,
-      "relative_strength_20d": -0.034414486214926376,
+      "relative_strength_20d": -0.03441457210061227,
       "pct_relative_strength_20d": 30.7,
       "sector_relative_strength_20d": null,
       "pct_sector_relative_strength_20d": null
@@ -1669,63 +1669,63 @@
     {
       "date": "2026-04-14",
       "ticker": "NKE",
-      "rsi_14": 30.633502241019386,
+      "rsi_14": 30.633474245759132,
       "pct_rsi_14": 0.9,
-      "rsi_7": 36.92749724828131,
+      "rsi_7": 36.927456217870485,
       "pct_rsi_7": 11.8,
-      "z_score": -0.9320018857710898,
+      "z_score": -0.9320025542380376,
       "pct_z_score": 15.8,
-      "macd_histogram": -0.21890930862268299,
+      "macd_histogram": -0.21890958477709876,
       "pct_macd_histogram": 15.8,
-      "macd_histogram_change": 0.2117869862460573,
+      "macd_histogram_change": 0.21178677555633518,
       "pct_macd_histogram_change": 65.4,
-      "return_1d": 0.03006296426525723,
+      "return_1d": 0.030062873618325492,
       "pct_return_1d": 79.8,
-      "return_3d": 0.004545420792210431,
+      "return_3d": 0.004545421194031896,
       "pct_return_3d": 40.8,
-      "return_5d": 0.035371397394793336,
+      "return_5d": 0.03537130628071239,
       "pct_return_5d": 45.2,
-      "return_7d": 0.00022639071410779366,
+      "return_7d": 0.0002263026928348566,
       "pct_return_7d": 29.8,
-      "return_10d": -0.13739259786472546,
+      "return_10d": -0.13739273925639028,
       "pct_return_10d": 1.8,
-      "return_14d": -0.17367727748531192,
+      "return_14d": -0.17367741029095296,
       "pct_return_14d": 0.0,
-      "return_20d": -0.19328343295306394,
+      "return_20d": -0.1932835039452111,
       "pct_return_20d": 1.8,
-      "return_30d": -0.27552851657695887,
+      "return_30d": -0.2755285803314276,
       "pct_return_30d": 0.9,
-      "distance_sma20": -0.09191760815884009,
+      "distance_sma20": -0.09191768444296133,
       "pct_distance_sma20": 3.1,
-      "distance_sma50": -0.20927135130431318,
+      "distance_sma50": -0.2092714175881223,
       "pct_distance_sma50": 0.0,
-      "distance_sma200": -0.3217419256582287,
+      "distance_sma200": -0.32174198453618286,
       "pct_distance_sma200": 5.3,
-      "distance_1m_high": -0.19811317625797364,
+      "distance_1m_high": -0.1981132468250969,
       "pct_distance_1m_high": 2.6,
-      "distance_3m_high": -0.32890827270150236,
+      "distance_3m_high": -0.32890833175848055,
       "pct_distance_3m_high": 8.3,
-      "distance_52w_high": -0.4319769716840811,
+      "distance_52w_high": -0.4319769648835743,
       "pct_distance_52w_high": 11.8,
-      "distance_support_20d": 0.05013070751270665,
+      "distance_support_20d": 0.050130615099786446,
       "pct_distance_support_20d": 22.8,
-      "distance_support_60d": 0.05013070751270665,
+      "distance_support_60d": 0.050130615099786446,
       "pct_distance_support_60d": 7.9,
       "volume_ratio": 0.8255324631496959,
       "pct_volume_ratio": 36.0,
       "volume_ratio_5d": 0.9131517726499422,
       "pct_volume_ratio_5d": 36.4,
-      "volatility_20d": 0.6167878027258683,
+      "volatility_20d": 0.6167875453287444,
       "pct_volatility_20d": 78.9,
-      "atr_pct": 0.039572994853354776,
+      "atr_pct": 0.03957298580072255,
       "pct_atr_pct": 64.0,
-      "bollinger_pct": 0.2669995285572275,
+      "bollinger_pct": 0.2669993614404906,
       "pct_bollinger_pct": 15.8,
-      "close_location": 0.9920648136094016,
+      "close_location": 0.9920648136094038,
       "pct_close_location": 97.4,
-      "relative_strength_5d": -0.018085859170891005,
+      "relative_strength_5d": -0.018085950284971952,
       "pct_relative_strength_5d": 45.2,
-      "relative_strength_20d": -0.2341285090592924,
+      "relative_strength_20d": -0.23412858005143955,
       "pct_relative_strength_20d": 1.8,
       "sector_relative_strength_20d": null,
       "pct_sector_relative_strength_20d": null
@@ -1925,15 +1925,15 @@
     {
       "date": "2026-05-12",
       "ticker": "META",
-      "rsi_14": 40.9227114759758,
+      "rsi_14": 40.92271147389588,
       "pct_rsi_14": 18.4,
-      "rsi_7": 33.259970931827425,
+      "rsi_7": 33.259970931823844,
       "pct_rsi_7": 14.5,
-      "z_score": -1.2242072857175847,
+      "z_score": -1.2242072857172939,
       "pct_z_score": 21.5,
-      "macd_histogram": -6.621915578291366,
+      "macd_histogram": -6.621915576935277,
       "pct_macd_histogram": 1.8,
-      "macd_histogram_change": 0.5451399016267011,
+      "macd_histogram_change": 0.5451399015183496,
       "pct_macd_histogram_change": 92.5,
       "return_1d": 0.006913139801055568,
       "pct_return_1d": 66.7,
@@ -1961,7 +1961,7 @@
       "pct_distance_1m_high": 14.0,
       "distance_3m_high": -0.12424657900086034,
       "pct_distance_3m_high": 29.8,
-      "distance_52w_high": -0.23491627869518183,
+      "distance_52w_high": -0.2349162193913128,
       "pct_distance_52w_high": 28.5,
       "distance_support_20d": 0.017549822548978966,
       "pct_distance_support_20d": 10.5,
@@ -1971,11 +1971,11 @@
       "pct_volume_ratio": 9.2,
       "volume_ratio_5d": 0.7767396858718991,
       "pct_volume_ratio_5d": 21.1,
-      "volatility_20d": 0.36958582708342486,
+      "volatility_20d": 0.36958582708342574,
       "pct_volatility_20d": 46.9,
-      "atr_pct": 0.029404048242503845,
+      "atr_pct": 0.02940404824519841,
       "pct_atr_pct": 42.5,
-      "bollinger_pct": 0.1939481785706041,
+      "bollinger_pct": 0.1939481785706767,
       "pct_bollinger_pct": 21.5,
       "close_location": 0.9327355732912959,
       "pct_close_location": 96.1,
@@ -2053,15 +2053,15 @@
     {
       "date": "2026-05-18",
       "ticker": "NKE",
-      "rsi_14": 36.20050220545296,
+      "rsi_14": 36.20050893164217,
       "pct_rsi_14": 7.5,
-      "rsi_7": 40.36999161726685,
+      "rsi_7": 40.3700018740417,
       "pct_rsi_7": 27.6,
-      "z_score": -0.9796356780957578,
+      "z_score": -0.9796356068392926,
       "pct_z_score": 27.2,
-      "macd_histogram": 0.11124620548116804,
+      "macd_histogram": 0.11124619852983497,
       "pct_macd_histogram": 67.1,
-      "macd_histogram_change": 0.041996521676409326,
+      "macd_histogram_change": 0.04199654163709887,
       "pct_macd_histogram_change": 58.3,
       "return_1d": 0.016475700584600572,
       "pct_return_1d": 71.1,
@@ -2069,27 +2069,27 @@
       "pct_return_3d": 58.8,
       "return_5d": 0.004246326776395026,
       "pct_return_5d": 57.9,
-      "return_7d": -0.04143201853303491,
+      "return_7d": -0.04143210248942608,
       "pct_return_7d": 22.4,
-      "return_10d": -0.012067695069068352,
+      "return_10d": -0.012067784248006697,
       "pct_return_10d": 43.9,
       "return_14d": -0.05463024132302674,
       "pct_return_14d": 19.3,
       "return_20d": -0.08412217917021869,
       "pct_return_20d": 23.2,
-      "return_30d": -0.03315919530420974,
+      "return_30d": -0.03315910989239612,
       "pct_return_30d": 25.4,
-      "distance_sma20": -0.029179327942141287,
+      "distance_sma20": -0.02917932363631992,
       "pct_distance_sma20": 25.9,
-      "distance_sma50": -0.10012553774321964,
+      "distance_sma50": -0.10012553478362796,
       "pct_distance_sma50": 4.4,
-      "distance_sma200": -0.309887535937178,
+      "distance_sma200": -0.3098875339789636,
       "pct_distance_sma200": 4.4,
       "distance_1m_high": -0.08412217917021869,
       "pct_distance_1m_high": 38.6,
-      "distance_3m_high": -0.34685928676598365,
+      "distance_3m_high": -0.34685924778780863,
       "pct_distance_3m_high": 0.4,
-      "distance_52w_high": -0.4529244373636485,
+      "distance_52w_high": -0.4529243826705367,
       "pct_distance_52w_high": 8.3,
       "distance_support_20d": 0.029504262774439072,
       "pct_distance_support_20d": 23.7,
@@ -2099,11 +2099,11 @@
       "pct_volume_ratio": 52.6,
       "volume_ratio_5d": 0.8767818300004971,
       "pct_volume_ratio_5d": 26.3,
-      "volatility_20d": 0.22750716659454576,
+      "volatility_20d": 0.22750686378808063,
       "pct_volatility_20d": 15.4,
-      "atr_pct": 0.02701366074345715,
+      "atr_pct": 0.0270136572460826,
       "pct_atr_pct": 35.5,
-      "bollinger_pct": 0.2550910804760605,
+      "bollinger_pct": 0.25509109829017707,
       "pct_bollinger_pct": 27.2,
       "close_location": 0.8714284935776909,
       "pct_close_location": 78.5,
@@ -2245,15 +2245,15 @@
     {
       "date": "2026-05-26",
       "ticker": "META",
-      "rsi_14": 46.45717147139472,
+      "rsi_14": 46.45717147019197,
       "pct_rsi_14": 25.4,
-      "rsi_7": 49.24911749664184,
+      "rsi_7": 49.24911749664117,
       "pct_rsi_7": 34.6,
-      "z_score": -0.178880559064918,
+      "z_score": -0.1788805590647893,
       "pct_z_score": 32.9,
-      "macd_histogram": -0.3972433137422602,
+      "macd_histogram": -0.39724331306350624,
       "pct_macd_histogram": 31.6,
-      "macd_histogram_change": 0.6359898479009614,
+      "macd_histogram_change": 0.6359898478466652,
       "pct_macd_histogram_change": 82.0,
       "return_1d": 0.0034083667209183766,
       "pct_return_1d": 52.6,
@@ -2275,13 +2275,13 @@
       "pct_distance_sma20": 32.5,
       "distance_sma50": -0.008816296651077415,
       "pct_distance_sma50": 33.3,
-      "distance_sma200": -0.0831989895302021,
+      "distance_sma200": -0.08319898827234529,
       "pct_distance_sma200": 21.9,
       "distance_1m_high": -0.09766879737203504,
       "pct_distance_1m_high": 14.9,
       "distance_3m_high": -0.11068182909098301,
       "pct_distance_3m_high": 33.3,
-      "distance_52w_high": -0.22306571769163153,
+      "distance_52w_high": -0.22306565746919094,
       "pct_distance_52w_high": 27.2,
       "distance_support_20d": 0.033310890142605576,
       "pct_distance_support_20d": 15.8,
@@ -2291,11 +2291,11 @@
       "pct_volume_ratio": 20.6,
       "volume_ratio_5d": 1.0114503501244243,
       "pct_volume_ratio_5d": 51.3,
-      "volatility_20d": 0.3383396131269695,
+      "volatility_20d": 0.3383396131269705,
       "pct_volatility_20d": 43.0,
-      "atr_pct": 0.024334438423773697,
+      "atr_pct": 0.02433443842513562,
       "pct_atr_pct": 26.3,
-      "bollinger_pct": 0.4552798602337705,
+      "bollinger_pct": 0.4552798602338027,
       "pct_bollinger_pct": 32.9,
       "close_location": 0.7677265193921818,
       "pct_close_location": 82.5,
@@ -2309,15 +2309,15 @@
     {
       "date": "2026-05-26",
       "ticker": "MSFT",
-      "rsi_14": 52.946386875418824,
+      "rsi_14": 52.946387902857005,
       "pct_rsi_14": 48.7,
-      "rsi_7": 49.820429818775,
+      "rsi_7": 49.82043374219901,
       "pct_rsi_7": 36.0,
-      "z_score": 0.09844246462020871,
+      "z_score": 0.09844262781545537,
       "pct_z_score": 42.1,
-      "macd_histogram": -0.4748651967750588,
+      "macd_histogram": -0.4748646886429029,
       "pct_macd_histogram": 30.3,
-      "macd_histogram_change": -0.19616951866377885,
+      "macd_histogram_change": -0.1961694842760613,
       "pct_macd_histogram_change": 16.7,
       "return_1d": -0.0060683286131975045,
       "pct_return_1d": 30.7,
@@ -2325,41 +2325,41 @@
       "pct_return_3d": 23.7,
       "return_5d": -0.015604074040205584,
       "pct_return_5d": 24.1,
-      "return_7d": 0.01832076253551751,
+      "return_7d": 0.018320838745426116,
       "pct_return_7d": 55.3,
       "return_10d": 0.010350128227537336,
       "pct_return_10d": 46.1,
-      "return_14d": 0.013493754102674727,
+      "return_14d": 0.013493829591800566,
       "pct_return_14d": 50.9,
       "return_20d": -0.01857004567913445,
       "pct_return_20d": 33.8,
       "return_30d": 0.08471284859035655,
       "pct_return_30d": 66.2,
-      "distance_sma20": 0.0014924249824315172,
+      "distance_sma20": 0.0014924286680260135,
       "pct_distance_sma20": 40.4,
-      "distance_sma50": 0.0399749840835979,
+      "distance_sma50": 0.03997498885272899,
       "pct_distance_sma50": 55.3,
-      "distance_sma200": -0.09118284160266643,
+      "distance_sma200": -0.09118284645873964,
       "pct_distance_sma200": 20.2,
       "distance_1m_high": -0.02869869874800246,
       "pct_distance_1m_high": 55.7,
       "distance_3m_high": -0.03693278353860274,
       "pct_distance_3m_high": 66.7,
-      "distance_52w_high": -0.2276553509343726,
+      "distance_52w_high": -0.2276554386131412,
       "pct_distance_52w_high": 26.3,
       "distance_support_20d": 0.04753915476126913,
       "pct_distance_support_20d": 28.1,
-      "distance_support_60d": 0.17023435344110305,
+      "distance_support_60d": 0.17023425354851707,
       "pct_distance_support_60d": 53.5,
       "volume_ratio": 0.8904131056342546,
       "pct_volume_ratio": 46.5,
       "volume_ratio_5d": 1.0477408325262212,
       "pct_volume_ratio_5d": 60.1,
-      "volatility_20d": 0.2346734948776455,
+      "volatility_20d": 0.23467374179228195,
       "pct_volatility_20d": 18.4,
-      "atr_pct": 0.02569882224995908,
+      "atr_pct": 0.025698824073648187,
       "pct_atr_pct": 31.6,
-      "bollinger_pct": 0.5246106161550522,
+      "bollinger_pct": 0.5246106569538638,
       "pct_bollinger_pct": 42.1,
       "close_location": 0.4459273726851826,
       "pct_close_location": 49.1,
@@ -2373,15 +2373,15 @@
     {
       "date": "2026-05-26",
       "ticker": "NKE",
-      "rsi_14": 53.22248079781791,
+      "rsi_14": 53.22247984540369,
       "pct_rsi_14": 50.0,
-      "rsi_7": 70.87872685119942,
+      "rsi_7": 70.87869874046719,
       "pct_rsi_7": 80.3,
-      "z_score": 1.3001755263157093,
+      "z_score": 1.300175643192578,
       "pct_z_score": 73.7,
-      "macd_histogram": 0.48433281253678717,
+      "macd_histogram": 0.4843328484169418,
       "pct_macd_histogram": 71.1,
-      "macd_histogram_change": 0.049471968146286516,
+      "macd_histogram_change": 0.049472001161330104,
       "pct_macd_histogram_change": 43.4,
       "return_1d": 0.006044341950841803,
       "pct_return_1d": 58.8,
@@ -2399,17 +2399,17 @@
       "pct_return_20d": 42.5,
       "return_30d": 0.04730827108835145,
       "pct_return_30d": 56.1,
-      "distance_sma20": 0.032012081044483276,
+      "distance_sma20": 0.03201209026272589,
       "pct_distance_sma20": 69.7,
-      "distance_sma50": -0.02707059417244395,
+      "distance_sma50": -0.02707058925666339,
       "pct_distance_sma50": 23.7,
-      "distance_sma200": -0.2627230580117136,
+      "distance_sma200": -0.2627230556593205,
       "pct_distance_sma200": 6.6,
       "distance_1m_high": -0.004430713732756719,
       "pct_distance_1m_high": 76.3,
-      "distance_3m_high": -0.29259907995154233,
+      "distance_3m_high": -0.29259912326369697,
       "pct_distance_3m_high": 1.3,
-      "distance_52w_high": -0.42246713418314885,
+      "distance_52w_high": -0.42246707644511083,
       "pct_distance_52w_high": 11.4,
       "distance_support_20d": 0.086819788450333,
       "pct_distance_support_20d": 53.5,
@@ -2419,11 +2419,11 @@
       "pct_volume_ratio": 57.0,
       "volume_ratio_5d": 0.91490890413443,
       "pct_volume_ratio_5d": 35.1,
-      "volatility_20d": 0.2673302661886076,
+      "volatility_20d": 0.2673303158680992,
       "pct_volatility_20d": 26.8,
-      "atr_pct": 0.02669510641690608,
+      "atr_pct": 0.026695103979173348,
       "pct_atr_pct": 33.8,
-      "bollinger_pct": 0.8250438815789278,
+      "bollinger_pct": 0.825043910798144,
       "pct_bollinger_pct": 73.7,
       "close_location": 0.9882328125911597,
       "pct_close_location": 98.7,
@@ -2821,15 +2821,15 @@
     {
       "date": "2026-06-17",
       "ticker": "MSFT",
-      "rsi_14": 34.66208236915098,
+      "rsi_14": 34.66208312002773,
       "pct_rsi_14": 3.9,
-      "rsi_7": 25.378656932594822,
+      "rsi_7": 25.37865736087349,
       "pct_rsi_7": 3.9,
-      "z_score": -1.7490881003887628,
+      "z_score": -1.7490881003888747,
       "pct_z_score": 6.6,
-      "macd_histogram": -5.024196312093207,
+      "macd_histogram": -5.024196340585405,
       "pct_macd_histogram": 2.6,
-      "macd_histogram_change": -0.5354447970844873,
+      "macd_histogram_change": -0.5354448115191346,
       "pct_macd_histogram_change": 15.4,
       "return_1d": -0.03788437231212749,
       "pct_return_1d": 11.0,
@@ -2845,33 +2845,33 @@
       "pct_return_14d": 11.0,
       "return_20d": -0.09029119022627707,
       "pct_return_20d": 11.4,
-      "return_30d": -0.0769345761146184,
+      "return_30d": -0.0769345073609613,
       "pct_return_30d": 17.5,
       "distance_sma20": -0.08737290394054964,
       "pct_distance_sma20": 9.6,
-      "distance_sma50": -0.08103567788452815,
+      "distance_sma50": -0.08103567243300203,
       "pct_distance_sma50": 11.0,
-      "distance_sma200": -0.1582922303572044,
+      "distance_sma200": -0.15829223521648983,
       "pct_distance_sma200": 13.6,
       "distance_1m_high": -0.17721273419504024,
       "pct_distance_1m_high": 14.5,
       "distance_3m_high": -0.17721273419504024,
       "pct_distance_3m_high": 20.2,
-      "distance_52w_high": -0.29656730691292954,
+      "distance_52w_high": -0.29656738676861627,
       "pct_distance_52w_high": 21.1,
       "distance_support_20d": 0.004213920033464769,
       "pct_distance_support_20d": 4.8,
-      "distance_support_60d": 0.06582094377161263,
+      "distance_support_60d": 0.06582085279187844,
       "pct_distance_support_60d": 22.4,
       "volume_ratio": 1.1240697795045294,
       "pct_volume_ratio": 66.7,
       "volume_ratio_5d": 1.117583147059716,
       "pct_volume_ratio_5d": 64.0,
-      "volatility_20d": 0.3855732259140414,
+      "volatility_20d": 0.3855732259140416,
       "pct_volatility_20d": 52.6,
-      "atr_pct": 0.032203668136666315,
+      "atr_pct": 0.032203668748431086,
       "pct_atr_pct": 47.4,
-      "bollinger_pct": 0.06272797490280921,
+      "bollinger_pct": 0.06272797490278159,
       "pct_bollinger_pct": 6.6,
       "close_location": 0.12183891380705365,
       "pct_close_location": 37.3,
@@ -3013,15 +3013,15 @@
     {
       "date": "2026-06-23",
       "ticker": "META",
-      "rsi_14": 39.11086138260536,
+      "rsi_14": 39.11086138234992,
       "pct_rsi_14": 11.8,
-      "rsi_7": 36.403049904449645,
+      "rsi_7": 36.40304990444961,
       "pct_rsi_7": 20.2,
-      "z_score": -1.2793093493560752,
+      "z_score": -1.2793093493555392,
       "pct_z_score": 18.0,
-      "macd_histogram": -2.23103986865509,
+      "macd_histogram": -2.2310398684977297,
       "pct_macd_histogram": 15.8,
-      "macd_histogram_change": -0.2125362087667515,
+      "macd_histogram_change": -0.21253620877937607,
       "pct_macd_histogram_change": 34.6,
       "return_1d": -0.002926245367292357,
       "pct_return_1d": 46.1,
@@ -3043,13 +3043,13 @@
       "pct_distance_sma20": 18.9,
       "distance_sma50": -0.09138709897394182,
       "pct_distance_sma50": 11.4,
-      "distance_sma200": -0.13763172698928094,
+      "distance_sma200": -0.13763172658559397,
       "pct_distance_sma200": 16.2,
       "distance_1m_high": -0.11422957676604562,
       "pct_distance_1m_high": 25.4,
       "distance_3m_high": -0.1827447792548451,
       "pct_distance_3m_high": 23.7,
-      "distance_52w_high": -0.28602201196070687,
+      "distance_52w_high": -0.2860219566181922,
       "pct_distance_52w_high": 22.8,
       "distance_support_20d": 0.010253106905511844,
       "pct_distance_support_20d": 7.9,
@@ -3059,11 +3059,11 @@
       "pct_volume_ratio": 8.3,
       "volume_ratio_5d": 0.7348515693261594,
       "pct_volume_ratio_5d": 19.7,
-      "volatility_20d": 0.4544269376761087,
+      "volatility_20d": 0.4544269376761094,
       "pct_volatility_20d": 57.0,
-      "atr_pct": 0.03432413755100713,
+      "atr_pct": 0.03432413755136966,
       "pct_atr_pct": 51.8,
-      "bollinger_pct": 0.18017266266098136,
+      "bollinger_pct": 0.18017266266111526,
       "pct_bollinger_pct": 18.0,
       "close_location": 0.1055450312000131,
       "pct_close_location": 12.7,
@@ -3269,15 +3269,15 @@
     {
       "date": "2026-07-07",
       "ticker": "ORCL",
-      "rsi_14": 29.17021479776089,
+      "rsi_14": 29.17021479775657,
       "pct_rsi_14": 0.0,
       "rsi_7": 20.40018687509601,
       "pct_rsi_7": 0.4,
-      "z_score": -1.185371777530679,
+      "z_score": -1.1853717775306951,
       "pct_z_score": 19.7,
-      "macd_histogram": -3.435798962203327,
+      "macd_histogram": -3.4357989622021456,
       "pct_macd_histogram": 13.2,
-      "macd_histogram_change": 0.7280371937782828,
+      "macd_histogram_change": 0.7280371937782135,
       "pct_macd_histogram_change": 90.8,
       "return_1d": -0.015025042625291918,
       "pct_return_1d": 37.3,
@@ -3299,7 +3299,7 @@
       "pct_distance_sma20": 6.1,
       "distance_sma50": -0.233783657459665,
       "pct_distance_sma50": 3.5,
-      "distance_sma200": -0.28296813516510266,
+      "distance_sma200": -0.28296813627701867,
       "pct_distance_sma200": 3.9,
       "distance_1m_high": -0.33732680806312665,
       "pct_distance_1m_high": 2.2,
@@ -3315,11 +3315,11 @@
       "pct_volume_ratio": 97.8,
       "volume_ratio_5d": 1.1241274912999202,
       "pct_volume_ratio_5d": 83.3,
-      "volatility_20d": 0.45276932042746665,
+      "volatility_20d": 0.45276932042746765,
       "pct_volatility_20d": 62.7,
-      "atr_pct": 0.06827717523519143,
+      "atr_pct": 0.06827717523518963,
       "pct_atr_pct": 81.1,
-      "bollinger_pct": 0.20365705561733022,
+      "bollinger_pct": 0.20365705561732625,
       "pct_bollinger_pct": 19.7,
       "close_location": 0.5056187052689548,
       "pct_close_location": 62.7,
@@ -3525,15 +3525,15 @@
     {
       "date": "2026-07-16",
       "ticker": "QCOM",
-      "rsi_14": 37.23391848994677,
+      "rsi_14": 37.233918494210776,
       "pct_rsi_14": 11.4,
-      "rsi_7": 27.020541967414005,
+      "rsi_7": 27.02054196742968,
       "pct_rsi_7": 10.5,
-      "z_score": -1.4033797628030804,
+      "z_score": -1.4033797628030662,
       "pct_z_score": 20.6,
-      "macd_histogram": -1.5948768663757589,
+      "macd_histogram": -1.5948768666481312,
       "pct_macd_histogram": 19.3,
-      "macd_histogram_change": -0.3359894575209301,
+      "macd_histogram_change": -0.3359894574992497,
       "pct_macd_histogram_change": 25.4,
       "return_1d": -0.04140916281145379,
       "pct_return_1d": 22.4,
@@ -3555,7 +3555,7 @@
       "pct_distance_sma20": 16.2,
       "distance_sma50": -0.17611269859708034,
       "pct_distance_sma50": 11.0,
-      "distance_sma200": 0.01711003965644453,
+      "distance_sma200": 0.01711003919130971,
       "pct_distance_sma200": 35.5,
       "distance_1m_high": -0.24545573346744354,
       "pct_distance_1m_high": 14.5,
@@ -3571,11 +3571,11 @@
       "pct_volume_ratio": 43.0,
       "volume_ratio_5d": 1.3621226146032224,
       "pct_volume_ratio_5d": 84.2,
-      "volatility_20d": 0.5933582626196789,
+      "volatility_20d": 0.5933582626196792,
       "pct_volatility_20d": 73.2,
-      "atr_pct": 0.07175959098208619,
+      "atr_pct": 0.07175959098514287,
       "pct_atr_pct": 80.7,
-      "bollinger_pct": 0.14915505929922976,
+      "bollinger_pct": 0.14915505929923342,
       "pct_bollinger_pct": 20.6,
       "close_location": 0.32595467189006494,
       "pct_close_location": 35.5,
@@ -3781,15 +3781,15 @@
     {
       "date": "2026-07-21",
       "ticker": "QCOM",
-      "rsi_14": 39.91509096997677,
+      "rsi_14": 39.915090973191475,
       "pct_rsi_14": 10.5,
-      "rsi_7": 36.274349988955244,
+      "rsi_7": 36.27434998896345,
       "pct_rsi_7": 14.5,
-      "z_score": -1.0942279391262157,
+      "z_score": -1.0942279391261907,
       "pct_z_score": 16.7,
-      "macd_histogram": -1.1516838834661502,
+      "macd_histogram": -1.151683883682578,
       "pct_macd_histogram": 27.2,
-      "macd_histogram_change": 0.3822634529809372,
+      "macd_histogram_change": 0.3822634529981812,
       "pct_macd_histogram_change": 77.2,
       "return_1d": 0.018670702815819284,
       "pct_return_1d": 64.9,
@@ -3811,7 +3811,7 @@
       "pct_distance_sma20": 15.8,
       "distance_sma50": -0.15695135710132258,
       "pct_distance_sma50": 8.8,
-      "distance_sma200": 0.03357023288717165,
+      "distance_sma200": 0.0335702314702393,
       "pct_distance_sma200": 44.3,
       "distance_1m_high": -0.21811623967528682,
       "pct_distance_1m_high": 14.0,
@@ -3827,11 +3827,11 @@
       "pct_volume_ratio": 34.2,
       "volume_ratio_5d": 1.025390080586716,
       "pct_volume_ratio_5d": 65.8,
-      "volatility_20d": 0.5446687991152925,
+      "volatility_20d": 0.5446687991152929,
       "pct_volatility_20d": 70.6,
-      "atr_pct": 0.06383272844817849,
+      "atr_pct": 0.06383272845058507,
       "pct_atr_pct": 78.1,
-      "bollinger_pct": 0.22644301521844595,
+      "bollinger_pct": 0.22644301521845217,
       "pct_bollinger_pct": 16.7,
       "close_location": 0.6280367807699558,
       "pct_close_location": 50.0,
@@ -3845,15 +3845,15 @@
     {
       "date": "2026-07-23",
       "ticker": "GOOGL",
-      "rsi_14": 31.025933201844936,
+      "rsi_14": 31.025932060399185,
       "pct_rsi_14": 2.6,
-      "rsi_7": 21.587472859500608,
+      "rsi_7": 21.587472669693682,
       "pct_rsi_7": 2.6,
-      "z_score": -2.952944407651264,
+      "z_score": -2.9529444076514615,
       "pct_z_score": 0.4,
-      "macd_histogram": -2.9981799889083414,
+      "macd_histogram": -2.998179922096202,
       "pct_macd_histogram": 13.2,
-      "macd_histogram_change": -1.7975333527431778,
+      "macd_histogram_change": -1.7975333586289666,
       "pct_macd_histogram_change": 2.6,
       "return_1d": -0.07132620819602653,
       "pct_return_1d": 1.3,
@@ -3873,9 +3873,9 @@
       "pct_return_30d": 12.7,
       "distance_sma20": -0.10102279537523451,
       "pct_distance_sma20": 8.8,
-      "distance_sma50": -0.13193145690780794,
+      "distance_sma50": -0.13193145835645836,
       "pct_distance_sma50": 10.5,
-      "distance_sma200": -0.01718485679774806,
+      "distance_sma200": -0.01718485610139331,
       "pct_distance_sma200": 34.2,
       "distance_1m_high": -0.14350808874984566,
       "pct_distance_1m_high": 20.2,
@@ -3891,11 +3891,11 @@
       "pct_volume_ratio": 94.7,
       "volume_ratio_5d": 1.857935065664987,
       "pct_volume_ratio_5d": 96.9,
-      "volatility_20d": 0.41485132975672506,
+      "volatility_20d": 0.4148513297567251,
       "pct_volatility_20d": 55.7,
-      "atr_pct": 0.038468018497476913,
+      "atr_pct": 0.03846801795479345,
       "pct_atr_pct": 57.0,
-      "bollinger_pct": -0.23823610191281577,
+      "bollinger_pct": -0.23823610191286615,
       "pct_bollinger_pct": 0.4,
       "close_location": 0.29092905217266607,
       "pct_close_location": 32.0,
@@ -4165,15 +4165,15 @@
     {
       "date": "2026-07-30",
       "ticker": "META",
-      "rsi_14": 32.124420409523324,
+      "rsi_14": 32.12442040948858,
       "pct_rsi_14": 1.3,
       "rsi_7": 15.865655975625657,
       "pct_rsi_7": 0.0,
-      "z_score": -2.2808634672826926,
+      "z_score": -2.2808634672822334,
       "pct_z_score": 0.4,
-      "macd_histogram": -10.876473557053114,
+      "macd_histogram": -10.876473557031781,
       "pct_macd_histogram": 2.2,
-      "macd_histogram_change": -3.097069658364356,
+      "macd_histogram_change": -3.097069658366051,
       "pct_macd_histogram_change": 0.4,
       "return_1d": -0.07954091839250976,
       "pct_return_1d": 0.4,
@@ -4195,13 +4195,13 @@
       "pct_distance_sma20": 4.4,
       "distance_sma50": -0.10593954710113596,
       "pct_distance_sma50": 18.0,
-      "distance_sma200": -0.150290667238545,
+      "distance_sma200": -0.15029066805608282,
       "pct_distance_sma200": 13.2,
       "distance_1m_high": -0.20883293768118005,
       "pct_distance_1m_high": 11.8,
       "distance_3m_high": -0.20883293768118005,
       "pct_distance_3m_high": 23.7,
-      "distance_52w_high": -0.31544722971578265,
+      "distance_52w_high": -0.3154471766541024,
       "pct_distance_52w_high": 27.2,
       "distance_support_20d": 0.027722243194770124,
       "pct_distance_support_20d": 8.8,
@@ -4211,11 +4211,11 @@
       "pct_volume_ratio": 96.1,
       "volume_ratio_5d": 2.1273881311354628,
       "pct_volume_ratio_5d": 97.4,
-      "volatility_20d": 0.5250593807888906,
+      "volatility_20d": 0.5250593807888913,
       "pct_volatility_20d": 68.9,
-      "atr_pct": 0.04755184663607654,
+      "atr_pct": 0.04755184663613159,
       "pct_atr_pct": 66.2,
-      "bollinger_pct": -0.07021586682067281,
+      "bollinger_pct": -0.07021586682055803,
       "pct_bollinger_pct": 0.4,
       "close_location": 0.9447709696609161,
       "pct_close_location": 84.6,
@@ -4357,15 +4357,15 @@
     {
       "date": "2026-08-18",
       "ticker": "META",
-      "rsi_14": 36.20089105509178,
+      "rsi_14": 36.20089105507869,
       "pct_rsi_14": 0.4,
       "rsi_7": 26.69689910425187,
       "pct_rsi_7": 0.4,
-      "z_score": -2.063725123063547,
+      "z_score": -2.063725123062226,
       "pct_z_score": 0.0,
-      "macd_histogram": -3.1907882883908663,
+      "macd_histogram": -3.190788288382983,
       "pct_macd_histogram": 0.4,
-      "macd_histogram_change": -2.2369975492136422,
+      "macd_histogram_change": -2.2369975492142498,
       "pct_macd_histogram_change": 4.8,
       "return_1d": -0.044466297160996704,
       "pct_return_1d": 17.5,
@@ -4387,7 +4387,7 @@
       "pct_distance_sma20": 1.8,
       "distance_sma50": -0.08614902034233263,
       "pct_distance_sma50": 7.9,
-      "distance_sma200": -0.12997904262702364,
+      "distance_sma200": -0.12997904305191144,
       "pct_distance_sma200": 7.5,
       "distance_1m_high": -0.15554280770441697,
       "pct_distance_1m_high": 4.4,
@@ -4403,11 +4403,11 @@
       "pct_volume_ratio": 97.4,
       "volume_ratio_5d": 1.6843860966609308,
       "pct_volume_ratio_5d": 98.2,
-      "volatility_20d": 0.480228346822444,
+      "volatility_20d": 0.48022834682244464,
       "pct_volatility_20d": 64.0,
-      "atr_pct": 0.0407891197464514,
+      "atr_pct": 0.040789119746472216,
       "pct_atr_pct": 64.9,
-      "bollinger_pct": -0.01593128076588671,
+      "bollinger_pct": -0.01593128076555645,
       "pct_bollinger_pct": 0.0,
       "close_location": 0.026358866736621196,
       "pct_close_location": 10.1,
@@ -4421,15 +4421,15 @@
     {
       "date": "2026-08-21",
       "ticker": "VST",
-      "rsi_14": 37.163563024753785,
+      "rsi_14": 37.1635630247377,
       "pct_rsi_14": 5.3,
       "rsi_7": 29.94892974970041,
       "pct_rsi_7": 7.9,
-      "z_score": -1.6823875909338353,
+      "z_score": -1.6823875909327501,
       "pct_z_score": 7.9,
-      "macd_histogram": -0.5628525714483299,
+      "macd_histogram": -0.5628525714477348,
       "pct_macd_histogram": 28.5,
-      "macd_histogram_change": -0.2515509685026278,
+      "macd_histogram_change": -0.2515509685026913,
       "pct_macd_histogram_change": 28.1,
       "return_1d": -0.019648738157251433,
       "pct_return_1d": 7.9,
@@ -4451,7 +4451,7 @@
       "pct_distance_sma20": 7.5,
       "distance_sma50": -0.11161524213905749,
       "pct_distance_sma50": 8.8,
-      "distance_sma200": -0.14607068665552814,
+      "distance_sma200": -0.14607068788083866,
       "pct_distance_sma200": 5.7,
       "distance_1m_high": -0.16629940847678104,
       "pct_distance_1m_high": 6.6,
@@ -4467,11 +4467,11 @@
       "pct_volume_ratio": 75.4,
       "volume_ratio_5d": 1.1848358864179618,
       "pct_volume_ratio_5d": 82.9,
-      "volatility_20d": 0.5102081006639528,
+      "volatility_20d": 0.5102081006639521,
       "pct_volatility_20d": 67.1,
-      "atr_pct": 0.04440884332642529,
+      "atr_pct": 0.04440884332641441,
       "pct_atr_pct": 70.2,
-      "bollinger_pct": 0.07940310226654118,
+      "bollinger_pct": 0.07940310226681262,
       "pct_bollinger_pct": 7.9,
       "close_location": 0.007256776250013835,
       "pct_close_location": 0.0,
@@ -4612,464 +4612,20 @@
     }
   ],
   "variants": {
-    "trader + technical": {
+    "alleen technical (nieuwe methode)": {
       "n": 72,
       "universe": 228.0,
-      "median_rank": 13.0,
-      "mean_rank": 23.6,
-      "top_10": 28,
-      "top_25": 45,
-      "top_50": 62,
-      "bottom_half": 1,
-      "placements": [
-        {
-          "date": "2026-01-14",
-          "ticker": "SOFI",
-          "rank": 47,
-          "of": 227
-        },
-        {
-          "date": "2026-01-29",
-          "ticker": "ORCL",
-          "rank": 13,
-          "of": 227
-        },
-        {
-          "date": "2026-01-29",
-          "ticker": "MSFT",
-          "rank": 44,
-          "of": 227
-        },
-        {
-          "date": "2026-02-03",
-          "ticker": "HOOD",
-          "rank": 6,
-          "of": 227
-        },
-        {
-          "date": "2026-02-04",
-          "ticker": "HIMS",
-          "rank": 8,
-          "of": 227
-        },
-        {
-          "date": "2026-02-05",
-          "ticker": "IREN",
-          "rank": 39,
-          "of": 227
-        },
-        {
-          "date": "2026-02-06",
-          "ticker": "AMD",
-          "rank": 57,
-          "of": 227
-        },
-        {
-          "date": "2026-02-06",
-          "ticker": "AMZN",
-          "rank": 54,
-          "of": 227
-        },
-        {
-          "date": "2026-02-06",
-          "ticker": "IREN",
-          "rank": 30,
-          "of": 227
-        },
-        {
-          "date": "2026-02-06",
-          "ticker": "MSFT",
-          "rank": 38,
-          "of": 227
-        },
-        {
-          "date": "2026-02-06",
-          "ticker": "SOFI",
-          "rank": 27,
-          "of": 227
-        },
-        {
-          "date": "2026-02-12",
-          "ticker": "HOOD",
-          "rank": 4,
-          "of": 227
-        },
-        {
-          "date": "2026-02-12",
-          "ticker": "NFLX",
-          "rank": 32,
-          "of": 227
-        },
-        {
-          "date": "2026-03-13",
-          "ticker": "META",
-          "rank": 55,
-          "of": 227
-        },
-        {
-          "date": "2026-03-13",
-          "ticker": "MSFT",
-          "rank": 84,
-          "of": 227
-        },
-        {
-          "date": "2026-03-18",
-          "ticker": "ADBE",
-          "rank": 13,
-          "of": 227
-        },
-        {
-          "date": "2026-03-19",
-          "ticker": "NVO",
-          "rank": 3,
-          "of": 227
-        },
-        {
-          "date": "2026-03-26",
-          "ticker": "META",
-          "rank": 20,
-          "of": 227
-        },
-        {
-          "date": "2026-03-27",
-          "ticker": "AVGO",
-          "rank": 72,
-          "of": 227
-        },
-        {
-          "date": "2026-03-27",
-          "ticker": "BABA",
-          "rank": 33,
-          "of": 227
-        },
-        {
-          "date": "2026-03-27",
-          "ticker": "ORCL",
-          "rank": 32,
-          "of": 227
-        },
-        {
-          "date": "2026-03-27",
-          "ticker": "RDDT",
-          "rank": 11,
-          "of": 227
-        },
-        {
-          "date": "2026-04-01",
-          "ticker": "AMZN",
-          "rank": 117,
-          "of": 228
-        },
-        {
-          "date": "2026-04-01",
-          "ticker": "IREN",
-          "rank": 5,
-          "of": 228
-        },
-        {
-          "date": "2026-04-01",
-          "ticker": "ORCL",
-          "rank": 37,
-          "of": 228
-        },
-        {
-          "date": "2026-04-01",
-          "ticker": "RDDT",
-          "rank": 41,
-          "of": 228
-        },
-        {
-          "date": "2026-04-14",
-          "ticker": "NKE",
-          "rank": 3,
-          "of": 228
-        },
-        {
-          "date": "2026-04-22",
-          "ticker": "DUOL",
-          "rank": 22,
-          "of": 228
-        },
-        {
-          "date": "2026-04-29",
-          "ticker": "HOOD",
-          "rank": 6,
-          "of": 228
-        },
-        {
-          "date": "2026-05-07",
-          "ticker": "SOFI",
-          "rank": 4,
-          "of": 228
-        },
-        {
-          "date": "2026-05-12",
-          "ticker": "META",
-          "rank": 59,
-          "of": 228
-        },
-        {
-          "date": "2026-05-12",
-          "ticker": "SOFI",
-          "rank": 9,
-          "of": 228
-        },
-        {
-          "date": "2026-05-18",
-          "ticker": "NKE",
-          "rank": 19,
-          "of": 228
-        },
-        {
-          "date": "2026-05-26",
-          "ticker": "DUOL",
-          "rank": 26,
-          "of": 228
-        },
-        {
-          "date": "2026-05-26",
-          "ticker": "HOOD",
-          "rank": 8,
-          "of": 228
-        },
-        {
-          "date": "2026-05-26",
-          "ticker": "META",
-          "rank": 77,
-          "of": 228
-        },
-        {
-          "date": "2026-05-26",
-          "ticker": "MSFT",
-          "rank": 79,
-          "of": 228
-        },
-        {
-          "date": "2026-05-26",
-          "ticker": "NKE",
-          "rank": 28,
-          "of": 228
-        },
-        {
-          "date": "2026-05-26",
-          "ticker": "RDDT",
-          "rank": 5,
-          "of": 228
-        },
-        {
-          "date": "2026-05-26",
-          "ticker": "SOFI",
-          "rank": 14,
-          "of": 228
-        },
-        {
-          "date": "2026-06-09",
-          "ticker": "BABA",
-          "rank": 17,
-          "of": 228
-        },
-        {
-          "date": "2026-06-09",
-          "ticker": "COIN",
-          "rank": 3,
-          "of": 228
-        },
-        {
-          "date": "2026-06-09",
-          "ticker": "CRWV",
-          "rank": 12,
-          "of": 228
-        },
-        {
-          "date": "2026-06-16",
-          "ticker": "ADBE",
-          "rank": 1,
-          "of": 228
-        },
-        {
-          "date": "2026-06-17",
-          "ticker": "MSFT",
-          "rank": 32,
-          "of": 228
-        },
-        {
-          "date": "2026-06-18",
-          "ticker": "ASTS",
-          "rank": 15,
-          "of": 228
-        },
-        {
-          "date": "2026-06-23",
-          "ticker": "BABA",
-          "rank": 3,
-          "of": 228
-        },
-        {
-          "date": "2026-06-23",
-          "ticker": "META",
-          "rank": 57,
-          "of": 228
-        },
-        {
-          "date": "2026-06-23",
-          "ticker": "NFLX",
-          "rank": 10,
-          "of": 228
-        },
-        {
-          "date": "2026-07-01",
-          "ticker": "CRWV",
-          "rank": 3,
-          "of": 228
-        },
-        {
-          "date": "2026-07-02",
-          "ticker": "AAOI",
-          "rank": 5,
-          "of": 228
-        },
-        {
-          "date": "2026-07-07",
-          "ticker": "ORCL",
-          "rank": 1,
-          "of": 228
-        },
-        {
-          "date": "2026-07-16",
-          "ticker": "AAOI",
-          "rank": 12,
-          "of": 228
-        },
-        {
-          "date": "2026-07-16",
-          "ticker": "ASTS",
-          "rank": 2,
-          "of": 228
-        },
-        {
-          "date": "2026-07-16",
-          "ticker": "CRWV",
-          "rank": 4,
-          "of": 228
-        },
-        {
-          "date": "2026-07-16",
-          "ticker": "QCOM",
-          "rank": 35,
-          "of": 228
-        },
-        {
-          "date": "2026-07-21",
-          "ticker": "AAOI",
-          "rank": 11,
-          "of": 228
-        },
-        {
-          "date": "2026-07-21",
-          "ticker": "ASTS",
-          "rank": 7,
-          "of": 228
-        },
-        {
-          "date": "2026-07-21",
-          "ticker": "CRWV",
-          "rank": 12,
-          "of": 228
-        },
-        {
-          "date": "2026-07-21",
-          "ticker": "QCOM",
-          "rank": 34,
-          "of": 228
-        },
-        {
-          "date": "2026-07-23",
-          "ticker": "GOOGL",
-          "rank": 43,
-          "of": 228
-        },
-        {
-          "date": "2026-07-27",
-          "ticker": "AAOI",
-          "rank": 9,
-          "of": 228
-        },
-        {
-          "date": "2026-07-29",
-          "ticker": "AAOI",
-          "rank": 6,
-          "of": 228
-        },
-        {
-          "date": "2026-07-29",
-          "ticker": "CRWV",
-          "rank": 2,
-          "of": 228
-        },
-        {
-          "date": "2026-07-29",
-          "ticker": "TSLA",
-          "rank": 20,
-          "of": 228
-        },
-        {
-          "date": "2026-07-30",
-          "ticker": "META",
-          "rank": 21,
-          "of": 228
-        },
-        {
-          "date": "2026-08-06",
-          "ticker": "DUOL",
-          "rank": 11,
-          "of": 228
-        },
-        {
-          "date": "2026-08-11",
-          "ticker": "APP",
-          "rank": 1,
-          "of": 228
-        },
-        {
-          "date": "2026-08-18",
-          "ticker": "META",
-          "rank": 12,
-          "of": 228
-        },
-        {
-          "date": "2026-08-21",
-          "ticker": "VST",
-          "rank": 8,
-          "of": 228
-        },
-        {
-          "date": "2026-08-25",
-          "ticker": "ASTS",
-          "rank": 9,
-          "of": 228
-        },
-        {
-          "date": "2026-09-04",
-          "ticker": "CRDO",
-          "rank": 2,
-          "of": 228
-        }
-      ]
-    },
-    "alleen technical": {
-      "n": 72,
-      "universe": 228.0,
-      "median_rank": 18.0,
-      "mean_rank": 25.1,
+      "median_rank": 16.0,
+      "mean_rank": 26.0,
       "top_10": 27,
-      "top_25": 44,
+      "top_25": 42,
       "top_50": 63,
       "bottom_half": 1,
       "placements": [
         {
           "date": "2026-01-14",
           "ticker": "SOFI",
-          "rank": 35,
+          "rank": 31,
           "of": 227
         },
         {
@@ -5081,49 +4637,49 @@
         {
           "date": "2026-01-29",
           "ticker": "MSFT",
-          "rank": 48,
+          "rank": 40,
           "of": 227
         },
         {
           "date": "2026-02-03",
           "ticker": "HOOD",
-          "rank": 6,
+          "rank": 7,
           "of": 227
         },
         {
           "date": "2026-02-04",
           "ticker": "HIMS",
-          "rank": 7,
+          "rank": 8,
           "of": 227
         },
         {
           "date": "2026-02-05",
           "ticker": "IREN",
-          "rank": 34,
+          "rank": 33,
           "of": 227
         },
         {
           "date": "2026-02-06",
           "ticker": "AMD",
-          "rank": 51,
+          "rank": 53,
           "of": 227
         },
         {
           "date": "2026-02-06",
           "ticker": "AMZN",
-          "rank": 52,
+          "rank": 48,
           "of": 227
         },
         {
           "date": "2026-02-06",
           "ticker": "IREN",
-          "rank": 21,
+          "rank": 37,
           "of": 227
         },
         {
           "date": "2026-02-06",
           "ticker": "MSFT",
-          "rank": 35,
+          "rank": 33,
           "of": 227
         },
         {
@@ -5141,25 +4697,25 @@
         {
           "date": "2026-02-12",
           "ticker": "NFLX",
-          "rank": 40,
+          "rank": 36,
           "of": 227
         },
         {
           "date": "2026-03-13",
           "ticker": "META",
-          "rank": 48,
+          "rank": 40,
           "of": 227
         },
         {
           "date": "2026-03-13",
           "ticker": "MSFT",
-          "rank": 103,
+          "rank": 99,
           "of": 227
         },
         {
           "date": "2026-03-18",
           "ticker": "ADBE",
-          "rank": 12,
+          "rank": 11,
           "of": 227
         },
         {
@@ -5171,67 +4727,67 @@
         {
           "date": "2026-03-26",
           "ticker": "META",
-          "rank": 18,
+          "rank": 16,
           "of": 227
         },
         {
           "date": "2026-03-27",
           "ticker": "AVGO",
-          "rank": 62,
+          "rank": 61,
           "of": 227
         },
         {
           "date": "2026-03-27",
           "ticker": "BABA",
-          "rank": 38,
+          "rank": 36,
           "of": 227
         },
         {
           "date": "2026-03-27",
           "ticker": "ORCL",
-          "rank": 42,
+          "rank": 39,
           "of": 227
         },
         {
           "date": "2026-03-27",
           "ticker": "RDDT",
-          "rank": 15,
+          "rank": 16,
           "of": 227
         },
         {
           "date": "2026-04-01",
           "ticker": "AMZN",
-          "rank": 126,
+          "rank": 168,
           "of": 228
         },
         {
           "date": "2026-04-01",
           "ticker": "IREN",
-          "rank": 3,
+          "rank": 4,
           "of": 228
         },
         {
           "date": "2026-04-01",
           "ticker": "ORCL",
-          "rank": 36,
+          "rank": 32,
           "of": 228
         },
         {
           "date": "2026-04-01",
           "ticker": "RDDT",
-          "rank": 46,
+          "rank": 47,
           "of": 228
         },
         {
           "date": "2026-04-14",
           "ticker": "NKE",
-          "rank": 3,
+          "rank": 5,
           "of": 228
         },
         {
           "date": "2026-04-22",
           "ticker": "DUOL",
-          "rank": 19,
+          "rank": 39,
           "of": 228
         },
         {
@@ -5249,13 +4805,13 @@
         {
           "date": "2026-05-12",
           "ticker": "META",
-          "rank": 53,
+          "rank": 52,
           "of": 228
         },
         {
           "date": "2026-05-12",
           "ticker": "SOFI",
-          "rank": 9,
+          "rank": 8,
           "of": 228
         },
         {
@@ -5267,31 +4823,31 @@
         {
           "date": "2026-05-26",
           "ticker": "DUOL",
-          "rank": 34,
+          "rank": 36,
           "of": 228
         },
         {
           "date": "2026-05-26",
           "ticker": "HOOD",
-          "rank": 9,
+          "rank": 10,
           "of": 228
         },
         {
           "date": "2026-05-26",
           "ticker": "META",
-          "rank": 87,
+          "rank": 90,
           "of": 228
         },
         {
           "date": "2026-05-26",
           "ticker": "MSFT",
-          "rank": 85,
+          "rank": 114,
           "of": 228
         },
         {
           "date": "2026-05-26",
           "ticker": "NKE",
-          "rank": 41,
+          "rank": 58,
           "of": 228
         },
         {
@@ -5303,25 +4859,25 @@
         {
           "date": "2026-05-26",
           "ticker": "SOFI",
-          "rank": 24,
+          "rank": 27,
           "of": 228
         },
         {
           "date": "2026-06-09",
           "ticker": "BABA",
-          "rank": 26,
+          "rank": 22,
           "of": 228
         },
         {
           "date": "2026-06-09",
           "ticker": "COIN",
-          "rank": 2,
+          "rank": 3,
           "of": 228
         },
         {
           "date": "2026-06-09",
           "ticker": "CRWV",
-          "rank": 19,
+          "rank": 17,
           "of": 228
         },
         {
@@ -5333,13 +4889,13 @@
         {
           "date": "2026-06-17",
           "ticker": "MSFT",
-          "rank": 34,
+          "rank": 32,
           "of": 228
         },
         {
           "date": "2026-06-18",
           "ticker": "ASTS",
-          "rank": 11,
+          "rank": 13,
           "of": 228
         },
         {
@@ -5351,25 +4907,25 @@
         {
           "date": "2026-06-23",
           "ticker": "META",
-          "rank": 69,
+          "rank": 62,
           "of": 228
         },
         {
           "date": "2026-06-23",
           "ticker": "NFLX",
-          "rank": 16,
+          "rank": 12,
           "of": 228
         },
         {
           "date": "2026-07-01",
           "ticker": "CRWV",
-          "rank": 3,
+          "rank": 2,
           "of": 228
         },
         {
           "date": "2026-07-02",
           "ticker": "AAOI",
-          "rank": 4,
+          "rank": 3,
           "of": 228
         },
         {
@@ -5381,7 +4937,7 @@
         {
           "date": "2026-07-16",
           "ticker": "AAOI",
-          "rank": 12,
+          "rank": 14,
           "of": 228
         },
         {
@@ -5393,7 +4949,7 @@
         {
           "date": "2026-07-16",
           "ticker": "CRWV",
-          "rank": 7,
+          "rank": 8,
           "of": 228
         },
         {
@@ -5405,7 +4961,7 @@
         {
           "date": "2026-07-21",
           "ticker": "AAOI",
-          "rank": 12,
+          "rank": 15,
           "of": 228
         },
         {
@@ -5423,13 +4979,13 @@
         {
           "date": "2026-07-21",
           "ticker": "QCOM",
-          "rank": 38,
+          "rank": 33,
           "of": 228
         },
         {
           "date": "2026-07-23",
           "ticker": "GOOGL",
-          "rank": 33,
+          "rank": 27,
           "of": 228
         },
         {
@@ -5441,13 +4997,13 @@
         {
           "date": "2026-07-29",
           "ticker": "AAOI",
-          "rank": 5,
+          "rank": 6,
           "of": 228
         },
         {
           "date": "2026-07-29",
           "ticker": "CRWV",
-          "rank": 1,
+          "rank": 4,
           "of": 228
         },
         {
@@ -5459,13 +5015,13 @@
         {
           "date": "2026-07-30",
           "ticker": "META",
-          "rank": 18,
+          "rank": 14,
           "of": 228
         },
         {
           "date": "2026-08-06",
           "ticker": "DUOL",
-          "rank": 10,
+          "rank": 8,
           "of": 228
         },
         {
@@ -5477,19 +5033,19 @@
         {
           "date": "2026-08-18",
           "ticker": "META",
-          "rank": 21,
+          "rank": 16,
           "of": 228
         },
         {
           "date": "2026-08-21",
           "ticker": "VST",
-          "rank": 16,
+          "rank": 13,
           "of": 228
         },
         {
           "date": "2026-08-25",
           "ticker": "ASTS",
-          "rank": 9,
+          "rank": 10,
           "of": 228
         },
         {
@@ -5500,572 +5056,128 @@
         }
       ]
     },
-    "alleen trader": {
-      "n": 72,
-      "universe": 228.0,
-      "median_rank": 12.5,
-      "mean_rank": 23.8,
-      "top_10": 29,
-      "top_25": 47,
-      "top_50": 61,
-      "bottom_half": 0,
-      "placements": [
-        {
-          "date": "2026-01-14",
-          "ticker": "SOFI",
-          "rank": 77,
-          "of": 227
-        },
-        {
-          "date": "2026-01-29",
-          "ticker": "ORCL",
-          "rank": 8,
-          "of": 227
-        },
-        {
-          "date": "2026-01-29",
-          "ticker": "MSFT",
-          "rank": 38,
-          "of": 227
-        },
-        {
-          "date": "2026-02-03",
-          "ticker": "HOOD",
-          "rank": 6,
-          "of": 227
-        },
-        {
-          "date": "2026-02-04",
-          "ticker": "HIMS",
-          "rank": 8,
-          "of": 227
-        },
-        {
-          "date": "2026-02-05",
-          "ticker": "IREN",
-          "rank": 49,
-          "of": 227
-        },
-        {
-          "date": "2026-02-06",
-          "ticker": "AMD",
-          "rank": 74,
-          "of": 227
-        },
-        {
-          "date": "2026-02-06",
-          "ticker": "AMZN",
-          "rank": 55,
-          "of": 227
-        },
-        {
-          "date": "2026-02-06",
-          "ticker": "IREN",
-          "rank": 45,
-          "of": 227
-        },
-        {
-          "date": "2026-02-06",
-          "ticker": "MSFT",
-          "rank": 42,
-          "of": 227
-        },
-        {
-          "date": "2026-02-06",
-          "ticker": "SOFI",
-          "rank": 25,
-          "of": 227
-        },
-        {
-          "date": "2026-02-12",
-          "ticker": "HOOD",
-          "rank": 4,
-          "of": 227
-        },
-        {
-          "date": "2026-02-12",
-          "ticker": "NFLX",
-          "rank": 25,
-          "of": 227
-        },
-        {
-          "date": "2026-03-13",
-          "ticker": "META",
-          "rank": 60,
-          "of": 227
-        },
-        {
-          "date": "2026-03-13",
-          "ticker": "MSFT",
-          "rank": 63,
-          "of": 227
-        },
-        {
-          "date": "2026-03-18",
-          "ticker": "ADBE",
-          "rank": 10,
-          "of": 227
-        },
-        {
-          "date": "2026-03-19",
-          "ticker": "NVO",
-          "rank": 1,
-          "of": 227
-        },
-        {
-          "date": "2026-03-26",
-          "ticker": "META",
-          "rank": 25,
-          "of": 227
-        },
-        {
-          "date": "2026-03-27",
-          "ticker": "AVGO",
-          "rank": 76,
-          "of": 227
-        },
-        {
-          "date": "2026-03-27",
-          "ticker": "BABA",
-          "rank": 34,
-          "of": 227
-        },
-        {
-          "date": "2026-03-27",
-          "ticker": "ORCL",
-          "rank": 30,
-          "of": 227
-        },
-        {
-          "date": "2026-03-27",
-          "ticker": "RDDT",
-          "rank": 10,
-          "of": 227
-        },
-        {
-          "date": "2026-04-01",
-          "ticker": "AMZN",
-          "rank": 109,
-          "of": 228
-        },
-        {
-          "date": "2026-04-01",
-          "ticker": "IREN",
-          "rank": 10,
-          "of": 228
-        },
-        {
-          "date": "2026-04-01",
-          "ticker": "ORCL",
-          "rank": 32,
-          "of": 228
-        },
-        {
-          "date": "2026-04-01",
-          "ticker": "RDDT",
-          "rank": 33,
-          "of": 228
-        },
-        {
-          "date": "2026-04-14",
-          "ticker": "NKE",
-          "rank": 1,
-          "of": 228
-        },
-        {
-          "date": "2026-04-22",
-          "ticker": "DUOL",
-          "rank": 15,
-          "of": 228
-        },
-        {
-          "date": "2026-04-29",
-          "ticker": "HOOD",
-          "rank": 12,
-          "of": 228
-        },
-        {
-          "date": "2026-05-07",
-          "ticker": "SOFI",
-          "rank": 7,
-          "of": 228
-        },
-        {
-          "date": "2026-05-12",
-          "ticker": "META",
-          "rank": 66,
-          "of": 228
-        },
-        {
-          "date": "2026-05-12",
-          "ticker": "SOFI",
-          "rank": 7,
-          "of": 228
-        },
-        {
-          "date": "2026-05-18",
-          "ticker": "NKE",
-          "rank": 5,
-          "of": 228
-        },
-        {
-          "date": "2026-05-26",
-          "ticker": "DUOL",
-          "rank": 23,
-          "of": 228
-        },
-        {
-          "date": "2026-05-26",
-          "ticker": "HOOD",
-          "rank": 13,
-          "of": 228
-        },
-        {
-          "date": "2026-05-26",
-          "ticker": "META",
-          "rank": 65,
-          "of": 228
-        },
-        {
-          "date": "2026-05-26",
-          "ticker": "MSFT",
-          "rank": 77,
-          "of": 228
-        },
-        {
-          "date": "2026-05-26",
-          "ticker": "NKE",
-          "rank": 16,
-          "of": 228
-        },
-        {
-          "date": "2026-05-26",
-          "ticker": "RDDT",
-          "rank": 12,
-          "of": 228
-        },
-        {
-          "date": "2026-05-26",
-          "ticker": "SOFI",
-          "rank": 5,
-          "of": 228
-        },
-        {
-          "date": "2026-06-09",
-          "ticker": "BABA",
-          "rank": 12,
-          "of": 228
-        },
-        {
-          "date": "2026-06-09",
-          "ticker": "COIN",
-          "rank": 3,
-          "of": 228
-        },
-        {
-          "date": "2026-06-09",
-          "ticker": "CRWV",
-          "rank": 13,
-          "of": 228
-        },
-        {
-          "date": "2026-06-16",
-          "ticker": "ADBE",
-          "rank": 3,
-          "of": 228
-        },
-        {
-          "date": "2026-06-17",
-          "ticker": "MSFT",
-          "rank": 26,
-          "of": 228
-        },
-        {
-          "date": "2026-06-18",
-          "ticker": "ASTS",
-          "rank": 30,
-          "of": 228
-        },
-        {
-          "date": "2026-06-23",
-          "ticker": "BABA",
-          "rank": 2,
-          "of": 228
-        },
-        {
-          "date": "2026-06-23",
-          "ticker": "META",
-          "rank": 43,
-          "of": 228
-        },
-        {
-          "date": "2026-06-23",
-          "ticker": "NFLX",
-          "rank": 3,
-          "of": 228
-        },
-        {
-          "date": "2026-07-01",
-          "ticker": "CRWV",
-          "rank": 3,
-          "of": 228
-        },
-        {
-          "date": "2026-07-02",
-          "ticker": "AAOI",
-          "rank": 5,
-          "of": 228
-        },
-        {
-          "date": "2026-07-07",
-          "ticker": "ORCL",
-          "rank": 1,
-          "of": 228
-        },
-        {
-          "date": "2026-07-16",
-          "ticker": "AAOI",
-          "rank": 12,
-          "of": 228
-        },
-        {
-          "date": "2026-07-16",
-          "ticker": "ASTS",
-          "rank": 2,
-          "of": 228
-        },
-        {
-          "date": "2026-07-16",
-          "ticker": "CRWV",
-          "rank": 3,
-          "of": 228
-        },
-        {
-          "date": "2026-07-16",
-          "ticker": "QCOM",
-          "rank": 37,
-          "of": 228
-        },
-        {
-          "date": "2026-07-21",
-          "ticker": "AAOI",
-          "rank": 11,
-          "of": 228
-        },
-        {
-          "date": "2026-07-21",
-          "ticker": "ASTS",
-          "rank": 18,
-          "of": 228
-        },
-        {
-          "date": "2026-07-21",
-          "ticker": "CRWV",
-          "rank": 8,
-          "of": 228
-        },
-        {
-          "date": "2026-07-21",
-          "ticker": "QCOM",
-          "rank": 33,
-          "of": 228
-        },
-        {
-          "date": "2026-07-23",
-          "ticker": "GOOGL",
-          "rank": 59,
-          "of": 228
-        },
-        {
-          "date": "2026-07-27",
-          "ticker": "AAOI",
-          "rank": 6,
-          "of": 228
-        },
-        {
-          "date": "2026-07-29",
-          "ticker": "AAOI",
-          "rank": 10,
-          "of": 228
-        },
-        {
-          "date": "2026-07-29",
-          "ticker": "CRWV",
-          "rank": 2,
-          "of": 228
-        },
-        {
-          "date": "2026-07-29",
-          "ticker": "TSLA",
-          "rank": 24,
-          "of": 228
-        },
-        {
-          "date": "2026-07-30",
-          "ticker": "META",
-          "rank": 26,
-          "of": 228
-        },
-        {
-          "date": "2026-08-06",
-          "ticker": "DUOL",
-          "rank": 20,
-          "of": 228
-        },
-        {
-          "date": "2026-08-11",
-          "ticker": "APP",
-          "rank": 1,
-          "of": 228
-        },
-        {
-          "date": "2026-08-18",
-          "ticker": "META",
-          "rank": 11,
-          "of": 228
-        },
-        {
-          "date": "2026-08-21",
-          "ticker": "VST",
-          "rank": 5,
-          "of": 228
-        },
-        {
-          "date": "2026-08-25",
-          "ticker": "ASTS",
-          "rank": 11,
-          "of": 228
-        },
-        {
-          "date": "2026-09-04",
-          "ticker": "CRDO",
-          "rank": 1,
-          "of": 228
-        }
-      ]
-    },
-    "productieweging 30/35/35 (indicatief)": {
+    "technical 55% + fundamentals 30%, genormaliseerd (indicatief)": {
       "n": 67,
       "universe": 216,
-      "median_rank": 17,
-      "mean_rank": 21.4,
-      "top_10": 24,
-      "top_25": 43,
-      "top_50": 64,
+      "median_rank": 19,
+      "mean_rank": 23.8,
+      "top_10": 23,
+      "top_25": 44,
+      "top_50": 60,
       "bottom_half": 1,
       "placements": [
         {
           "date": "2026-01-29",
           "ticker": "ORCL",
-          "rank": 11,
+          "rank": 15,
           "of": 215
         },
         {
           "date": "2026-01-29",
           "ticker": "MSFT",
-          "rank": 28,
+          "rank": 26,
           "of": 215
         },
         {
           "date": "2026-02-03",
           "ticker": "HOOD",
-          "rank": 4,
+          "rank": 7,
           "of": 215
         },
         {
           "date": "2026-02-04",
           "ticker": "HIMS",
-          "rank": 16,
+          "rank": 15,
           "of": 215
         },
         {
           "date": "2026-02-05",
           "ticker": "IREN",
-          "rank": 52,
+          "rank": 47,
           "of": 215
         },
         {
           "date": "2026-02-06",
           "ticker": "AMD",
-          "rank": 43,
+          "rank": 29,
           "of": 215
         },
         {
           "date": "2026-02-06",
           "ticker": "AMZN",
+          "rank": 36,
+          "of": 215
+        },
+        {
+          "date": "2026-02-06",
+          "ticker": "IREN",
           "rank": 48,
           "of": 215
         },
         {
           "date": "2026-02-06",
-          "ticker": "IREN",
-          "rank": 40,
-          "of": 215
-        },
-        {
-          "date": "2026-02-06",
           "ticker": "MSFT",
-          "rank": 22,
+          "rank": 20,
           "of": 215
         },
         {
           "date": "2026-02-12",
           "ticker": "HOOD",
-          "rank": 5,
+          "rank": 2,
           "of": 215
         },
         {
           "date": "2026-02-12",
           "ticker": "NFLX",
-          "rank": 22,
+          "rank": 23,
           "of": 215
         },
         {
           "date": "2026-03-13",
           "ticker": "META",
-          "rank": 31,
+          "rank": 24,
           "of": 215
         },
         {
           "date": "2026-03-13",
           "ticker": "MSFT",
-          "rank": 41,
+          "rank": 53,
           "of": 215
         },
         {
           "date": "2026-03-18",
           "ticker": "ADBE",
-          "rank": 5,
+          "rank": 4,
           "of": 215
         },
         {
           "date": "2026-03-19",
           "ticker": "NVO",
-          "rank": 5,
+          "rank": 7,
           "of": 215
         },
         {
           "date": "2026-03-26",
           "ticker": "META",
-          "rank": 10,
+          "rank": 7,
           "of": 215
         },
         {
           "date": "2026-03-27",
           "ticker": "AVGO",
-          "rank": 37,
+          "rank": 35,
           "of": 215
         },
         {
           "date": "2026-03-27",
           "ticker": "BABA",
-          "rank": 52,
+          "rank": 53,
           "of": 215
         },
         {
           "date": "2026-03-27",
           "ticker": "ORCL",
-          "rank": 23,
+          "rank": 25,
           "of": 215
         },
         {
@@ -6077,85 +5189,85 @@
         {
           "date": "2026-04-01",
           "ticker": "AMZN",
-          "rank": 109,
+          "rank": 146,
           "of": 216
         },
         {
           "date": "2026-04-01",
           "ticker": "IREN",
-          "rank": 13,
+          "rank": 12,
           "of": 216
         },
         {
           "date": "2026-04-01",
           "ticker": "ORCL",
-          "rank": 23,
+          "rank": 20,
           "of": 216
         },
         {
           "date": "2026-04-01",
           "ticker": "RDDT",
-          "rank": 29,
+          "rank": 36,
           "of": 216
         },
         {
           "date": "2026-04-14",
           "ticker": "NKE",
-          "rank": 8,
+          "rank": 10,
           "of": 216
         },
         {
           "date": "2026-04-22",
           "ticker": "DUOL",
-          "rank": 3,
+          "rank": 8,
           "of": 216
         },
         {
           "date": "2026-04-29",
           "ticker": "HOOD",
-          "rank": 3,
+          "rank": 2,
           "of": 216
         },
         {
           "date": "2026-05-12",
           "ticker": "META",
-          "rank": 37,
+          "rank": 36,
           "of": 216
         },
         {
           "date": "2026-05-18",
           "ticker": "NKE",
-          "rank": 39,
-          "of": 216
-        },
-        {
-          "date": "2026-05-26",
-          "ticker": "DUOL",
-          "rank": 3,
-          "of": 216
-        },
-        {
-          "date": "2026-05-26",
-          "ticker": "HOOD",
-          "rank": 7,
-          "of": 216
-        },
-        {
-          "date": "2026-05-26",
-          "ticker": "META",
           "rank": 50,
           "of": 216
         },
         {
           "date": "2026-05-26",
+          "ticker": "DUOL",
+          "rank": 6,
+          "of": 216
+        },
+        {
+          "date": "2026-05-26",
+          "ticker": "HOOD",
+          "rank": 5,
+          "of": 216
+        },
+        {
+          "date": "2026-05-26",
+          "ticker": "META",
+          "rank": 60,
+          "of": 216
+        },
+        {
+          "date": "2026-05-26",
           "ticker": "MSFT",
-          "rank": 43,
+          "rank": 56,
           "of": 216
         },
         {
           "date": "2026-05-26",
           "ticker": "NKE",
-          "rank": 47,
+          "rank": 101,
           "of": 216
         },
         {
@@ -6167,19 +5279,19 @@
         {
           "date": "2026-06-09",
           "ticker": "BABA",
-          "rank": 43,
+          "rank": 51,
           "of": 216
         },
         {
           "date": "2026-06-09",
           "ticker": "COIN",
-          "rank": 3,
+          "rank": 4,
           "of": 216
         },
         {
           "date": "2026-06-09",
           "ticker": "CRWV",
-          "rank": 32,
+          "rank": 41,
           "of": 216
         },
         {
@@ -6191,43 +5303,43 @@
         {
           "date": "2026-06-17",
           "ticker": "MSFT",
-          "rank": 19,
+          "rank": 18,
           "of": 216
         },
         {
           "date": "2026-06-18",
           "ticker": "ASTS",
-          "rank": 29,
+          "rank": 23,
           "of": 216
         },
         {
           "date": "2026-06-23",
           "ticker": "BABA",
-          "rank": 12,
+          "rank": 13,
           "of": 216
         },
         {
           "date": "2026-06-23",
           "ticker": "META",
-          "rank": 42,
+          "rank": 45,
           "of": 216
         },
         {
           "date": "2026-06-23",
           "ticker": "NFLX",
-          "rank": 4,
+          "rank": 6,
           "of": 216
         },
         {
           "date": "2026-07-01",
           "ticker": "CRWV",
-          "rank": 5,
+          "rank": 4,
           "of": 216
         },
         {
           "date": "2026-07-02",
           "ticker": "AAOI",
-          "rank": 6,
+          "rank": 5,
           "of": 216
         },
         {
@@ -6239,85 +5351,85 @@
         {
           "date": "2026-07-16",
           "ticker": "AAOI",
-          "rank": 17,
+          "rank": 25,
           "of": 216
         },
         {
           "date": "2026-07-16",
           "ticker": "ASTS",
-          "rank": 12,
+          "rank": 16,
           "of": 216
         },
         {
           "date": "2026-07-16",
           "ticker": "CRWV",
-          "rank": 8,
+          "rank": 19,
           "of": 216
         },
         {
           "date": "2026-07-16",
           "ticker": "QCOM",
-          "rank": 33,
+          "rank": 31,
           "of": 216
         },
         {
           "date": "2026-07-21",
           "ticker": "AAOI",
-          "rank": 19,
+          "rank": 23,
           "of": 216
         },
         {
           "date": "2026-07-21",
           "ticker": "ASTS",
-          "rank": 18,
+          "rank": 13,
           "of": 216
         },
         {
           "date": "2026-07-21",
           "ticker": "CRWV",
-          "rank": 16,
+          "rank": 20,
           "of": 216
         },
         {
           "date": "2026-07-21",
           "ticker": "QCOM",
-          "rank": 29,
+          "rank": 26,
           "of": 216
         },
         {
           "date": "2026-07-23",
           "ticker": "GOOGL",
-          "rank": 17,
+          "rank": 12,
           "of": 216
         },
         {
           "date": "2026-07-27",
           "ticker": "AAOI",
-          "rank": 12,
+          "rank": 14,
           "of": 216
         },
         {
           "date": "2026-07-29",
           "ticker": "AAOI",
-          "rank": 20,
+          "rank": 21,
           "of": 216
         },
         {
           "date": "2026-07-29",
           "ticker": "CRWV",
-          "rank": 15,
+          "rank": 16,
           "of": 216
         },
         {
           "date": "2026-07-29",
           "ticker": "TSLA",
-          "rank": 30,
+          "rank": 35,
           "of": 216
         },
         {
           "date": "2026-07-30",
           "ticker": "META",
-          "rank": 10,
+          "rank": 7,
           "of": 216
         },
         {
@@ -6341,13 +5453,13 @@
         {
           "date": "2026-08-21",
           "ticker": "VST",
-          "rank": 25,
+          "rank": 32,
           "of": 216
         },
         {
           "date": "2026-08-25",
           "ticker": "ASTS",
-          "rank": 31,
+          "rank": 29,
           "of": 216
         },
         {
