@@ -20,8 +20,13 @@ from __future__ import annotations
 
 import argparse
 import json
+import sys
 import warnings
 from pathlib import Path
+
+# Run as `python scripts/validate_score.py` and Python puts scripts/ on the
+# path, not the repository root, so the project modules below are invisible.
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
 warnings.filterwarnings("ignore")
 
