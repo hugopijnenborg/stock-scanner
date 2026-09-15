@@ -44,6 +44,19 @@ from score_engine import FUNDAMENTAL_WEIGHT, MODEL_VERSION, TECHNICAL_WEIGHT, TR
 from universe import load_top_us_stocks
 
 TRADES = Path("data/trader_discord_trades.csv")
+
+# What the setup looked like, not just where it ranked. Each is recorded as a
+# percentile inside that day's universe: a value is only distinctive if it sits
+# somewhere unusual relative to everything else on offer that morning.
+PROFILE_FIELDS = [
+    "rsi_14", "rsi_7", "z_score", "macd_histogram", "macd_histogram_change",
+    "return_1d", "return_3d", "return_5d", "return_7d", "return_10d", "return_14d",
+    "return_20d", "return_30d", "distance_sma20", "distance_sma50", "distance_sma200",
+    "distance_1m_high", "distance_3m_high", "distance_52w_high",
+    "distance_support_20d", "distance_support_60d", "volume_ratio", "volume_ratio_5d",
+    "volatility_20d", "atr_pct", "bollinger_pct", "close_location",
+    "relative_strength_5d", "relative_strength_20d", "sector_relative_strength_20d",
+]
 SCAN = Path("public/data/latest_scan.json")
 WARMUP_DAYS = 252
 
@@ -113,8 +126,34 @@ def score_universe(features: dict[str, pd.DataFrame], day: pd.Timestamp) -> dict
         trader = trader_setup_score(row)
         if not (np.isfinite(technical) and np.isfinite(trader)):
             continue
-        out[ticker] = {"technical": float(technical), "trader": float(trader)}
+        entry = {"technical": float(technical), "trader": float(trader)}
+        for field in PROFILE_FIELDS:
+            value = row.get(field)
+            entry[field] = float(value) if value is not None and np.isfinite(value) else None
+        out[ticker] = entry
     return out
+
+
+def profile_buys(usable, per_day) -> list[dict]:
+    """For each buy, where its indicators sat inside that day's universe."""
+    rows = []
+    for buy in usable:
+        scored = per_day.get(buy["date"])
+        if not scored or buy["ticker"] not in scored:
+            continue
+        mine = scored[buy["ticker"]]
+        row = {"date": buy["date"].date().isoformat(), "ticker": buy["ticker"]}
+        for field in PROFILE_FIELDS:
+            value = mine.get(field)
+            row[field] = value
+            others = [c[field] for c in scored.values() if c.get(field) is not None]
+            if value is None or len(others) < 20:
+                row[f"pct_{field}"] = None
+            else:
+                below = sum(1 for o in others if o < value)
+                row[f"pct_{field}"] = round(100.0 * below / len(others), 1)
+        rows.append(row)
+    return rows
 
 
 def variants(fundamentals: dict[str, float]) -> dict[str, callable]:
@@ -171,7 +210,8 @@ def main() -> None:
     if thin:
         print(f"{thin} koopdag(en) overgeslagen: minder dan {minimum} tickers met genoeg historie")
 
-    report = {"model_version": MODEL_VERSION, "start": args.start, "variants": {}}
+    report = {"model_version": MODEL_VERSION, "start": args.start,
+              "setup_profile": profile_buys(usable, per_day), "variants": {}}
     for label, blend in variants(fundamentals).items():
         placements = []
         for buy in usable:
@@ -216,6 +256,19 @@ def main() -> None:
     first = next(iter(report["variants"].values()), None)
     if first:
         print(f"\nwillekeurige plaatsing zou een mediaan van ongeveer {first['universe'] / 2:.0f} geven")
+
+    profile = report["setup_profile"]
+    if profile:
+        print(f"\nSETUP-PROFIEL over {len(profile)} koopmomenten")
+        print("mediane percentielpositie binnen de universe; 50 = doorsnee\n")
+        summary = []
+        for field in PROFILE_FIELDS:
+            values = [r[f"pct_{field}"] for r in profile if r.get(f"pct_{field}") is not None]
+            if len(values) >= max(10, len(profile) // 2):
+                summary.append((abs(statistics.median(values) - 50), field, statistics.median(values), len(values)))
+        for gap, field, median, n in sorted(summary, reverse=True):
+            bar = "#" * int(gap / 2)
+            print("  %-30s p%-5.0f  n=%-3d %s" % (field, median, n, bar))
 
 
 if __name__ == "__main__":

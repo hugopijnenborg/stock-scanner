@@ -107,3 +107,32 @@ def test_every_variant_is_reported(tool, trades, tmp_path, monkeypatch):
     tool.main()
     variants = json.loads(out.read_text(encoding="utf-8"))["variants"]
     assert {"trader + technical", "alleen technical", "alleen trader"} <= set(variants)
+
+
+def test_the_setup_profile_places_each_buy_inside_its_own_day(tool, trades, tmp_path, monkeypatch):
+    """A raw RSI of 30 means nothing; being the lowest RSI on offer that day does.
+
+    The profile is what the reverse engineering reads, so every recorded value
+    has to be a percentile inside that day's universe, not an absolute number.
+    """
+    out = tmp_path / "rank3.json"
+    monkeypatch.setattr("sys.argv", ["rank_trader_entries.py", "--limit", str(len(TICKERS)),
+                                     "--start", "2024-01-01", "--trades", str(trades), "--output", str(out)])
+    tool.main()
+    profile = json.loads(out.read_text(encoding="utf-8"))["setup_profile"]
+    assert len(profile) == len(BUY_DATES)
+    for row in profile:
+        assert row["ticker"] in TICKERS
+        percentiles = [v for k, v in row.items() if k.startswith("pct_") and v is not None]
+        assert percentiles, f"{row['ticker']} heeft geen percentielen"
+        assert all(0 <= v <= 100 for v in percentiles)
+
+
+def test_the_profile_keeps_the_raw_value_next_to_its_percentile():
+    """Both are needed: the percentile says it is unusual, the value says how much."""
+    spec = importlib.util.spec_from_file_location("rank_trader2", REPO / "scripts" / "rank_trader_entries.py")
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    assert "rsi_14" in module.PROFILE_FIELDS
+    assert "distance_52w_high" in module.PROFILE_FIELDS
+    assert "volume_ratio" in module.PROFILE_FIELDS
