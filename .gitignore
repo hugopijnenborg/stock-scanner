@@ -10,3 +10,8 @@ cache/
 data/raw/
 data/processed/
 reports/
+
+# Node / Next build output
+node_modules/
+.next/
+out/
