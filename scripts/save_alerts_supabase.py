@@ -100,6 +100,10 @@ def main() -> None:
             "trader_score": row.get("trader_similarity_score"),
             "technical_score": row.get("technical_score"),
             "fundamental_score": row.get("fundamental_score"),
+            # Scores from different scoring models are not comparable, so every
+            # alert records the model that produced it. Rows written before this
+            # existed are labelled 'pre-3.0'.
+            "model_version": row.get("model_version") or payload.get("model_version"),
             "status": "PENDING",
         })
 

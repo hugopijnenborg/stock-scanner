@@ -81,3 +81,22 @@ def test_logged_columns_all_exist_in_the_table_migration():
         "distance_sma50", "volume_ratio",
     }
     assert set(rows[0]) == expected
+
+
+def test_alerts_written_to_supabase_carry_the_model_version():
+    """An alert row without its model version cannot be compared with anything.
+
+    The six alerts recorded before this existed are labelled 'pre-3.0' in the
+    database; everything written from now on names its own model.
+    """
+    source = (REPO / "scripts" / "save_alerts_supabase.py").read_text(encoding="utf-8")
+    code = "\n".join(line for line in source.splitlines() if not line.lstrip().startswith("#"))
+    assert '"model_version"' in code, (
+        "save_alerts_supabase.py must record model_version on every new alert"
+    )
+
+
+def test_history_page_shows_which_model_an_alert_came_from():
+    page = (REPO / "app" / "history" / "page.js").read_text(encoding="utf-8")
+    assert "a.model_version" in page, "the alert history table must show the model column"
+    assert "<th>Model</th>" in page
