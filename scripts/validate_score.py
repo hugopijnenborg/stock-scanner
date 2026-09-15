@@ -36,8 +36,8 @@ import pandas as pd
 from config import DEFAULT_START
 from data import download_benchmarks, download_ohlcv, download_sector_benchmarks, SECTOR_ETFS
 from indicators import add_indicators
-from model import technical_opportunity_score, trader_setup_score
-from score_engine import MODEL_VERSION, TECHNICAL_WEIGHT, TRADER_WEIGHT
+from main import MODEL_VERSION
+from model import new_technical_score
 from universe import load_top_us_stocks
 
 HORIZONS = (5, 10, 20)
@@ -91,18 +91,13 @@ def collect(limit: int, start: str, step: int) -> pd.DataFrame:
         # Skip the first year: the 52-week and 200-day fields are not formed yet.
         for i in range(252, len(features) - max(HORIZONS), step):
             row = features.iloc[i]
-            technical = technical_opportunity_score(row)["technical_opportunity_score"]
-            trader = trader_setup_score(row)
-            if not (np.isfinite(technical) and np.isfinite(trader)):
+            technical = new_technical_score(row)
+            if not np.isfinite(technical):
                 continue
-            weight_sum = TRADER_WEIGHT + TECHNICAL_WEIGHT
-            price_score = (TRADER_WEIGHT * trader + TECHNICAL_WEIGHT * technical) / weight_sum
             entry = {
                 "date": features.index[i].strftime("%Y-%m-%d"),
                 "ticker": ticker,
-                "price_score": round(float(price_score), 2),
                 "technical": round(float(technical), 2),
-                "trader": round(float(trader), 2),
             }
             for days in HORIZONS:
                 entry[f"return_{days}d"] = _forward(close, i, days)
@@ -161,10 +156,12 @@ def main() -> None:
         "model_version": MODEL_VERSION,
         "start": args.start,
         "step_days": args.step,
-        "note": "Trader + technical only. Fundamentals are excluded to avoid look-ahead bias.",
-        "combined": summarise(frame, "price_score"),
-        "technical_only": summarise(frame, "technical"),
-        "trader_only": summarise(frame, "trader"),
+        "note": "Technical only (dislocation x confirmation, 55% of the live score). "
+                "The old separate trader-pattern component is gone — the new "
+                "methodology folds it into Technical directly. Fundamentals, "
+                "Valuation and Analyst direction are excluded here to avoid "
+                "look-ahead bias, same as before.",
+        "combined": summarise(frame, "technical"),
     }
     Path(args.output).write_text(json.dumps(report, indent=2), encoding="utf-8")
     if args.rows:
