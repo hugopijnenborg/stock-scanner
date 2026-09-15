@@ -23,6 +23,14 @@ on:
         description: 'Score every Nth trading day'
         required: false
         default: '5'
+      holdout_start:
+        description: 'Lockbox cutoff (YYYY-MM-DD): everything from this date on is scored but held back, never published to the app. Leave empty to disable the split.'
+        required: false
+        default: ''
+      reveal_lockbox:
+        description: 'Type EXACTLY "yes" to also publish the lockbox result to public/data/full_model_validation_lockbox.json. Only do this once you are done iterating -- publishing it is what makes it visible, so treat this as a deliberate, final check, not a routine option.'
+        required: false
+        default: 'no'
 
 permissions:
   contents: write
@@ -63,7 +71,9 @@ jobs:
             --start "${{ github.event.inputs.start || '2022-01-01' }}" \
             --step "${{ github.event.inputs.step || '5' }}" \
             --output full_model_validation.csv \
-            --summary public/data/full_model_validation.json
+            --summary public/data/full_model_validation.json \
+            --holdout-start "${{ github.event.inputs.holdout_start || '' }}" \
+            --lockbox-output full_model_validation_lockbox.json
 
       - name: Keep the raw observations for further analysis
         uses: actions/upload-artifact@v4
@@ -74,7 +84,15 @@ jobs:
             full_model_validation_trade_events.csv
           retention-days: 30
 
-      - name: Publish validation report
+      - name: Keep the lockbox result as a private artifact
+        if: github.event.inputs.holdout_start != ''
+        uses: actions/upload-artifact@v4
+        with:
+          name: full-model-validation-lockbox
+          path: full_model_validation_lockbox.json
+          retention-days: 90
+
+      - name: Publish validation report (development period only)
         run: |
           cp public/data/full_model_validation.json /tmp/full_model_validation.json
           git config user.name 'github-actions[bot]'
@@ -86,4 +104,17 @@ jobs:
           git add public/data/full_model_validation.json
           git diff --cached --quiet && exit 0
           git commit -m 'Update full model validation [skip ci]'
+          git push origin HEAD:main
+
+      - name: Publish lockbox result (only when explicitly revealed)
+        if: github.event.inputs.reveal_lockbox == 'yes'
+        run: |
+          cp full_model_validation_lockbox.json /tmp/full_model_validation_lockbox.json
+          git fetch origin main
+          git reset --hard origin/main
+          mkdir -p public/data
+          cp /tmp/full_model_validation_lockbox.json public/data/full_model_validation_lockbox.json
+          git add public/data/full_model_validation_lockbox.json
+          git diff --cached --quiet && exit 0
+          git commit -m 'Reveal full model validation lockbox result [skip ci]'
           git push origin HEAD:main
