@@ -1,6 +1,54 @@
 {
-  "updated_at": "2026-09-15T23:46:27.177330+00:00",
+  "updated_at": "2026-09-16T23:54:58.239681+00:00",
   "alerts": [
+    {
+      "ticker": "WDC",
+      "company_name": "Western Digital",
+      "alert_date": "2026-09-16",
+      "alert_price": 423.5849914550781,
+      "score": 87.9,
+      "trader_score": 71.8,
+      "technical_score": 53.7,
+      "fundamental_score": 99.2,
+      "model_version": "5.0-technical-fundamentals-valuation-analyst",
+      "returns": {}
+    },
+    {
+      "ticker": "LRCX",
+      "company_name": "Lam Research",
+      "alert_date": "2026-09-16",
+      "alert_price": 270.92999267578125,
+      "score": 87.3,
+      "trader_score": 73.9,
+      "technical_score": 52.7,
+      "fundamental_score": 84.0,
+      "model_version": "5.0-technical-fundamentals-valuation-analyst",
+      "returns": {}
+    },
+    {
+      "ticker": "AMAT",
+      "company_name": "Applied Materials",
+      "alert_date": "2026-09-16",
+      "alert_price": 419.45001220703125,
+      "score": 80.6,
+      "trader_score": 76.3,
+      "technical_score": 53.4,
+      "fundamental_score": 66.4,
+      "model_version": "5.0-technical-fundamentals-valuation-analyst",
+      "returns": {}
+    },
+    {
+      "ticker": "AVGO",
+      "company_name": "Broadcom",
+      "alert_date": "2026-09-16",
+      "alert_price": 340.32501220703125,
+      "score": 80.0,
+      "trader_score": 40.5,
+      "technical_score": 53.9,
+      "fundamental_score": 91.1,
+      "model_version": "5.0-technical-fundamentals-valuation-analyst",
+      "returns": {}
+    },
     {
       "ticker": "WDC",
       "company_name": "Western Digital",
@@ -11,7 +59,9 @@
       "technical_score": 54.8,
       "fundamental_score": 99.2,
       "model_version": "5.0-technical-fundamentals-valuation-analyst",
-      "returns": {}
+      "returns": {
+        "1D": 1.15
+      }
     },
     {
       "ticker": "LRCX",
@@ -23,7 +73,9 @@
       "technical_score": 56.0,
       "fundamental_score": 84.4,
       "model_version": "5.0-technical-fundamentals-valuation-analyst",
-      "returns": {}
+      "returns": {
+        "1D": 0.57
+      }
     },
     {
       "ticker": "CRDO",
@@ -35,7 +87,9 @@
       "technical_score": 59.7,
       "fundamental_score": 92.4,
       "model_version": "5.0-technical-fundamentals-valuation-analyst",
-      "returns": {}
+      "returns": {
+        "1D": 7.4
+      }
     }
   ]
 }
