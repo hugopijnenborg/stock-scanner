@@ -1,5 +1,5 @@
 {
-  "updated_at": "2026-09-17T23:45:22.378371+00:00",
+  "updated_at": "2026-09-18T23:39:06.644143+00:00",
   "alerts": [
     {
       "ticker": "WDC",
@@ -11,7 +11,9 @@
       "technical_score": 50.3,
       "fundamental_score": 99.3,
       "model_version": "5.0-technical-fundamentals-valuation-analyst",
-      "returns": {}
+      "returns": {
+        "1D": 4.63
+      }
     },
     {
       "ticker": "LRCX",
@@ -23,7 +25,9 @@
       "technical_score": 51.6,
       "fundamental_score": 84.5,
       "model_version": "5.0-technical-fundamentals-valuation-analyst",
-      "returns": {}
+      "returns": {
+        "1D": 7.15
+      }
     },
     {
       "ticker": "AMAT",
@@ -35,7 +39,9 @@
       "technical_score": 53.6,
       "fundamental_score": 67.2,
       "model_version": "5.0-technical-fundamentals-valuation-analyst",
-      "returns": {}
+      "returns": {
+        "1D": 6.67
+      }
     },
     {
       "ticker": "WDC",
