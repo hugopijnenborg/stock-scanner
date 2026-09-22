@@ -1,6 +1,18 @@
 {
-  "updated_at": "2026-09-18T23:39:06.644143+00:00",
+  "updated_at": "2026-09-22T00:19:24.650927+00:00",
   "alerts": [
+    {
+      "ticker": "NVO",
+      "company_name": "Novo Nordisk",
+      "alert_date": "2026-09-22",
+      "alert_price": 39.755001068115234,
+      "score": 80.0,
+      "trader_score": 94.8,
+      "technical_score": 61.1,
+      "fundamental_score": 58.3,
+      "model_version": "5.0-technical-fundamentals-valuation-analyst",
+      "returns": {}
+    },
     {
       "ticker": "WDC",
       "company_name": "Western Digital",
