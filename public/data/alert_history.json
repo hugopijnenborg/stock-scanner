@@ -1,5 +1,5 @@
 {
-  "updated_at": "2026-09-22T00:19:24.650927+00:00",
+  "updated_at": "2026-09-22T23:52:55.753407+00:00",
   "alerts": [
     {
       "ticker": "NVO",
@@ -10,6 +10,30 @@
       "trader_score": 94.8,
       "technical_score": 61.1,
       "fundamental_score": 58.3,
+      "model_version": "5.0-technical-fundamentals-valuation-analyst",
+      "returns": {}
+    },
+    {
+      "ticker": "INTU",
+      "company_name": "Intuit",
+      "alert_date": "2026-09-22",
+      "alert_price": 290.3500061035156,
+      "score": 86.5,
+      "trader_score": 91.5,
+      "technical_score": 53.0,
+      "fundamental_score": 82.9,
+      "model_version": "5.0-technical-fundamentals-valuation-analyst",
+      "returns": {}
+    },
+    {
+      "ticker": "ADBE",
+      "company_name": "Adobe",
+      "alert_date": "2026-09-22",
+      "alert_price": 239.69500732421875,
+      "score": 81.6,
+      "trader_score": 61.7,
+      "technical_score": 46.3,
+      "fundamental_score": 88.8,
       "model_version": "5.0-technical-fundamentals-valuation-analyst",
       "returns": {}
     },
@@ -122,7 +146,8 @@
       "fundamental_score": 99.2,
       "model_version": "5.0-technical-fundamentals-valuation-analyst",
       "returns": {
-        "1D": 1.15
+        "1D": 1.15,
+        "5D": 12.7
       }
     },
     {
@@ -136,7 +161,8 @@
       "fundamental_score": 84.4,
       "model_version": "5.0-technical-fundamentals-valuation-analyst",
       "returns": {
-        "1D": 0.57
+        "1D": 0.57,
+        "5D": 16.16
       }
     },
     {
@@ -150,7 +176,8 @@
       "fundamental_score": 92.4,
       "model_version": "5.0-technical-fundamentals-valuation-analyst",
       "returns": {
-        "1D": 7.4
+        "1D": 7.4,
+        "5D": 28.06
       }
     }
   ]
