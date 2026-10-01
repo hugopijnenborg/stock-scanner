@@ -1,6 +1,42 @@
 {
-  "updated_at": "2026-09-30T00:48:03.365343+00:00",
+  "updated_at": "2026-10-01T00:52:21.633826+00:00",
   "alerts": [
+    {
+      "ticker": "APP",
+      "company_name": "AppLovin",
+      "alert_date": "2026-10-01",
+      "alert_price": 293.5400085449219,
+      "score": 86.8,
+      "trader_score": 94.0,
+      "technical_score": 55.8,
+      "fundamental_score": 91.3,
+      "model_version": "5.0-technical-fundamentals-valuation-analyst",
+      "returns": {}
+    },
+    {
+      "ticker": "BX",
+      "company_name": "Blackstone",
+      "alert_date": "2026-10-01",
+      "alert_price": 112.44499969482422,
+      "score": 86.8,
+      "trader_score": 55.1,
+      "technical_score": 60.6,
+      "fundamental_score": null,
+      "model_version": "5.0-technical-fundamentals-valuation-analyst",
+      "returns": {}
+    },
+    {
+      "ticker": "INTU",
+      "company_name": "Intuit",
+      "alert_date": "2026-10-01",
+      "alert_price": 274.4649963378906,
+      "score": 86.3,
+      "trader_score": 62.5,
+      "technical_score": 58.3,
+      "fundamental_score": 83.6,
+      "model_version": "5.0-technical-fundamentals-valuation-analyst",
+      "returns": {}
+    },
     {
       "ticker": "INTU",
       "company_name": "Intuit",
@@ -47,7 +83,9 @@
       "technical_score": 60.1,
       "fundamental_score": 83.4,
       "model_version": "5.0-technical-fundamentals-valuation-analyst",
-      "returns": {}
+      "returns": {
+        "1D": -2.89
+      }
     },
     {
       "ticker": "BX",
@@ -200,7 +238,8 @@
       "fundamental_score": 58.3,
       "model_version": "5.0-technical-fundamentals-valuation-analyst",
       "returns": {
-        "1D": -3.99
+        "1D": -3.99,
+        "5D": -3.63
       }
     },
     {
@@ -214,7 +253,8 @@
       "fundamental_score": 82.9,
       "model_version": "5.0-technical-fundamentals-valuation-analyst",
       "returns": {
-        "1D": -1.22
+        "1D": -1.22,
+        "5D": -7.69
       }
     },
     {
@@ -228,7 +268,8 @@
       "fundamental_score": 88.8,
       "model_version": "5.0-technical-fundamentals-valuation-analyst",
       "returns": {
-        "1D": 0.42
+        "1D": 0.42,
+        "5D": -2.72
       }
     },
     {
@@ -348,7 +389,8 @@
       "model_version": "5.0-technical-fundamentals-valuation-analyst",
       "returns": {
         "1D": 1.15,
-        "5D": 12.7
+        "5D": 12.7,
+        "10D": 10.0
       }
     },
     {
@@ -363,7 +405,8 @@
       "model_version": "5.0-technical-fundamentals-valuation-analyst",
       "returns": {
         "1D": 0.57,
-        "5D": 16.16
+        "5D": 16.16,
+        "10D": 20.98
       }
     },
     {
@@ -378,7 +421,8 @@
       "model_version": "5.0-technical-fundamentals-valuation-analyst",
       "returns": {
         "1D": 7.4,
-        "5D": 28.06
+        "5D": 28.06,
+        "10D": 27.92
       }
     }
   ]
