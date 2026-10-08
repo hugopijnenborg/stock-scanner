@@ -1,6 +1,42 @@
 {
-  "updated_at": "2026-10-07T01:03:31.348287+00:00",
+  "updated_at": "2026-10-08T01:22:33.032980+00:00",
   "alerts": [
+    {
+      "ticker": "WDC",
+      "company_name": "Western Digital",
+      "alert_date": "2026-10-08",
+      "alert_price": 404.7300109863281,
+      "score": 86.6,
+      "trader_score": 72.5,
+      "technical_score": 57.3,
+      "fundamental_score": 99.4,
+      "model_version": "5.0-technical-fundamentals-valuation-analyst",
+      "returns": {}
+    },
+    {
+      "ticker": "APP",
+      "company_name": "AppLovin",
+      "alert_date": "2026-10-08",
+      "alert_price": 280.1050109863281,
+      "score": 84.1,
+      "trader_score": 93.6,
+      "technical_score": 57.6,
+      "fundamental_score": 91.6,
+      "model_version": "5.0-technical-fundamentals-valuation-analyst",
+      "returns": {}
+    },
+    {
+      "ticker": "BSX",
+      "company_name": "Boston Scientific",
+      "alert_date": "2026-10-08",
+      "alert_price": 41.51499938964844,
+      "score": 81.5,
+      "trader_score": 88.7,
+      "technical_score": 54.9,
+      "fundamental_score": 81.8,
+      "model_version": "5.0-technical-fundamentals-valuation-analyst",
+      "returns": {}
+    },
     {
       "ticker": "APP",
       "company_name": "AppLovin",
@@ -83,7 +119,9 @@
       "technical_score": 63.4,
       "fundamental_score": 91.6,
       "model_version": "5.0-technical-fundamentals-valuation-analyst",
-      "returns": {}
+      "returns": {
+        "1D": 2.62
+      }
     },
     {
       "ticker": "WDC",
