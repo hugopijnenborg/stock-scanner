@@ -1,6 +1,30 @@
 {
-  "updated_at": "2026-10-09T01:30:49.387063+00:00",
+  "updated_at": "2026-10-10T01:19:55.012905+00:00",
   "alerts": [
+    {
+      "ticker": "WDC",
+      "company_name": "Western Digital",
+      "alert_date": "2026-10-10",
+      "alert_price": 394.6099853515625,
+      "score": 91.1,
+      "trader_score": 59.7,
+      "technical_score": 55.9,
+      "fundamental_score": 99.6,
+      "model_version": "5.0-technical-fundamentals-valuation-analyst",
+      "returns": {}
+    },
+    {
+      "ticker": "APP",
+      "company_name": "AppLovin",
+      "alert_date": "2026-10-10",
+      "alert_price": 276.0,
+      "score": 86.5,
+      "trader_score": 81.1,
+      "technical_score": 50.9,
+      "fundamental_score": 91.9,
+      "model_version": "5.0-technical-fundamentals-valuation-analyst",
+      "returns": {}
+    },
     {
       "ticker": "WDC",
       "company_name": "Western Digital",
