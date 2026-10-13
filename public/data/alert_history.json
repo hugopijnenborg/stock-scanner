@@ -1,6 +1,30 @@
 {
-  "updated_at": "2026-10-10T01:19:55.012905+00:00",
+  "updated_at": "2026-10-13T02:44:52.936575+00:00",
   "alerts": [
+    {
+      "ticker": "WDC",
+      "company_name": "Western Digital",
+      "alert_date": "2026-10-13",
+      "alert_price": 394.6099853515625,
+      "score": 91.1,
+      "trader_score": 59.7,
+      "technical_score": 55.9,
+      "fundamental_score": 99.6,
+      "model_version": "5.0-technical-fundamentals-valuation-analyst",
+      "returns": {}
+    },
+    {
+      "ticker": "APP",
+      "company_name": "AppLovin",
+      "alert_date": "2026-10-13",
+      "alert_price": 276.0,
+      "score": 86.5,
+      "trader_score": 81.1,
+      "technical_score": 50.9,
+      "fundamental_score": 91.9,
+      "model_version": "5.0-technical-fundamentals-valuation-analyst",
+      "returns": {}
+    },
     {
       "ticker": "WDC",
       "company_name": "Western Digital",
@@ -35,7 +59,9 @@
       "technical_score": 55.8,
       "fundamental_score": 99.4,
       "model_version": "5.0-technical-fundamentals-valuation-analyst",
-      "returns": {}
+      "returns": {
+        "1D": -1.27
+      }
     },
     {
       "ticker": "APP",
@@ -47,7 +73,9 @@
       "technical_score": 57.5,
       "fundamental_score": 91.8,
       "model_version": "5.0-technical-fundamentals-valuation-analyst",
-      "returns": {}
+      "returns": {
+        "1D": -2.85
+      }
     },
     {
       "ticker": "WDC",
@@ -59,7 +87,9 @@
       "technical_score": 57.3,
       "fundamental_score": 99.4,
       "model_version": "5.0-technical-fundamentals-valuation-analyst",
-      "returns": {}
+      "returns": {
+        "1D": -1.84
+      }
     },
     {
       "ticker": "APP",
@@ -71,7 +101,9 @@
       "technical_score": 57.6,
       "fundamental_score": 91.6,
       "model_version": "5.0-technical-fundamentals-valuation-analyst",
-      "returns": {}
+      "returns": {
+        "1D": -1.09
+      }
     },
     {
       "ticker": "BSX",
@@ -83,7 +115,9 @@
       "technical_score": 54.9,
       "fundamental_score": 81.8,
       "model_version": "5.0-technical-fundamentals-valuation-analyst",
-      "returns": {}
+      "returns": {
+        "1D": 2.93
+      }
     },
     {
       "ticker": "APP",
@@ -180,7 +214,8 @@
       "fundamental_score": 91.6,
       "model_version": "5.0-technical-fundamentals-valuation-analyst",
       "returns": {
-        "1D": 2.62
+        "1D": 2.62,
+        "5D": -0.29
       }
     },
     {
@@ -194,7 +229,8 @@
       "fundamental_score": 98.7,
       "model_version": "5.0-technical-fundamentals-valuation-analyst",
       "returns": {
-        "1D": -1.34
+        "1D": -1.34,
+        "5D": -7.13
       }
     },
     {
@@ -208,7 +244,8 @@
       "fundamental_score": 87.6,
       "model_version": "5.0-technical-fundamentals-valuation-analyst",
       "returns": {
-        "1D": 2.35
+        "1D": 2.35,
+        "5D": 5.21
       }
     },
     {
@@ -222,7 +259,8 @@
       "fundamental_score": null,
       "model_version": "5.0-technical-fundamentals-valuation-analyst",
       "returns": {
-        "1D": 0.34
+        "1D": 0.34,
+        "5D": 1.59
       }
     },
     {
@@ -236,7 +274,8 @@
       "fundamental_score": 91.4,
       "model_version": "5.0-technical-fundamentals-valuation-analyst",
       "returns": {
-        "1D": 0.0
+        "1D": 0.0,
+        "5D": -1.75
       }
     },
     {
@@ -250,7 +289,8 @@
       "fundamental_score": null,
       "model_version": "5.0-technical-fundamentals-valuation-analyst",
       "returns": {
-        "1D": -0.38
+        "1D": -0.38,
+        "5D": 1.98
       }
     },
     {
@@ -264,7 +304,8 @@
       "fundamental_score": 87.5,
       "model_version": "5.0-technical-fundamentals-valuation-analyst",
       "returns": {
-        "1D": -0.93
+        "1D": -0.93,
+        "5D": 3.18
       }
     },
     {
@@ -369,7 +410,8 @@
       "model_version": "5.0-technical-fundamentals-valuation-analyst",
       "returns": {
         "1D": -2.89,
-        "5D": 3.14
+        "5D": 3.14,
+        "10D": 10.86
       }
     },
     {
@@ -384,7 +426,8 @@
       "model_version": "5.0-technical-fundamentals-valuation-analyst",
       "returns": {
         "1D": -2.09,
-        "5D": -4.49
+        "5D": -4.49,
+        "10D": -2.32
       }
     },
     {
@@ -399,7 +442,8 @@
       "model_version": "5.0-technical-fundamentals-valuation-analyst",
       "returns": {
         "1D": -3.39,
-        "5D": 0.79
+        "5D": 0.79,
+        "10D": 8.57
       }
     },
     {
@@ -414,7 +458,8 @@
       "model_version": "5.0-technical-fundamentals-valuation-analyst",
       "returns": {
         "1D": 4.49,
-        "5D": 1.4
+        "5D": 1.4,
+        "10D": 2.24
       }
     },
     {
@@ -429,7 +474,8 @@
       "model_version": "5.0-technical-fundamentals-valuation-analyst",
       "returns": {
         "1D": -2.65,
-        "5D": 0.16
+        "5D": 0.16,
+        "10D": 2.09
       }
     },
     {
@@ -444,7 +490,8 @@
       "model_version": "5.0-technical-fundamentals-valuation-analyst",
       "returns": {
         "1D": 1.16,
-        "5D": -2.47
+        "5D": -2.47,
+        "10D": 0.98
       }
     },
     {
