@@ -11,19 +11,28 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
+
       - name: Install
         run: pip install requests
+
       - name: Check FMP key
         env:
           FMP_API_KEY: ${{ secrets.FMP_API_KEY }}
-        run: test -n "$FMP_API_KEY" || { echo 'ERROR: GitHub secret FMP_API_KEY ontbreekt.'; exit 1; }
+        run: |
+          if [ -z "$FMP_API_KEY" ]; then
+            echo "FOUT - GitHub secret FMP_API_KEY ontbreekt"
+            exit 1
+          fi
+
       - name: Probe FMP
         env:
           FMP_API_KEY: ${{ secrets.FMP_API_KEY }}
         run: python scripts/probe_fmp.py
+
       - name: Commit probe result
         run: |
           git config user.name "github-actions"
