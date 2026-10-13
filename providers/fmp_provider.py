@@ -6,12 +6,14 @@ from typing import Any
 
 import requests
 
-
-BASE_URL = "https://financialmodelingprep.com/api/v3"
+# De oude /api/v3/ endpoints geven "Legacy Endpoint" (403). FMP gebruikt nu /stable/.
+BASE_URL = "https://financialmodelingprep.com/stable"
 
 
 class FMPError(RuntimeError):
-    pass
+    def __init__(self, message: str, status: int | None = None):
+        super().__init__(message)
+        self.status = status
 
 
 def _now_iso() -> str:
@@ -19,7 +21,12 @@ def _now_iso() -> str:
 
 
 class FMPProvider:
-    """Thin Financial Modeling Prep client used only for secondary coverage."""
+    """Dunne client voor Financial Modeling Prep (/stable/ API).
+
+    Elke methode geeft {"source", "endpoint", "retrieved_at", "data"} terug.
+    Een ontbrekend endpoint of ontbrekend abonnement geeft FMPError met de
+    HTTP-status; er wordt nooit stilletjes een lege waarde teruggegeven.
+    """
 
     def __init__(self, api_key: str | None = None, timeout: int = 30):
         self.api_key = api_key or os.getenv("FMP_API_KEY")
@@ -33,77 +40,77 @@ class FMPProvider:
         url = f"{BASE_URL}/{endpoint.lstrip('/')}"
         response = self.session.get(url, params=params, timeout=self.timeout)
         if response.status_code != 200:
-            raise FMPError(f"FMP {response.status_code}: {response.text[:300]}")
+            # Key nooit in foutmelding laten lekken.
+            raise FMPError(f"FMP {response.status_code} op {endpoint}: {response.text[:200]}", response.status_code)
         payload = response.json()
-        return {
-            "source": "fmp",
-            "endpoint": endpoint,
-            "retrieved_at": _now_iso(),
-            "data": payload,
-        }
+        if isinstance(payload, dict) and payload.get("Error Message"):
+            raise FMPError(f"FMP {endpoint}: {str(payload['Error Message'])[:200]}")
+        return {"source": "fmp", "endpoint": endpoint, "retrieved_at": _now_iso(), "data": payload}
 
-    def profile(self, symbol: str) -> dict[str, Any]:
-        return self.get("profile/" + symbol)
+    # --- bedrijf & koers
+    def profile(self, symbol: str):
+        return self.get("profile", symbol=symbol)
 
-    def quote(self, symbol: str) -> dict[str, Any]:
-        return self.get("quote/" + symbol)
+    def quote(self, symbol: str):
+        return self.get("quote", symbol=symbol)
 
-    def income_statement(self, symbol: str, period: str = "annual", limit: int = 20) -> dict[str, Any]:
-        return self.get("income-statement/" + symbol, period=period, limit=limit)
+    def stock_peers(self, symbol: str):
+        return self.get("stock-peers", symbol=symbol)
 
-    def balance_sheet(self, symbol: str, period: str = "annual", limit: int = 20) -> dict[str, Any]:
-        return self.get("balance-sheet-statement/" + symbol, period=period, limit=limit)
+    # --- financials
+    def income_statement(self, symbol: str, period: str = "quarter", limit: int = 8):
+        return self.get("income-statement", symbol=symbol, period=period, limit=limit)
 
-    def cash_flow(self, symbol: str, period: str = "annual", limit: int = 20) -> dict[str, Any]:
-        return self.get("cash-flow-statement/" + symbol, period=period, limit=limit)
+    def balance_sheet(self, symbol: str, period: str = "quarter", limit: int = 8):
+        return self.get("balance-sheet-statement", symbol=symbol, period=period, limit=limit)
 
-    def ratios(self, symbol: str, limit: int = 20) -> dict[str, Any]:
-        return self.get("ratios/" + symbol, limit=limit)
+    def cash_flow(self, symbol: str, period: str = "quarter", limit: int = 8):
+        return self.get("cash-flow-statement", symbol=symbol, period=period, limit=limit)
 
-    def key_metrics(self, symbol: str, limit: int = 20) -> dict[str, Any]:
-        return self.get("key-metrics/" + symbol, limit=limit)
+    def financial_growth(self, symbol: str, period: str = "quarter", limit: int = 8):
+        return self.get("financial-growth", symbol=symbol, period=period, limit=limit)
 
-    def enterprise_values(self, symbol: str, limit: int = 20) -> dict[str, Any]:
-        return self.get("enterprise-values/" + symbol, limit=limit)
+    def key_metrics_ttm(self, symbol: str):
+        return self.get("key-metrics-ttm", symbol=symbol)
 
-    def analyst_estimates(self, symbol: str, limit: int = 20) -> dict[str, Any]:
-        return self.get("analyst-estimates/" + symbol, limit=limit)
+    def ratios_ttm(self, symbol: str):
+        return self.get("ratios-ttm", symbol=symbol)
 
-    def grades(self, symbol: str, limit: int = 100) -> dict[str, Any]:
-        return self.get("grades/" + symbol, limit=limit)
+    def enterprise_values(self, symbol: str, period: str = "quarter", limit: int = 8):
+        return self.get("enterprise-values", symbol=symbol, period=period, limit=limit)
 
-    def grades_historical(self, symbol: str, limit: int = 100) -> dict[str, Any]:
-        return self.get("grades-historical/" + symbol, limit=limit)
+    # --- verwachtingen & analisten
+    def analyst_estimates(self, symbol: str, period: str = "annual", limit: int = 10):
+        return self.get("analyst-estimates", symbol=symbol, period=period, page=0, limit=limit)
 
-    def price_target_consensus(self, symbol: str) -> dict[str, Any]:
-        return self.get("price-target-consensus/" + symbol)
+    def price_target_summary(self, symbol: str):
+        return self.get("price-target-summary", symbol=symbol)
 
-    def price_target(self, symbol: str, limit: int = 100) -> dict[str, Any]:
-        return self.get("price-target/" + symbol, limit=limit)
+    def price_target_consensus(self, symbol: str):
+        return self.get("price-target-consensus", symbol=symbol)
 
-    def earnings_surprises(self, symbol: str, limit: int = 20) -> dict[str, Any]:
-        return self.get("earnings-surprises/" + symbol, limit=limit)
+    def price_target_news(self, symbol: str, limit: int = 50):
+        return self.get("price-target-news", symbol=symbol, page=0, limit=limit)
 
-    def historical_price(self, symbol: str, limit: int = 5000) -> dict[str, Any]:
-        return self.get("historical-price-full/" + symbol, timeseries=limit)
+    def grades(self, symbol: str, limit: int = 100):
+        return self.get("grades", symbol=symbol, limit=limit)
 
-    def snapshot(self, symbol: str) -> dict[str, Any]:
-        """Collect the secondary FMP package. Missing endpoints remain explicit failures."""
-        calls = {
-            "profile": self.profile(symbol),
-            "quote": self.quote(symbol),
-            "income_statement": self.income_statement(symbol),
-            "balance_sheet": self.balance_sheet(symbol),
-            "cash_flow": self.cash_flow(symbol),
-            "ratios": self.ratios(symbol),
-            "key_metrics": self.key_metrics(symbol),
-            "enterprise_values": self.enterprise_values(symbol),
-            "analyst_estimates": self.analyst_estimates(symbol),
-            "grades": self.grades(symbol),
-            "grades_historical": self.grades_historical(symbol),
-            "price_target_consensus": self.price_target_consensus(symbol),
-            "price_target": self.price_target(symbol),
-            "earnings_surprises": self.earnings_surprises(symbol),
-            "historical_price": self.historical_price(symbol),
-        }
-        return {"ticker": symbol, "retrieved_at": _now_iso(), "data": calls}
+    def grades_historical(self, symbol: str, limit: int = 24):
+        return self.get("grades-historical", symbol=symbol, limit=limit)
+
+    def grades_consensus(self, symbol: str):
+        return self.get("grades-consensus", symbol=symbol)
+
+    def ratings_snapshot(self, symbol: str):
+        return self.get("ratings-snapshot", symbol=symbol)
+
+    # --- earnings
+    def earnings(self, symbol: str, limit: int = 12):
+        return self.get("earnings", symbol=symbol, limit=limit)
+
+    def earnings_calendar(self, date_from: str, date_to: str):
+        return self.get("earnings-calendar", **{"from": date_from, "to": date_to})
+
+    # --- sector
+    def sector_pe_snapshot(self, date: str):
+        return self.get("sector-pe-snapshot", date=date)
