@@ -1,0 +1,18 @@
+# Modelversies (bevroren)
+
+Elke map is een bevroren modelversie. De code is een kopie van de nodes in de n8n-workflow
+"Stock Scanner - Live scan" op het moment van bevriezen. Een wijziging in de regels betekent
+een NIEUWE versie (nieuwe map, nieuwe `model_version` in scanner_alerts), zodat de resultaten
+van elke versie apart en zuiver gemeten blijven.
+
+## 6.0-dip (bevroren op 14-10-2026)
+Eerste live alerts: 14-10-2026 15:46 (STX, VRT, HWM, WDC, CAT).
+
+- `score-alle-aandelen.js`: berekent de dip-positie per aandeel (gemiddelde percentielrang van z20, RSI14, afstand tot SMA50 en dd30 over de laatste 250 koersdagen).
+- `dip-regels.js`: kwalificatie (dip <= 0,30, dd30 <= -8%, d52 <= -15%), kwaliteitsfilters (omzetgroei >= 10%, positieve kasstroom of strikt speculatief pad, geen Real Estate), selectie van maximaal 5 signalen en WATCH.
+- `alert-beslissing.js`: bepaalt wanneer een signaal wordt opgeslagen.
+
+Positiebeheer van het model (20% verkopen bij +10/25/50/100%, bijkopen bij -12%, terugkopen, altijd een restpositie) staat in `app/portfolio/positionEngine.js`.
+
+Wijzigingen na bevriezing (bewust gedocumenteerd):
+- Universum-opschoning (aandelen verwijderd uit de lijst) verandert de regels niet.
