@@ -1,6 +1,42 @@
 {
-  "updated_at": "2026-10-13T02:44:52.936575+00:00",
+  "updated_at": "2026-10-14T00:40:03.811251+00:00",
   "alerts": [
+    {
+      "ticker": "WDC",
+      "company_name": "Western Digital",
+      "alert_date": "2026-10-14",
+      "alert_price": 380.9700012207031,
+      "score": 92.3,
+      "trader_score": 76.3,
+      "technical_score": 64.8,
+      "fundamental_score": 99.5,
+      "model_version": "5.0-technical-fundamentals-valuation-analyst",
+      "returns": {}
+    },
+    {
+      "ticker": "APP",
+      "company_name": "AppLovin",
+      "alert_date": "2026-10-14",
+      "alert_price": 272.04998779296875,
+      "score": 83.2,
+      "trader_score": 89.6,
+      "technical_score": 59.7,
+      "fundamental_score": 92.0,
+      "model_version": "5.0-technical-fundamentals-valuation-analyst",
+      "returns": {}
+    },
+    {
+      "ticker": "STX",
+      "company_name": "Seagate Technology",
+      "alert_date": "2026-10-14",
+      "alert_price": 748.4500122070312,
+      "score": 80.7,
+      "trader_score": 25.0,
+      "technical_score": 60.4,
+      "fundamental_score": 88.2,
+      "model_version": "5.0-technical-fundamentals-valuation-analyst",
+      "returns": {}
+    },
     {
       "ticker": "WDC",
       "company_name": "Western Digital",
