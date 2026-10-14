@@ -1,7 +1,10 @@
 # Stock Scanner
 
-Market scanner based on the curated stock universe, technical setups, trader-pattern similarity and fundamental company data.
+Dashboard (Next.js, Vercel) voor het dip-model 6.0.
 
-The dashboard is intended for research and paper testing. Fundamental data is included in the scan output and is used as a separate scoring layer. Historical backtesting remains the next validation step before treating scores as predictive.
+- **Scan en regels:** draaien in n8n (workflow "Stock Scanner - Live scan"), resultaten in Supabase.
+- **Dashboard:** leest alleen uit Supabase via `app/api/*`.
+- **Pagina's:** Scanner, Portfolio, Alert history, Performance, Model validation.
+- **archief/:** trades van de Discord-trader waarop het model oorspronkelijk is gebaseerd.
 
-Analyst integrations are configured through Vercel environment variables and are refreshed through the scanner cache.
+Het oude Python-systeem staat in de git-geschiedenis (commit voor de opruiming).
