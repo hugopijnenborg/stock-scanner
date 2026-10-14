@@ -326,8 +326,8 @@ export default function PortfolioPage() {
             <div className="emptyState alertEmpty">
               <div className="emptyIcon"><Wallet size={20} /></div>
               <strong>Nog geen posities</strong>
-              <span>Open een BUY ALERT en klik op “Voeg toe aan portfolio” om een positie toe te voegen.</span>
-              <Link href="/" className="refresh primary"><Bell size={14} /> Bekijk BUY ALERTS</Link>
+              <span>Open een signaal en klik op “Voeg toe aan portfolio” om een positie toe te voegen.</span>
+              <Link href="/" className="refresh primary"><Bell size={14} /> Bekijk signalen</Link>
             </div>
           ) : (
             <div className="positionGrid">
