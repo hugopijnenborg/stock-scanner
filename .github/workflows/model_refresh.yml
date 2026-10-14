@@ -1,10 +1,11 @@
 name: Daily Model Refresh
 
 on:
-  schedule:
-    # UTC (GitHub Actions cron has no timezone option): 15:00 UTC is
-    # 17:00 Dutch in summer and 16:00 Dutch in winter.
-    - cron: '0 15 * * 1-5'
+  # Schedule uitgezet: dit werk is overgenomen door n8n (dip-model 6.0).
+  # schedule:
+  #   # UTC (GitHub Actions cron has no timezone option): 15:00 UTC is
+  #   # 17:00 Dutch in summer and 16:00 Dutch in winter.
+  #   - cron: '0 15 * * 1-5'
   workflow_dispatch:
 
 permissions:
