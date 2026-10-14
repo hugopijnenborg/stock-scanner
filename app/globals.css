@@ -17,3 +17,7 @@
 .earnWarn{margin-top:10px;padding:8px 10px;border:1px solid #6b4b22;border-radius:8px;background:#2a2012;color:#f2c27a;font-size:12px}
 .marketWide{margin:12px;padding:12px 14px;border:1px solid #6b4b22;border-radius:10px;background:#2a2012;color:#f2c27a;font-size:13px;line-height:1.5}
 .dipPlan{margin-top:14px;padding:12px 14px;border:1px solid #223b32;border-radius:10px;background:#0b1512;color:#c8d2db;font-size:13px;line-height:1.5}.dipPlan ul{margin:8px 0;padding-left:18px}.dipPlan small{display:block;color:#8da0b2;font-size:12px}
+.classLegend{margin:0 0 14px}.classChips{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:10px}
+.classChip{padding:7px 13px;border:1px solid #2a3b4d;border-radius:999px;background:#0d1820;color:#8da0b2;font-weight:700;font-size:12px;cursor:pointer}
+.classChip.on{background:#14382b;border-color:#2c8b64;color:#8ff5c2}
+.classLegend p{margin:0;color:#7e91a3;font-size:12px;line-height:1.65}.classLegend b{color:#cfe0ec}
