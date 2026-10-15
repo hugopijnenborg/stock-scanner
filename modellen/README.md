@@ -16,3 +16,8 @@ Positiebeheer van het model (20% verkopen bij +10/25/50/100%, bijkopen bij -12%,
 
 Wijzigingen na bevriezing (bewust gedocumenteerd):
 - Universum-opschoning (aandelen verwijderd uit de lijst) verandert de regels niet.
+
+## 6.1-dip (15-10-2026)
+Enige wijziging ten opzichte van 6.0: de voorwaarde over vrije kasstroom is verwijderd (ook het strenge "speculatieve" pad). Aandelen met negatieve vrije kasstroom kunnen nu gewoon een signaal worden. Overgebleven filters: omzetgroei >= 10% en geen Real Estate.
+Reden: voor swingtrading is negatieve vrije kasstroom geen uitsluitingsgrond (beslissing Hugo). Alerts van 6.0 blijven onder 6.0 gemeten, nieuwe signalen krijgen model_version 6.1-dip.
+Bekende kanttekening: negatieve kasstroom was in de historische test de riskantste groep (75% in winst, gem. +25%, gem. diepste daling -17%).
