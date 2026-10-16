@@ -1,9 +1,9 @@
 /* Ontwerpsysteem (licht, rustig). Alles staat onder .ds zodat oude pagina's niet veranderen. */
-body:has(.ds) { background: #f6f7f9 !important; color: #111827; font-size: 14px; }
+body:has(.ds) { background: #e8ecf3 !important; color: #111827; font-size: 14px; }
 .ds {
-  --bg: #f6f7f9; --surface: #ffffff; --line: #e6e9ee; --line-strong: #d5dae1;
+  --bg: #e8ecf3; --surface: #ffffff; --line: #dde3ec; --line-strong: #c9d1dd; --accent: #2457d6; --navy: #0f1b2d; --tint: #f0f3f9;
   --text: #111827; --muted: #5b6676; --subtle: #8a94a3;
-  --ink: #111827; --pos: #0b7a53; --neg: #b42318;
+  --ink: #0f1b2d; --pos: #0b7a53; --neg: #b42318;
   --warn: #9a5b00; --warn-bg: #fff6e0; --warn-line: #f2dca6;
   --radius: 10px;
   min-height: 100vh; display: grid; grid-template-columns: 220px minmax(0, 1fr);
@@ -136,7 +136,7 @@ html body .ds .ds-pos { color: var(--pos) !important; }
 html body .ds .ds-row:hover td { background: #fafbfc; }
 html body .ds .ds-empty { color: var(--muted) !important; }
 html body .ds .ds-chip { color: var(--warn) !important; font-size: 12px !important; }
-html body .ds .ds-chip.plain { color: var(--muted) !important; }
+html body .ds .ds-chip.plain { color: #31507f !important; }
 html body .ds .ds-drawerPrice, html body .ds .ds-list li span:first-child { color: var(--muted) !important; }
 html body .ds .ds-small { color: var(--subtle) !important; font-size: 12px !important; }
 html body .ds thead, html body .ds thead tr { background: transparent !important; }
@@ -146,3 +146,36 @@ html body .ds thead, html body .ds thead tr { background: transparent !important
   .ds-card { overflow-x: auto; }
   .ds-table { min-width: 540px; }
 }
+
+/* Meer structuur en contrast (versie 2) */
+.ds-nav { background: var(--navy); border-right: 0; }
+.ds-brandMark { background: var(--accent); }
+.ds-brandName { color: #fff; }
+.ds-navItem { color: #9fb0c8; }
+.ds-navItem:hover { background: rgba(255,255,255,.07); color: #fff; }
+.ds-navItem.is-active { background: rgba(255,255,255,.12); color: #fff; }
+.ds-navFoot { color: #6f819b; }
+.ds-navFoot span:first-child { color: #c3cfe0; }
+.ds-card, .ds-summary { box-shadow: 0 1px 2px rgba(15,27,45,.06), 0 6px 16px rgba(15,27,45,.05); border-color: var(--line); }
+.ds-btn.primary { background: var(--accent); border-color: var(--accent); }
+.ds-btn.primary:hover { background: #1c47b3; }
+.ds-head h1 { font-size: 28px; }
+.ds-sectionHead h2 { font-size: 18px; }
+.ds-summary { background: var(--surface); overflow: hidden; }
+.ds-stat:first-child { background: var(--navy); }
+.ds-stat:first-child span { color: #9fb0c8; }
+.ds-stat:first-child strong { color: #fff; font-size: 30px; }
+.ds-stat strong { font-size: 28px; }
+.ds-note { background: #dce6fb; color: #1f3f8f; }
+html body .ds th { background: var(--tint) !important; color: #4b5a70 !important; }
+html body .ds thead, html body .ds thead tr { background: var(--tint) !important; }
+html body .ds .ds-row:hover td { background: #f5f8fe; }
+.ds-drop { display: inline-block; padding: 3px 10px; border-radius: 999px; background: #fdebe8; font-weight: 650; }
+.ds-table td { padding: 16px; }
+html body .ds .ds-ticker { font-size: 15px !important; }
+.ds-drawer { background: var(--surface); }
+.ds-drawerHead { background: var(--tint); }
+.ds-block h3 { color: var(--accent); text-transform: uppercase; letter-spacing: .04em; font-size: 11px; }
+.ds-chip.plain { background: #e4ebf8; color: #31507f; border-color: #cfdaf0; }
+html body .ds a.ds-navItem { color: #aebcd2; }
+html body .ds a.ds-navItem:hover, html body .ds a.ds-navItem.is-active { color: #fff; }

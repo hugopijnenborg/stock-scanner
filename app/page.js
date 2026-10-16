@@ -97,13 +97,13 @@ function sparkOf(r) {
 // ---------- Kleine onderdelen ----------
 function Spark({ data }) {
   if (!Array.isArray(data) || data.length < 3) return null;
-  const w = 88, h = 28, min = Math.min(...data), max = Math.max(...data), span = max - min || 1;
+  const w = 110, h = 34, min = Math.min(...data), max = Math.max(...data), span = max - min || 1;
   const pts = data.map((v, i) => `${((i / (data.length - 1)) * w).toFixed(1)},${(h - 3 - ((v - min) / span) * (h - 6)).toFixed(1)}`);
   const last = pts[pts.length - 1].split(',');
   return (
     <svg className="ds-spark" width={w} height={h} viewBox={`0 0 ${w} ${h}`} aria-hidden="true">
-      <polyline points={pts.join(' ')} fill="none" stroke="#8a94a3" strokeWidth="1.5" strokeLinejoin="round" strokeLinecap="round" />
-      <circle cx={last[0]} cy={last[1]} r="2.4" fill="#111827" />
+      <polyline points={pts.join(' ')} fill="none" stroke="#64748b" strokeWidth="1.5" strokeLinejoin="round" strokeLinecap="round" />
+      <circle cx={last[0]} cy={last[1]} r="2.4" fill="#2457d6" />
     </svg>
   );
 }
@@ -339,7 +339,7 @@ export default function Home() {
                           <tr key={r.ticker} className="ds-row" onClick={() => setSelected(r)}>
                             <td><div className="ds-ticker">{r.ticker}</div><div className="ds-company">{r.company_name}</div></td>
                             <td className="r num">{money(r.price)}</td>
-                            <td className="r num ds-neg">{signed(r.d52, 0)}</td>
+                            <td className="r num"><span className="ds-drop ds-neg">{signed(r.d52, 0)}</span></td>
                             <td className="ds-hide-sm"><Spark data={sparkOf(r)} /></td>
                             <td>
                               {w.length === 0 ? <span className="ds-mut">—</span> : (
