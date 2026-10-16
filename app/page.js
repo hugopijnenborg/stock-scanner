@@ -102,8 +102,8 @@ function Spark({ data }) {
   const last = pts[pts.length - 1].split(',');
   return (
     <svg className="ds-spark" width={w} height={h} viewBox={`0 0 ${w} ${h}`} aria-hidden="true">
-      <polyline points={pts.join(' ')} fill="none" stroke="#64748b" strokeWidth="1.5" strokeLinejoin="round" strokeLinecap="round" />
-      <circle cx={last[0]} cy={last[1]} r="2.4" fill="#2457d6" />
+      <polyline points={pts.join(' ')} fill="none" stroke="#7f95b3" strokeWidth="1.5" strokeLinejoin="round" strokeLinecap="round" />
+      <circle cx={last[0]} cy={last[1]} r="2.4" fill="#35e5a0" />
     </svg>
   );
 }
@@ -346,7 +346,7 @@ export default function Home() {
                                 <div className="ds-chips">{w.map((x) => <span className="ds-chip" key={x.short}>{x.short}</span>)}</div>
                               )}
                             </td>
-                            <td className="r"><ChevronRight size={16} color="#8a94a3" /></td>
+                            <td className="r"><ChevronRight size={16} color="#7b8ea8" /></td>
                           </tr>
                         );
                       })}
@@ -393,7 +393,7 @@ export default function Home() {
                         <td><span className="ds-ticker">{r.ticker}</span> <span className="ds-company">{r.company_name}</span></td>
                         <td className="r num">{money(r.price)}</td>
                         <td className={`r num ${Number(r.return_1d) < 0 ? 'ds-neg' : 'ds-pos'}`}>{signed(r.return_1d, 1)}</td>
-                        <td>{statusOf(r) ? <span className={`ds-chip${r.signal === 'ALERT' ? '' : ' plain'}`}>{statusOf(r)}</span> : <span className="ds-mut">—</span>}</td>
+                        <td>{statusOf(r) ? <span className={`ds-chip ${r.signal === 'ALERT' ? 'good' : 'plain'}`}>{statusOf(r)}</span> : <span className="ds-mut">—</span>}</td>
                       </tr>
                     ))}
                     {visible.length === 0 && <tr><td colSpan={4} className="ds-empty">Geen aandelen gevonden.</td></tr>}
