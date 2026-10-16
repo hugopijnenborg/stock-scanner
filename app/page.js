@@ -1,28 +1,413 @@
 'use client';
 
 import { useEffect, useMemo, useState } from 'react';
-import { Activity, BarChart3, Bell, ChevronRight, CircleDot, Database, History, LayoutDashboard, RefreshCw, Search, ShieldCheck, Target, TrendingUp, X } from 'lucide-react';
-import Link from 'next/link';
+import { ChevronRight, RefreshCw, X } from 'lucide-react';
+import AppNav from './components/AppNav';
+import { PLANS, ADD_DROP, REBUY_DROP } from './portfolio/positionEngine';
+import './ds.css';
 
-function pct(v,d=1){return v==null||!Number.isFinite(Number(v))?'—':`${(Number(v)*100).toFixed(d)}%`}
-function signedPct(v,d=1){return v==null||!Number.isFinite(Number(v))?'—':`${Number(v)>=0?'+':''}${(Number(v)*100).toFixed(d)}%`}
-function score(v){return v==null||!Number.isFinite(Number(v))?'—':Number(v).toFixed(0)}
-function num(v,d=1){return v==null||!Number.isFinite(Number(v))?'—':Number(v).toFixed(d)}
-function money(v,d=0){return v==null||!Number.isFinite(Number(v))||Number(v)<=0?'—':`$${Number(v).toLocaleString('en-US',{maximumFractionDigits:d,minimumFractionDigits:d})}`}
-function dateOnly(v){if(!v)return'—';const d=new Date(v);return Number.isNaN(d.getTime())?String(v).slice(0,10):d.toLocaleDateString('nl-NL')}
-function reasons(r){const a=[];if(Number(r.rsi_14)<30)a.push(`RSI ${num(r.rsi_14)} oversold`);if(Number(r.return_5d)<=-.08)a.push(`${pct(r.return_5d)} in 5 dagen`);if(Number(r.distance_52w_high)<=-.15)a.push(`${pct(r.distance_52w_high)} onder 52W high`);if(Number(r.volume_ratio)>=1.5)a.push(`${num(r.volume_ratio)}x normaal volume`);if(Number(r.revenue_growth)>.1)a.push(`Omzetgroei ${pct(r.revenue_growth)}`);if(Number(r.eps_growth)>.1)a.push(`EPS-groei ${pct(r.eps_growth)}`);if(Number(r.fcf)>0)a.push('Positieve vrije kasstroom');return a.slice(0,5)}
-function dipDrivers(r){const c=r.dip_context||{};const a=[];if(r.d52!=null)a.push(`${pct(r.d52,0)} onder 52W high`);if(r.dd30!=null)a.push(`${pct(r.dd30,0)} onder 30D high`);if(c.rsi!=null)a.push(`RSI ${num(c.rsi,0)}`);if(c.pt_upside!=null)a.push(`Koersdoel analisten ${signedPct(c.pt_upside,0)}`);if(c.grades_consensus)a.push(`Consensus ${c.grades_consensus}`);if(c.analyst_up_30d||c.analyst_down_30d)a.push(`Analisten 30d: ${c.analyst_up_30d||0} omhoog / ${c.analyst_down_30d||0} omlaag`);if(c.revenue_growth!=null&&Math.abs(c.revenue_growth)<5)a.push(`Omzetgroei ${pct(c.revenue_growth,0)}`);if(c.gross_margin!=null)a.push(`Brutomarge ${pct(c.gross_margin,0)}`);return a}
-function earningsText(r){const d=r.dip_context?.earnings_in_days;if(d==null)return'';return d<=0?'Cijfers vandaag':d===1?'Cijfers morgen':`Cijfers over ${d} dagen`}
-function riskClass(r){if(r.dip_speculative)return'speculatief';const c=r.dip_context||{};const rg=c.revenue_growth!=null&&Math.abs(c.revenue_growth)<5?c.revenue_growth:null;const fm=c.fcf_margin!=null&&Math.abs(c.fcf_margin)<5?c.fcf_margin:null;const aggr=(r.d52!=null&&r.d52<-0.37)||(rg!=null&&rg>0.28);if(aggr)return'agressief';if(fm!=null&&fm>0)return'rustig';return'gemengd'}
-const CLASS_RANK={rustig:0,gemengd:1,agressief:2,speculatief:3};
-const CLASS_LABEL={rustig:'RUSTIG',gemengd:'GEMENGD',agressief:'AGRESSIEF',speculatief:'SPECULATIEF'};
-function missing(r){const a=[];if(r.dip!=null&&r.dip>0.30)a.push('dip nog niet diep genoeg');if(r.d52!=null&&r.d52>-0.15)a.push(`52W-top ${pct(r.d52,0)} (nodig −15%)`);if(r.dd30!=null&&r.dd30>-0.08)a.push(`30D-top ${pct(r.dd30,0)} (nodig −8%)`);return a}
-function whyNot(r){if(r.dip_signal)return'';if(r.dip_qualifies)return r.dip_excluded==='groei'?'omzetgroei onder 10%':r.dip_excluded==='speculatief'?'speculatief: nog te weinig reden':r.dip_excluded==='winst'?'geen positieve kasstroom':r.dip_excluded==='sector'?'vastgoed/dividend':'';return missing(r).join(', ')}
-function shortfall(r){let m=0;if(r.dip!=null)m=Math.max(m,(r.dip-0.30)/0.30);if(r.d52!=null)m=Math.max(m,(r.d52+0.15)/0.15);if(r.dd30!=null)m=Math.max(m,(r.dd30+0.08)/0.08);return m}
-function DipCard({r,onOpen,n}){const c=r.dip_context||{};return <button className="alertCard cardButton" onClick={()=>onOpen(r)}><div className="alertGlow"/><div className="cardTop"><div><span className="tickerBig">{r.ticker}</span><span className="companyName">{r.company_name}</span></div><div className="dipRank"><small>NR</small><strong>#{n}</strong></div></div><div className="priceLine">${num(r.price,2)} <span className="signal alert">SIGNAAL</span> <span className={`signal dipProfile ${riskClass(r)==='agressief'?'agg':'calm'}`}>{CLASS_LABEL[riskClass(r)]}</span></div>{r.earnings_warning&&<div className="earnWarn">⚠ {earningsText(r)}: een dip vlak voor cijfers is extra risicovol</div>}<div className="why"><span>WAAROM DEZE ALERT</span><div>{dipDrivers(r).slice(0,7).map((x,i)=><span key={i}>{x}</span>)}</div></div></button>}
-function DipDetail({r}){const c=r.dip_context||{};return <div className="detailSection dipDetail"><h3>Dip-signaal &amp; beheer</h3><div className="detailGrid">{r.dip_signal&&<div><span>Profiel</span><b>{r.dip_profile==='agressief'?'Agressief':'Rustig'}</b></div>}<div><span>Onder 52W high</span><b>{pct(r.d52,0)}</b></div><div><span>Onder 30D high</span><b>{pct(r.dd30,0)}</b></div><div><span>RSI 14</span><b>{num(c.rsi??r.rsi_14,0)}</b></div><div><span>Koersdoel analisten</span><b>{c.pt_upside==null?'—':signedPct(c.pt_upside,0)}</b></div><div><span>Consensus</span><b>{c.grades_consensus||'—'}</b></div><div><span>Volgende cijfers</span><b>{c.next_earnings?`${dateOnly(c.next_earnings)}${earningsText(r)?' · '+earningsText(r):''}`:'—'}</b></div><div><span>Brutomarge / FCF-marge</span><b>{pct(c.gross_margin,0)} / {pct(c.fcf_margin,0)}</b></div></div>{r.earnings_warning&&<div className="earnWarn">⚠ {earningsText(r)}: een dip vlak voor cijfers is extra risicovol.</div>}{r.dip_signal&&r.dip_context?.stock_specific&&<div className="earnWarn">⚠ Dit aandeel daalt sterker dan de markt ({pct(r.dip_context.rel30,0)} ten opzichte van de S&P 500 in 30 dagen) terwijl de markt zelf niet in een dip zit. In de historische test waren zulke dips wat zwakker. Dit is een feit, geen advies.</div>}{r.dip_signal&&r.dip_context?.post_earnings&&<div className="earnWarn">⚠ De cijfers kwamen {r.dip_context.days_since_earnings} dagen geleden. Dips vlak na cijfers deden het in de historische test wat zwakker. Dit is een feit, geen advies.</div>}{r.dip_signal&&<div className="dipPlan"><b>Zo beheer je de positie (model 6.2)</b><ul><li>Winst nemen in stappen: bij +15%, +30%, +60% en +120% boven je gemiddelde koers elke keer 10% van je aandelen.</li><li>Bijkopen: als de koers 12% of meer onder je gemiddelde koers zakt (maximaal 2 keer).</li><li>Terugkopen: als de koers 12% onder je laatste verkoopprijs zakt, koop je de opbrengst terug.</li><li>Houd altijd een restpositie aan voor de upside.</li></ul><small>Gebaseerd op een historische test op de S&P 500 en Nasdaq-100 (2020-2026, 6 maanden vooruit): ongeveer 70% van de gesimuleerde posities stond na 6 maanden in de plus. Dat is een gemiddelde over alle jaren, in slechte periodes ligt het lager. Een simulatie, geen garantie en geen financieel advies.</small></div>}</div>}
-function ScoreRing({value,size='large'}){const v=Math.max(0,Math.min(100,Number(value)||0));return <div className={`scoreRing ${size}`} style={{'--score':`${v*3.6}deg`}}><div><strong>{score(value)}</strong><span>/100</span></div></div>}
-function Fundamentals({r}){return <div className="fundGrid"><div><span>Omzetgroei</span><b>{pct(r.revenue_growth)}</b></div><div><span>EPS groei</span><b>{pct(r.eps_growth)}</b></div><div><span>Nettomarge</span><b>{pct(r.net_margin)}</b></div><div><span>Brutomarge</span><b>{pct(r.gross_margin)}</b></div><div><span>FCF</span><b>{r.fcf==null?'—':`${(Number(r.fcf)/1e9).toFixed(2)}B`}</b></div><div><span>ROE</span><b>{pct(r.roe)}</b></div><div><span>Debt / Equity</span><b>{num(r.debt_equity,2)}</b></div><div><span>P/E</span><b>{num(r.pe)}</b></div><div><span>Forward P/E</span><b>{num(r.forward_pe)}</b></div><div><span>PEG</span><b>{num(r.peg,2)}</b></div><div><span>EV/Sales</span><b>{num(r.ev_sales,2)}</b></div></div>}
-function Detail({r,onClose}){const[ai,setAi]=useState(null),[aiLoading,setAiLoading]=useState(false);useEffect(()=>{let cancelled=false;async function generate(){setAi(null);if(r?.dip_signal)return;setAiLoading(true);try{const res=await fetch('/api/alert-summary',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({stock:r})});const body=await res.json();if(!cancelled)setAi(body?.summary||null)}catch(_){if(!cancelled)setAi(null)}finally{if(!cancelled)setAiLoading(false)}}generate();return()=>{cancelled=true}},[r?.ticker]);if(!r)return null;return <div className="modalBackdrop" onClick={onClose}><div className="detailPanel detailPanelOpportunity" onClick={e=>e.stopPropagation()}><div className="detailTop"><div><span className="eyebrow">STOCK ANALYSE</span><h2>{r.ticker}: <span className="detailBuy">{r.signal==='ALERT'?'SIGNAAL':'WATCH'}</span></h2><div className="detailTicker">{r.company_name||r.ticker} · ${num(r.price,2)}</div></div><button className="closeBtn" onClick={onClose}><X size={18}/></button></div><div className="detailScore">{r.dip_signal?<div><span>PROFIEL</span><strong style={{fontSize:22}}>{CLASS_LABEL[riskClass(r)]}</strong></div>:r.dip!=null?<div><span>STATUS</span><strong style={{fontSize:18}}>{whyNot(r)||'geen signaal'}</strong></div>:<div><span>TOTAALSCORE</span><strong>{score(r.overall_score)}<small>/100</small></strong></div>}<span className={`signal ${String(r.signal).toLowerCase()}`}>{r.signal==='ALERT'?'SIGNAAL':r.signal==='WATCH'?'WATCH':r.dip!=null?'GEEN SIGNAAL':'WATCH'}</span></div>{r.dip!=null&&<DipDetail r={r}/>}{r.dip==null&&<div className="detailCards"><div><TrendingUp size={16}/><span>Technical · 55%</span><b>{score(r.technical_score_v2)}</b></div><div><Activity size={16}/><span>Fundamentals · 30%</span><b>{score(r.fundamentals_score_v2)}</b></div><div><ShieldCheck size={16}/><span>Confidence</span><b>{score(r.confidence)}</b></div></div>}{r.dip==null&&<div className="detailSection aiSummarySection"><div className="sectionEyebrow">AI ANALYSE</div>{aiLoading?<div className="aiLoading"><span className="liveDot"/> Analyse wordt opgebouwd uit de actuele scannerdata...</div>:ai?<div className="aiText">{ai.split('\n').map((line,i)=>line.trim()?<p key={i}>{line}</p>:null)}</div>:<div className="aiText"><p>Er is momenteel geen analyse beschikbaar.</p></div>}</div>}<div className="detailSection"><h3>Technische setup</h3><div className="detailGrid"><div><span>RSI 14</span><b>{num(r.rsi_14)}</b></div><div><span>1D rendement</span><b>{signedPct(r.return_1d)}</b></div><div><span>3D rendement</span><b>{signedPct(r.return_3d)}</b></div><div><span>5D rendement</span><b>{signedPct(r.return_5d)}</b></div><div><span>20D rendement</span><b>{signedPct(r.return_20d)}</b></div><div><span>Volume ratio</span><b>{num(r.volume_ratio,2)}x</b></div><div><span>vs SMA20</span><b>{signedPct(r.distance_sma20)}</b></div><div><span>vs SMA50</span><b>{signedPct(r.distance_sma50)}</b></div><div><span>MACD histogram</span><b>{num(r.macd_histogram,3)}</b></div><div><span>Rel. strength</span><b>{signedPct(r.relative_strength_20d)}</b></div></div></div><div className="detailSection"><h3>Waardering, analisten &amp; risk/reward</h3><div className="detailGrid"><div><span>Valuation · 10%</span><b>{score(r.valuation_score_v2)}</b></div><div><span>Analistenrichting · 5%</span><b>{score(r.analyst_direction_score)}</b></div><div><span>Earnings-aanpassing</span><b>{r.earnings_adjustment==null?'—':`${Number(r.earnings_adjustment)>=0?'+':''}${num(r.earnings_adjustment,1)}`}</b></div><div><span>Marktregime</span><b>{r.bear_regime?'Bear (×0.8)':'Bull/sideways (×1.0)'}</b></div><div><span>Stop-niveau</span><b>{r.stop_level==null?'—':`$${num(r.stop_level,2)}`}</b></div><div><span>Doel-niveau</span><b>{r.target_level==null?'—':`$${num(r.target_level,2)}`}</b></div><div><span>Risk/Reward</span><b>{r.risk_reward==null?'—':`${num(r.risk_reward,1)} : 1`}</b></div><div><span>Fundamentals-gate</span><b>{r.gate_excluded?'Geblokkeerd':'Vrij'}</b></div></div></div><div className="detailSection"><h3>Fundamentals</h3><Fundamentals r={r}/></div></div></div>}
-function Sidebar({alerts,opps}){return <aside className="sidebar"><div className="sideBrand"><div className="brandMark"><Activity size={18}/></div><div><b>MARKET<span>INTEL</span></b><small>TECHNICAL & FUNDAMENTALS SCANNER</small></div></div><nav><div className="navLabel">WORKSPACE</div><Link href="/" className="navItem active"><LayoutDashboard size={16}/>Scanner</Link><Link href="/history" className="navItem"><History size={16}/>Alert history</Link><Link href="/performance" className="navItem"><BarChart3 size={16}/>Performance</Link><Link href="/validation" className="navItem"><Target size={16}/>Model validation</Link></nav><div className="sideBottom"><div className="liveStatus"><span className="liveDot"/>MARKTSCANNER ACTIEF</div><div className="sideStat"><span>SIGNALEN</span><strong>{alerts.length}</strong></div><div className="sideStat"><span>DICHTBIJ EEN DIP</span><strong>{opps.length}</strong></div></div></aside>}
-export default function Home(){const[data,setData]=useState(null),[loading,setLoading]=useState(true),[error,setError]=useState(''),[query,setQuery]=useState(''),[showAll,setShowAll]=useState(false),[showAllAlerts,setShowAllAlerts]=useState(false),[selected,setSelected]=useState(null),[scanMessage,setScanMessage]=useState('');async function load(){setLoading(true);setError('');try{const x=await fetch('/api/scan?ts='+Date.now(),{cache:'no-store'});const body=await x.json();if(!x.ok)throw Error(body.error||'Latest scan is niet beschikbaar.');setData(body)}catch(e){setError(e.message)}finally{setLoading(false)}}async function startScan(){if(loading)return;const previous=data?.generated_at||'';setLoading(true);setScanMessage('Scan wordt gestart...');try{const t=await fetch('/api/trigger-scan',{method:'POST'});const tb=await t.json().catch(()=>({}));if(!t.ok)throw Error(tb.error||'De scan kon niet worden gestart.');const started=Date.now();while(Date.now()-started<10*60*1000){await new Promise(r=>setTimeout(r,10000));const x=await fetch('/api/scan?ts='+Date.now(),{cache:'no-store'});if(!x.ok)continue;const body=await x.json();if(body?.generated_at&&body.generated_at!==previous){setData(body);setScanMessage('Nieuwe scan voltooid.');return}}throw Error('De scan duurt langer dan verwacht.')}catch(e){setError(e.message);setScanMessage('')}finally{setLoading(false)}}useEffect(()=>{load()},[]);const all=data?.results||[];const[classFilter,setClassFilter]=useState('alle');const alertsAll=useMemo(()=>all.filter(r=>r.signal==='ALERT').sort((a,b)=>(Number(a.dip_rank??1e9)-Number(b.dip_rank??1e9))||(Number(b.overall_score)-Number(a.overall_score))),[all]);const alerts=useMemo(()=>classFilter==='alle'?alertsAll:alertsAll.filter(r=>riskClass(r)===classFilter),[alertsAll,classFilter]);const isDip=String(data?.model_version||'').includes('dip');const breadth=data?.dip_breadth;const topN=breadth?.top_n||5;const shownAlerts=isDip&&!showAllAlerts?alerts.slice(0,topN):alerts;const hasDip=all.some(r=>r.dip!=null);const dipVal=r=>r.dip==null?9:Number(r.dip);const opps=useMemo(()=>hasDip?all.filter(r=>!r.dip_signal&&r.dip!=null).sort((a,b)=>shortfall(a)-shortfall(b)).slice(0,10):all.filter(r=>r.signal!=='ALERT'&&r.signal!=='DATA_INCOMPLETE').sort((a,b)=>Number(b.overall_score)-Number(a.overall_score)).slice(0,10),[all,hasDip]);const filtered=useMemo(()=>all.filter(r=>!query||`${r.ticker} ${r.company_name||''}`.toLowerCase().includes(query.toLowerCase())).sort((a,b)=>hasDip?((a.dip_signal?0:a.signal==='WATCH'?1:2)-(b.dip_signal?0:b.signal==='WATCH'?1:2))||(shortfall(a)-shortfall(b)):Number(b.overall_score)-Number(a.overall_score)),[all,query,hasDip]);const visible=showAll?filtered:filtered.slice(0,25);const top=alerts[0]||opps[0];const avg=all.length?all.reduce((s,r)=>s+Number(r.overall_score||0),0)/all.length:0;return <div className="appShell"><Sidebar alerts={alerts} opps={opps}/><main className="dashboard"><header className="topbar"><div><div className="eyebrow">MARKET INTELLIGENCE / LIVE SCANNER</div><h1>Market intelligence</h1><p>Technische dislocatie, fundamentals en analistenrichting in één overzicht.</p></div><div className="topActions"><div className="scanMeta"><span className="liveDot"/> LIVE DATA <b>{data?.generated_at?new Date(data.generated_at).toLocaleTimeString('nl-NL',{hour:'2-digit',minute:'2-digit'}):'—'}</b></div><Link href="/history" className="refresh secondary"><History size={15}/> Historie</Link><button className="refresh primary" onClick={startScan} disabled={loading}><RefreshCw size={15}/> {loading?'Laden...':'Nieuwe scan'}</button></div></header>{scanMessage&&<div className="scanNotice">{scanMessage}</div>}{error&&<div className="error">{error}</div>}<section className="heroGrid"><div className="heroPanel"><div><span className="sectionEyebrow">SCANNER OVERVIEW</span><h2>Vandaag in de markt</h2><p>De scanner controleert de vaste aandelenlijst en rangschikt de actuele setups.</p></div><div className="heroStats"><div><span>MARKTUNIVERSE</span><strong>{data?.universe_size??all.length}</strong><small>bedrijven</small></div>{hasDip?<div><span>IN EEN DIP</span><strong>{breadth?Math.round((breadth.pct||0)*100):0}%</strong><small>van de aandelen</small></div>:<div><span>GEM. SCORE</span><strong>{num(avg,0)}</strong><small>/100</small></div>}<div><span>{isDip?'DIP-SIGNALEN':'STERKE SETUPS'}</span><strong>{isDip?alerts.length:all.filter(r=>Number(r.overall_score)>=80).length}</strong><small>{isDip?'nu actief':'score 80+'}</small></div></div></div><div className="heroSignal"><div className="signalHeader"><span>{isDip?'EERSTE KEUS':'SCANNER CONVICTION'}</span><CircleDot size={15}/></div><div className="convictionBody">{isDip&&alerts.length?<div className="dipRank"><small>NR</small><strong>#1</strong></div>:<ScoreRing value={top?.overall_score||0}/>}<div><strong>{top?.ticker||'—'}</strong><span>{top?.company_name||'Geen topkandidaat'}</span><small>{isDip&&alerts.length?`${CLASS_LABEL[riskClass(top)]} · bovenaan de lijst`:alerts.length?'Hoogste actieve signaal':'Hoogste actuele setup'}</small></div></div></div></section><section className="kpiGrid"><div className={`kpiCard ${alerts.length?'hot':''}`}><div className="kpiIcon"><Bell size={17}/></div><div><span>SIGNALEN</span><strong>{alerts.length}</strong><small>{isDip?'dip-regels':'score 80+'}</small></div><ChevronRight size={15}/></div><div className="kpiCard"><div className="kpiIcon blue"><TrendingUp size={17}/></div><div><span>{hasDip?'DICHTBIJ EEN DIP':'TOP OPPORTUNITIES'}</span><strong>{opps.length}</strong><small>{hasDip?'nog geen signaal':'hoogste 10 zonder alert'}</small></div><ChevronRight size={15}/></div><div className="kpiCard"><div className="kpiIcon"><Database size={17}/></div><div><span>UNIVERSE</span><strong>{data?.universe_size??all.length}</strong><small>vaste lijst</small></div><ChevronRight size={15}/></div><div className="kpiCard"><div className="kpiIcon purple"><Activity size={17}/></div><div><span>LAATSTE SCAN</span><strong>{data?.generated_at?new Date(data.generated_at).toLocaleTimeString('nl-NL',{hour:'2-digit',minute:'2-digit'}):'—'}</strong><small>{data?.generated_at?dateOnly(data.generated_at):''}</small></div><ChevronRight size={15}/></div></section><section className="sectionBlock"><div className="sectionHeader"><div><div className="sectionEyebrow">01 · ACTION CENTER</div><h2>Actieve signalen</h2><p>{isDip?'De sterkste dip-signalen van dit moment, maximaal 5.':'Een score van 80/100 of hoger activeert een alert. Klik op een alert voor de volledige analyse.'}</p></div><div className="statusPill live"><Bell size={13}/>{alerts.length} actief</div></div>{alerts.length?<><div className="alertCards">{shownAlerts.map((r,ix)=>r.dip_signal?<DipCard key={r.ticker} r={r} onOpen={setSelected} n={ix+1}/>:<button className="alertCard cardButton" key={r.ticker} onClick={()=>setSelected(r)}><div className="alertGlow"/><div className="cardTop"><div><span className="tickerBig">{r.ticker}</span><span className="companyName">{r.company_name}</span></div><ScoreRing value={r.overall_score}/></div><div className="priceLine">${num(r.price,2)} <span className="signal alert">SIGNAAL</span></div><div className="scoreBars"><div><span>TECHNICAL · 55%</span><i><b style={{width:`${Math.min(100,Number(r.technical_score_v2)||0)}%`}}/></i><strong>{score(r.technical_score_v2)}</strong></div><div><span>FUNDAMENTALS · 30%</span><i><b style={{width:`${Math.min(100,Number(r.fundamentals_score_v2)||0)}%`}}/></i><strong>{score(r.fundamentals_score_v2)}</strong></div><div><span>CONFIDENCE</span><i><b style={{width:`${Math.min(100,Number(r.confidence)||0)}%`}}/></i><strong>{score(r.confidence)}</strong></div></div><div className="why"><span>KEY DRIVERS</span><div>{reasons(r).map((x,i)=><span key={i}>{x}</span>)}</div></div></button>)}</div>{isDip&&alerts.length>topN&&<div className="tableFooter"><button className="refresh secondary" onClick={()=>setShowAllAlerts(v=>!v)}>{showAllAlerts?`Toon alleen top ${topN}`:`Toon alle ${alerts.length} alerts`}<ChevronRight size={14} style={{transform:showAllAlerts?'rotate(90deg)':'rotate(0deg)'}}/></button><span>{showAllAlerts?`${alerts.length} alerts zichtbaar`:`${topN} van ${alerts.length} alerts zichtbaar`}</span></div>}</>:<div className="emptyState alertEmpty"><strong>Geen actieve signalen</strong><span>{isDip?'Geen aandeel zit nu diep genoeg in een dip.':'De scanner wacht op een score van minimaal 80/100.'}</span></div>}</section><section className="sectionBlock"><div className="sectionHeader"><div><div className="sectionEyebrow">02 · RESEARCH</div><h2>{hasDip?'Dichtbij een dip':'Top opportunities'}</h2><p>{hasDip?'De 10 aandelen die het dichtst bij een dip-signaal zitten, met wat er nog aan ontbreekt.':'De 10 hoogste scores uit de vaste universe die nog geen signaal hebben.'}</p></div><div className="statusPill"><TrendingUp size={13}/>{hasDip?'10 dichtstbij':'10 hoogste'}</div></div><div className="opportunityGrid">{opps.map((r,i)=><button className="opportunityButton" key={r.ticker} onClick={()=>setSelected(r)}><div className="opportunityCard"><div className="oppRank">{String(i+1).padStart(2,'0')}</div><div className="oppIdentity"><b>{r.ticker}</b><span>{r.company_name}</span></div>{hasDip?<><span className="oppTag watch">DICHTBIJ</span><div className="oppScore"><small style={{maxWidth:170,textAlign:'right',lineHeight:1.5}}>{whyNot(r)}</small></div><div className="oppMeta"><span>ONDER 52W <b>{pct(r.d52,0)}</b></span><span>ONDER 30D <b>{pct(r.dd30,0)}</b></span><span>RSI <b>{num(r.rsi_14,0)}</b></span></div></>:<><span className={`oppTag ${Number(r.overall_score)>=80?'quality':r.signal==='WATCH'?'watch':'rebound'}`}>{Number(r.overall_score)>=80?'QUALITY':r.signal==='WATCH'?'WATCH':'REBOUND'}</span><div className="oppScore"><ScoreRing value={r.overall_score} size="medium"/><strong>{score(r.overall_score)}</strong><small>/100</small></div><div className="oppMeta"><span>TECHNICAL <b>{score(r.technical_score_v2)}</b></span><span>FUNDAMENTALS <b>{score(r.fundamentals_score_v2)}</b></span><span>CONFIDENCE <b>{score(r.confidence)}</b></span></div></>}</div></button>)}</div></section><section className="sectionBlock"><div className="sectionHeader"><div><div className="sectionEyebrow">03 · MARKET UNIVERSE</div><h2>Alle gescoorde bedrijven</h2><p>Eerst de signalen, dan WATCH, daarna de rest. Standaard maximaal 25 bedrijven.</p></div><div className="searchBox"><Search size={14}/><input value={query} onChange={e=>setQuery(e.target.value)} placeholder="Zoek ticker of bedrijf"/></div></div><div className="universeTable"><div className="tableHead tableHeadScores"><span className="cT">TICKER</span><span className="cS">SIGNAL</span>{hasDip?<><span className="cD">ONDER 52W</span><span className="cD30">ONDER 30D</span><span className="cR">RSI</span><span className="cW">MIST NOG</span></>:<><span>SCORE</span><span>TECHNICAL</span><span>FUNDAMENTALS</span><span>CONFIDENCE</span></>}<span className="cP">KOERS</span></div>{visible.map(r=><div className="tableRow tableRowStatic tableRowScores" key={r.ticker}><span className="cT"><b>{r.ticker}</b><small>{r.company_name}</small></span>{hasDip?<><span className="cS"><i className={`signal ${r.dip_signal?'alert':r.signal==='WATCH'?'watch':'no_signal'}`}>{r.dip_signal?'SIGNAAL':r.signal==='WATCH'?'WATCH':'—'}</i></span><span className="cD">{r.d52==null?'—':pct(r.d52,0)}</span><span className="cD30">{r.dd30==null?'—':pct(r.dd30,0)}</span><span className="cR">{num(r.rsi_14,0)}</span><span className="cW">{r.signal==='ALERT'?'':whyNot(r)}</span></>:<><span><i className={`signal ${String(r.signal).toLowerCase()}`}>{r.signal==='ALERT'?'SIGNAAL':r.signal==='WATCH'?'WATCH':'NO SIGNAL'}</i></span><span><strong>{score(r.overall_score)}</strong></span><span>{score(r.technical_score_v2)}</span><span>{score(r.fundamentals_score_v2)}</span><span>{score(r.confidence)}</span></>}<span className="cP">${num(r.price,2)}</span></div>)}</div>{filtered.length>25&&<div className="tableFooter"><button className="refresh secondary" onClick={()=>setShowAll(v=>!v)}>{showAll?'Toon alleen top 25':'Toon volledige lijst'}<ChevronRight size={14} style={{transform:showAll?'rotate(90deg)':'rotate(0deg)'}}/></button><span>{showAll?`${filtered.length} bedrijven zichtbaar`:`25 van ${filtered.length} bedrijven zichtbaar`}</span></div>}</section></main>{selected&&<Detail r={selected} onClose={()=>setSelected(null)}/>}<style jsx>{`.tableHeadScores,.tableRowScores{grid-template-columns:minmax(110px,1.3fr) 72px 62px 62px 44px minmax(110px,1.6fr) 84px!important;min-width:0!important;column-gap:12px!important}.tableRowScores>span:not(:first-child){text-align:center}.tableHeadScores>span:not(:first-child){text-align:center}.tableRowScores>.cW{font-size:11px;color:#8da0b2;text-align:left!important;line-height:1.35}.tableHeadScores>.cW{text-align:left!important}.tableRowScores>.cT,.tableHeadScores>.cT{min-width:0}.tableRowScores>.cT small{white-space:normal;overflow-wrap:anywhere}.tableRowScores>.cP{text-align:right!important}.tableHeadScores>.cP{text-align:right!important}@media(max-width:980px){.cD30,.cR{display:none!important}.tableHeadScores,.tableRowScores{grid-template-columns:minmax(100px,1.3fr) 72px 62px minmax(100px,1.6fr) 78px!important}}@media(max-width:640px){.tableHeadScores{display:none!important}.tableRowScores{grid-template-columns:minmax(0,1fr) auto auto!important;grid-template-areas:'t s p' 'd w w';row-gap:6px!important;padding:10px 14px!important}.tableRowScores>.cT{grid-area:t}.tableRowScores>.cS{grid-area:s}.tableRowScores>.cP{grid-area:p}.tableRowScores>.cD{grid-area:d;text-align:left!important;font-size:11px;color:#8da0b2}.tableRowScores>.cD::before{content:'52W ';color:#5f7387}.tableRowScores>.cW{grid-area:w}}.oppMeta{grid-template-columns:repeat(3,minmax(0,1fr))}.oppMeta span{white-space:nowrap}.scoreBars>div{grid-template-columns:110px 1fr 27px}.scoreBars span{white-space:nowrap}`}</style></div>}
+const PLAN = PLANS['6.2'];
+const PORTFOLIO_KEY = 'marketintel_portfolio';
+
+// ---------- Opmaak ----------
+const isNum = (v) => v != null && Number.isFinite(Number(v));
+const nl = new Intl.NumberFormat('nl-NL', { maximumFractionDigits: 1 });
+function pct(v, digits = 0) {
+  if (!isNum(v)) return '—';
+  return `${(Number(v) * 100).toLocaleString('nl-NL', { maximumFractionDigits: digits, minimumFractionDigits: digits })}%`;
+}
+function signed(v, digits = 1) {
+  if (!isNum(v)) return '—';
+  const n = Number(v) * 100;
+  const s = Math.abs(n).toLocaleString('nl-NL', { maximumFractionDigits: digits, minimumFractionDigits: digits });
+  return `${n < 0 ? '−' : '+'}${s}%`;
+}
+function money(v) {
+  if (!isNum(v) || Number(v) <= 0) return '—';
+  const n = Number(v);
+  return `$${n.toLocaleString('nl-NL', { maximumFractionDigits: n < 100 ? 2 : 0, minimumFractionDigits: n < 100 ? 2 : 0 })}`;
+}
+function timeOf(iso) {
+  if (!iso) return '—';
+  const d = new Date(iso);
+  return Number.isNaN(d.getTime()) ? '—' : d.toLocaleTimeString('nl-NL', { hour: '2-digit', minute: '2-digit' });
+}
+function dateOf(iso) {
+  if (!iso) return '—';
+  const d = new Date(String(iso).slice(0, 10) + 'T00:00:00');
+  return Number.isNaN(d.getTime()) ? '—' : d.toLocaleDateString('nl-NL', { day: 'numeric', month: 'long' });
+}
+
+// ---------- Inhoud per signaal ----------
+// Waarschuwingen zijn feitelijk en geen filter: het signaal blijft staan.
+function warningsOf(r) {
+  const c = r.dip_context || {};
+  const out = [];
+  const d = c.earnings_in_days;
+  if (isNum(d) && d >= -1 && d <= 7) {
+    out.push({
+      short: d <= 0 ? 'Cijfers vandaag' : d === 1 ? 'Cijfers morgen' : `Cijfers over ${d} dagen`,
+      title: 'Kwartaalcijfers komen eraan',
+      text: 'Rond cijfers bewegen koersen vaak extra sterk, omhoog én omlaag.',
+    });
+  }
+  if (c.stock_specific) {
+    out.push({
+      short: 'Zwakker dan de markt',
+      title: 'Zwakker dan de markt',
+      text: `Het aandeel deed de afgelopen 30 dagen ${pct(Math.abs(c.rel30), 0)} slechter dan de S&P 500, terwijl de markt zelf niet in een dip zit. In de historische test deden zulke dips het wat zwakker.`,
+    });
+  }
+  if (c.post_earnings) {
+    out.push({
+      short: `Cijfers ${c.days_since_earnings} dagen geleden`,
+      title: 'Net na kwartaalcijfers',
+      text: 'De cijfers kwamen maximaal 10 dagen geleden. In de historische test deden dips vlak na cijfers het wat zwakker.',
+    });
+  }
+  if (r.dip_speculative) {
+    out.push({
+      short: 'Negatieve kasstroom',
+      title: 'Negatieve vrije kasstroom',
+      text: 'Het bedrijf geeft meer uit dan het binnenhaalt. In de historische test gaf dat gemiddeld diepere dalingen.',
+    });
+  }
+  return out;
+}
+
+function nearMissReason(r) {
+  if (r.dip_qualifies) {
+    if (r.dip_excluded === 'groei') return 'Voldoet aan de dip-regels, maar omzetgroei is onder 10%';
+    if (r.dip_excluded === 'sector') return 'Voldoet aan de dip-regels, maar valt in een uitgesloten sector';
+    return 'Voldoet aan de regels, maar staat buiten de top 5';
+  }
+  const parts = [];
+  if (isNum(r.d52) && r.d52 > -0.15) parts.push(`52 weken: ${signed(r.d52, 0)} (nodig −15%)`);
+  if (isNum(r.dd30) && r.dd30 > -0.08) parts.push(`30 dagen: ${signed(r.dd30, 0)} (nodig −8%)`);
+  if (isNum(r.dip) && r.dip > 0.3) parts.push('dip nog niet diep genoeg');
+  return parts.join(' · ') || '—';
+}
+
+function sparkOf(r) {
+  if (Array.isArray(r.spark)) return r.spark;
+  const h = Array.isArray(r.history_6m) ? r.history_6m : [];
+  return h.filter((_, i) => i % 6 === 5).map((x) => x.close);
+}
+
+// ---------- Kleine onderdelen ----------
+function Spark({ data }) {
+  if (!Array.isArray(data) || data.length < 3) return null;
+  const w = 88, h = 28, min = Math.min(...data), max = Math.max(...data), span = max - min || 1;
+  const pts = data.map((v, i) => `${((i / (data.length - 1)) * w).toFixed(1)},${(h - 3 - ((v - min) / span) * (h - 6)).toFixed(1)}`);
+  const last = pts[pts.length - 1].split(',');
+  return (
+    <svg className="ds-spark" width={w} height={h} viewBox={`0 0 ${w} ${h}`} aria-hidden="true">
+      <polyline points={pts.join(' ')} fill="none" stroke="#8a94a3" strokeWidth="1.5" strokeLinejoin="round" strokeLinecap="round" />
+      <circle cx={last[0]} cy={last[1]} r="2.4" fill="#111827" />
+    </svg>
+  );
+}
+
+function AddToPortfolio({ r }) {
+  const [open, setOpen] = useState(false);
+  const [qty, setQty] = useState('1');
+  const [price, setPrice] = useState(isNum(r.price) ? Number(r.price).toFixed(2) : '');
+  function save() {
+    const q = Number(qty), p = Number(price);
+    if (!(q > 0 && p > 0)) return;
+    let rows = [];
+    try { rows = JSON.parse(localStorage.getItem(PORTFOLIO_KEY) || '[]'); } catch { rows = []; }
+    const now = new Date().toISOString();
+    const existing = rows.find((x) => x.ticker === r.ticker);
+    if (existing) {
+      if (!Array.isArray(existing.events)) existing.events = [];
+      existing.events.push({ type: 'add', qty: q, price: p, date: now });
+      existing.updatedAt = now;
+    } else {
+      rows.push({ ticker: r.ticker, company: r.company_name || r.ticker, plan: '6.2', events: [{ type: 'buy', qty: q, price: p, date: now }], addedAt: now, updatedAt: now });
+    }
+    try { localStorage.setItem(PORTFOLIO_KEY, JSON.stringify(rows)); } catch { return; }
+    window.dispatchEvent(new Event('marketintel-portfolio-change'));
+    window.location.href = '/portfolio';
+  }
+  if (!open) return <button className="ds-btn primary" onClick={() => setOpen(true)}>Toevoegen aan portfolio</button>;
+  return (
+    <div className="ds-form">
+      <label>Aantal<input type="number" min="0" step="any" value={qty} onChange={(e) => setQty(e.target.value)} /></label>
+      <label>Aankoopprijs ($)<input type="number" min="0" step="0.01" value={price} onChange={(e) => setPrice(e.target.value)} /></label>
+      <div className="full">
+        <button className="ds-btn primary" onClick={save}>Opslaan</button>
+        <button className="ds-btn" onClick={() => setOpen(false)}>Annuleren</button>
+      </div>
+    </div>
+  );
+}
+
+function Detail({ r, onClose }) {
+  const c = r.dip_context || {};
+  const warns = warningsOf(r);
+  const p = Number(r.price);
+  return (
+    <>
+      <div className="ds-scrim" onClick={onClose} />
+      <aside className="ds-drawer" role="dialog" aria-label={`${r.ticker} details`}>
+        <div className="ds-drawerHead">
+          <div>
+            <h2>{r.ticker} <span className="ds-company" style={{ fontWeight: 400, fontSize: 15 }}>{r.company_name}</span></h2>
+            <div className="ds-drawerPrice"><b className="num">{money(p)}</b> · {r.sector || c.sector || 'Sector onbekend'}</div>
+          </div>
+          <button className="ds-x" onClick={onClose} aria-label="Sluiten"><X size={18} /></button>
+        </div>
+
+        <div className="ds-drawerBody">
+          {warns.length > 0 && (
+            <div className="ds-block">
+              <h3>Let op</h3>
+              {warns.map((w) => <div className="ds-warn" key={w.title}><b>{w.title}</b>{w.text}</div>)}
+            </div>
+          )}
+
+          <div className="ds-block">
+            <h3>Waarom dit signaal</h3>
+            <ul className="ds-list num">
+              <li><span>Onder de 52-weekshoogte</span><b>{pct(Math.abs(r.d52), 0)}</b></li>
+              <li><span>Onder de hoogste koers van 30 dagen</span><b>{pct(Math.abs(r.dd30), 0)}</b></li>
+              <li><span>RSI (onder 30 = sterk uitverkocht)</span><b>{isNum(c.rsi) ? nl.format(c.rsi) : '—'}</b></li>
+              <li><span>Omzetgroei (minimaal 10%)</span><b>{pct(c.revenue_growth, 0)}</b></li>
+            </ul>
+          </div>
+
+          <div className="ds-block">
+            <h3>Positieplan van het model</h3>
+            <table className="ds-plan num"><tbody>
+              {PLAN.tiers.map((t) => (
+                <tr key={t}><td>Winst nemen bij {signed(t, 0)}</td><td>{money(p * (1 + t))} · {PLAN.sell * 100}% verkopen</td></tr>
+              ))}
+              <tr><td>Bijkopen onder (max. 2 keer)</td><td>{money(p * (1 - ADD_DROP))}</td></tr>
+              <tr><td>Terugkopen</td><td>{REBUY_DROP * 100}% onder je laatste verkoop</td></tr>
+            </tbody></table>
+            <p className="ds-small">Prijzen gelden als je nu instapt. Er is geen stop: het model houdt altijd een restpositie.</p>
+          </div>
+
+          <div className="ds-block">
+            <details className="ds-details">
+              <summary>Bedrijfsgegevens</summary>
+              <ul className="ds-list num">
+                <li><span>Brutomarge</span><b>{pct(c.gross_margin, 0)}</b></li>
+                <li><span>Vrije kasstroom (marge)</span><b>{pct(c.fcf_margin, 0)}</b></li>
+                <li><span>Analisten</span><b>{c.grades_consensus || '—'}</b></li>
+                <li><span>Gemiddeld koersdoel analisten</span><b>{isNum(c.pt_upside) ? signed(c.pt_upside, 0) : '—'}</b></li>
+                <li><span>Volgende kwartaalcijfers</span><b>{c.next_earnings ? dateOf(c.next_earnings) : '—'}</b></li>
+              </ul>
+              <p className="ds-small">Analistendata is context en geen onderdeel van de regels.</p>
+            </details>
+          </div>
+        </div>
+
+        <div className="ds-drawerFoot">
+          <AddToPortfolio r={r} />
+          <p className="ds-small" style={{ marginBottom: 0 }}>Gebaseerd op een historische simulatie. Geen financieel advies en geen garantie.</p>
+        </div>
+      </aside>
+    </>
+  );
+}
+
+// ---------- Pagina ----------
+export default function Home() {
+  const [data, setData] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
+  const [selected, setSelected] = useState(null);
+  const [query, setQuery] = useState('');
+  const [showAll, setShowAll] = useState(false);
+  const [scanMsg, setScanMsg] = useState('');
+
+  async function load() {
+    setLoading(true); setError('');
+    try {
+      const res = await fetch('/api/scan?ts=' + Date.now(), { cache: 'no-store' });
+      const body = await res.json();
+      if (!res.ok) throw Error(body.error || 'De laatste scan is niet beschikbaar.');
+      setData(body);
+    } catch (e) { setError(e.message); } finally { setLoading(false); }
+  }
+  async function startScan() {
+    if (loading) return;
+    const previous = data?.generated_at || '';
+    setLoading(true); setScanMsg('Scan wordt gestart…');
+    try {
+      const t = await fetch('/api/trigger-scan', { method: 'POST' });
+      const tb = await t.json().catch(() => ({}));
+      if (!t.ok) throw Error(tb.error || 'De scan kon niet worden gestart.');
+      const started = Date.now();
+      while (Date.now() - started < 10 * 60 * 1000) {
+        await new Promise((r) => setTimeout(r, 10000));
+        const res = await fetch('/api/scan?ts=' + Date.now(), { cache: 'no-store' });
+        if (!res.ok) continue;
+        const body = await res.json();
+        if (body?.generated_at && body.generated_at !== previous) { setData(body); setScanMsg(''); return; }
+      }
+      throw Error('De scan duurt langer dan verwacht.');
+    } catch (e) { setError(e.message); setScanMsg(''); } finally { setLoading(false); }
+  }
+  useEffect(() => { load(); }, []);
+  useEffect(() => {
+    const onKey = (e) => { if (e.key === 'Escape') setSelected(null); };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, []);
+
+  const all = data?.results || [];
+  const breadth = data?.dip_breadth;
+  const signals = useMemo(
+    () => all.filter((r) => r.signal === 'ALERT').sort((a, b) => Number(a.dip_rank ?? 99) - Number(b.dip_rank ?? 99)),
+    [all],
+  );
+  const nearMiss = useMemo(
+    () => all.filter((r) => r.signal === 'WATCH').sort((a, b) => Number(a.dip_short ?? 9) - Number(b.dip_short ?? 9)).slice(0, 8),
+    [all],
+  );
+  const filtered = useMemo(() => {
+    const q = query.trim().toLowerCase();
+    return all
+      .filter((r) => !q || `${r.ticker} ${r.company_name || ''}`.toLowerCase().includes(q))
+      .sort((a, b) => String(a.ticker).localeCompare(String(b.ticker)));
+  }, [all, query]);
+  const visible = showAll || query ? filtered : filtered.slice(0, 12);
+  const statusOf = (r) => (r.signal === 'ALERT' ? 'Signaal' : r.signal === 'WATCH' ? 'Bijna' : '');
+
+  return (
+    <div className="ds">
+      <AppNav active="/" modelVersion="6.2" />
+      <main className="ds-main">
+        <header className="ds-head">
+          <div>
+            <h1>Signalen</h1>
+            <p className="ds-sub">
+              Aandelen die diep gedaald zijn en voldoen aan de regels van het model. Laatste scan om {timeOf(data?.generated_at)}, tijdens beurstijd elk kwartier.
+            </p>
+          </div>
+          <div className="ds-actions">
+            <button className="ds-btn primary" onClick={startScan} disabled={loading}>
+              <RefreshCw size={15} /> {scanMsg || (loading ? 'Laden…' : 'Nu scannen')}
+            </button>
+          </div>
+        </header>
+
+        {error && <div className="ds-error">{error}</div>}
+
+        {loading && !data ? (
+          <><div className="ds-skel" /><div className="ds-skel" /><div className="ds-skel" /></>
+        ) : (
+          <>
+            <div className="ds-summary">
+              <div className="ds-stat"><span>Signalen nu</span><strong className="num">{signals.length}</strong></div>
+              <div className="ds-stat"><span>Voldoen aan de dip-regels</span><strong className="num">{breadth?.count ?? '—'}</strong></div>
+              <div className="ds-stat"><span>Gescande aandelen</span><strong className="num">{breadth?.evaluated ?? data?.universe_size ?? '—'}</strong></div>
+            </div>
+            {breadth?.market_wide && (
+              <p className="ds-note">
+                Veel aandelen zitten tegelijk in een dip ({pct(breadth.pct, 0)} van de lijst). Signalen komen dan vaak in clusters en zijn vaak uit dezelfde sector. Het model toont maximaal {breadth.top_n || 5} signalen.
+              </p>
+            )}
+
+            <section className="ds-section">
+              <div className="ds-sectionHead">
+                <h2>Actieve signalen</h2>
+                <p>Gerangschikt van diepste dip naar minder diep</p>
+              </div>
+              <div className="ds-card">
+                {signals.length === 0 ? (
+                  <div className="ds-empty">Er is nu geen signaal. Zodra een aandeel aan de regels voldoet, verschijnt het hier.</div>
+                ) : (
+                  <table className="ds-table">
+                    <thead>
+                      <tr>
+                        <th>Aandeel</th>
+                        <th className="r">Koers</th>
+                        <th className="r">Onder 52-weekshoogte</th>
+                        <th className="ds-hide-sm">6 maanden</th>
+                        <th>Let op</th>
+                        <th />
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {signals.map((r) => {
+                        const w = warningsOf(r);
+                        return (
+                          <tr key={r.ticker} className="ds-row" onClick={() => setSelected(r)}>
+                            <td><div className="ds-ticker">{r.ticker}</div><div className="ds-company">{r.company_name}</div></td>
+                            <td className="r num">{money(r.price)}</td>
+                            <td className="r num ds-neg">{signed(r.d52, 0)}</td>
+                            <td className="ds-hide-sm"><Spark data={sparkOf(r)} /></td>
+                            <td>
+                              {w.length === 0 ? <span className="ds-mut">—</span> : (
+                                <div className="ds-chips">{w.map((x) => <span className="ds-chip" key={x.short}>{x.short}</span>)}</div>
+                              )}
+                            </td>
+                            <td className="r"><ChevronRight size={16} color="#8a94a3" /></td>
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                  </table>
+                )}
+              </div>
+            </section>
+
+            {nearMiss.length > 0 && (
+              <section className="ds-section">
+                <div className="ds-sectionHead">
+                  <h2>Bijna een signaal</h2>
+                  <p>Deze aandelen voldoen nog niet aan alle regels</p>
+                </div>
+                <div className="ds-card">
+                  <table className="ds-table">
+                    <thead><tr><th>Aandeel</th><th className="r">Koers</th><th>Wat ontbreekt</th></tr></thead>
+                    <tbody>
+                      {nearMiss.map((r) => (
+                        <tr key={r.ticker}>
+                          <td><span className="ds-ticker">{r.ticker}</span> <span className="ds-company">{r.company_name}</span></td>
+                          <td className="r num">{money(r.price)}</td>
+                          <td className="ds-mut">{nearMissReason(r)}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </section>
+            )}
+
+            <section className="ds-section">
+              <div className="ds-sectionHead">
+                <h2>Alle aandelen</h2>
+                <input className="ds-search" placeholder="Zoek op naam of ticker" value={query} onChange={(e) => setQuery(e.target.value)} />
+              </div>
+              <div className="ds-card">
+                <table className="ds-table">
+                  <thead><tr><th>Aandeel</th><th className="r">Koers</th><th className="r">Vandaag</th><th>Status</th></tr></thead>
+                  <tbody>
+                    {visible.map((r) => (
+                      <tr key={r.ticker}>
+                        <td><span className="ds-ticker">{r.ticker}</span> <span className="ds-company">{r.company_name}</span></td>
+                        <td className="r num">{money(r.price)}</td>
+                        <td className={`r num ${Number(r.return_1d) < 0 ? 'ds-neg' : 'ds-pos'}`}>{signed(r.return_1d, 1)}</td>
+                        <td>{statusOf(r) ? <span className={`ds-chip${r.signal === 'ALERT' ? '' : ' plain'}`}>{statusOf(r)}</span> : <span className="ds-mut">—</span>}</td>
+                      </tr>
+                    ))}
+                    {visible.length === 0 && <tr><td colSpan={4} className="ds-empty">Geen aandelen gevonden.</td></tr>}
+                  </tbody>
+                </table>
+                {!showAll && !query && filtered.length > 12 && (
+                  <button className="ds-more" onClick={() => setShowAll(true)}>Toon alle {filtered.length} aandelen</button>
+                )}
+              </div>
+            </section>
+          </>
+        )}
+      </main>
+      {selected && <Detail r={selected} onClose={() => setSelected(null)} />}
+    </div>
+  );
+}
