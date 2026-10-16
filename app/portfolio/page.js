@@ -16,7 +16,7 @@ import {
   X,
 } from 'lucide-react';
 import './portfolio.css';
-import { evaluate, normalize, withEvent, TIERS, SELL_FRACTION, ADD_DROP, REBUY_DROP, MAX_UNITS } from './positionEngine';
+import { evaluate, normalize, withEvent, planOf, PLANS, ADD_DROP, REBUY_DROP, MAX_UNITS } from './positionEngine';
 
 const KEY = 'marketintel_portfolio';
 
@@ -146,7 +146,7 @@ function PositionCard({ position, r, onChange, onRemove }) {
         <div className="actionRow">
           {primaryType && <button className="refresh primary" onClick={() => openForm(primaryType, ev.qty)}>Gedaan: {EVENT_LABEL[primaryType].toLowerCase()}</button>}
           {ev.signal !== 'CLOSED' && <button className="refresh secondary" onClick={() => openForm('add', null)}>Bijgekocht</button>}
-          {ev.signal !== 'CLOSED' && <button className="refresh secondary" onClick={() => openForm('tp', st.shares * SELL_FRACTION)}>Winst genomen</button>}
+          {ev.signal !== 'CLOSED' && <button className="refresh secondary" onClick={() => openForm('tp', st.shares * planOf(position).sell)}>Winst genomen</button>}
           {ev.signal !== 'CLOSED' && <button className="refresh secondary" onClick={() => openForm('rebuy', null)}>Teruggekocht</button>}
           {ev.signal !== 'CLOSED' && <button className="refresh secondary" onClick={() => openForm('sell', st.shares)}>Alles verkocht</button>}
         </div>
@@ -343,14 +343,14 @@ export default function PortfolioPage() {
             <div>
               <div className="sectionEyebrow">02 · REGELS</div>
               <h2>Hoe het beheer werkt</h2>
-              <p>Deze regels komen uit een historische test (2020-2026, huidige aandelenlijst, 6 maanden vooruit): ongeveer 79% van de posities stond in de plus, tegen 66% bij kopen en vasthouden. Reken in een gewoon jaar eerder op 70-75%. Geen garantie.</p>
+              <p>Deze regels komen uit een historische test op de S&P 500 en Nasdaq-100 (2020-2026, 6 maanden vooruit). Het beheer (winst nemen, bijkopen, terugkopen) deed het in die test gemiddeld ongeveer 4 procentpunt beter dan alleen vasthouden. Een historische simulatie, geen garantie. Posities die je vóór 6.2 opende houden hun oorspronkelijke niveaus (+10/25/50/100%, 20% per trap).</p>
             </div>
             <Target size={18} />
           </div>
           <div className="signalRules four">
             <div>
               <span className="positionAction tp">WINST NEMEN</span>
-              <p>Bij {TIERS.map((t) => `+${t * 100}%`).join(', ')} boven je gemiddelde koers verkoop je telkens {SELL_FRACTION * 100}% van je aandelen. Je houdt altijd een restpositie. Bij sterk momentum (meer dan 12% boven het 20-daags gemiddelde) mag je uitstellen.</p>
+              <p>Bij {PLANS['6.2'].tiers.map((t) => `+${Math.round(t * 100)}%`).join(', ')} boven je gemiddelde koers verkoop je telkens {PLANS['6.2'].sell * 100}% van je aandelen. Je houdt altijd een restpositie. Bij sterk momentum (meer dan 12% boven het 20-daags gemiddelde) mag je uitstellen.</p>
             </div>
             <div>
               <span className="positionAction add">BIJKOPEN</span>

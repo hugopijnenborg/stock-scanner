@@ -1,7 +1,14 @@
 // Positiebeheer volgens het geteste model (zie validatie): winst nemen in trappen, bijkopen, terugkopen,
 // altijd een restpositie houden. Alle regels komen uit de historische simulatie (2020-2026).
-export const TIERS = [0.10, 0.25, 0.50, 1.00];   // winstniveaus boven de gemiddelde koers
-export const SELL_FRACTION = 0.20;                // elke trap verkoopt 20% van de aandelen
+// Plannen per modelversie. Bestaande posities houden hun plan (zonder plan = 6.1), nieuwe posities krijgen 6.2.
+export const PLANS = {
+  '6.1': { tiers: [0.10, 0.25, 0.50, 1.00], sell: 0.20 },
+  '6.2': { tiers: [0.15, 0.30, 0.60, 1.20], sell: 0.10 },
+};
+export const CURRENT_PLAN = '6.2';
+export const planOf = (position) => PLANS[position?.plan] || PLANS['6.1'];
+export const TIERS = PLANS['6.2'].tiers;          // standaard (nieuwe posities)
+export const SELL_FRACTION = PLANS['6.2'].sell;
 export const ADD_DROP = 0.12;                     // bijkopen: koers >= 12% onder gemiddelde koers
 export const REBUY_DROP = 0.12;                   // terugkopen: koers >= 12% onder laatste verkoopprijs
 export const MAX_UNITS = 3;                       // eerste aankoop + maximaal 2 keer bijkopen
@@ -25,6 +32,7 @@ export function normalize(position) {
 
 export function deriveState(position) {
   const p = normalize(position);
+  const plan = planOf(position);
   let shares = 0, cost = 0, ext = 0, cash = 0, pool = 0, lastTP = null, tierIdx = 0, units = 0, lastBuy = null, ntp = 0, nadd = 0, nrebuy = 0, unitCost = null;
   for (const e of [...p.events].sort((a, b) => String(a.date).localeCompare(String(b.date)))) {
     const q = num(e.qty), pr = num(e.price);
@@ -40,7 +48,7 @@ export function deriveState(position) {
       const sold = Math.min(q, shares);
       if (shares > 0) cost -= (cost / shares) * sold;
       shares -= sold; cash += sold * pr;
-      if (t === 'tp') { pool += sold * pr; lastTP = pr; tierIdx = Math.min(TIERS.length, tierIdx + 1); ntp += 1; }
+      if (t === 'tp') { pool += sold * pr; lastTP = pr; tierIdx = Math.min(plan.tiers.length, tierIdx + 1); ntp += 1; }
     }
   }
   if (shares < 1e-9) { shares = 0; cost = 0; }
@@ -51,6 +59,8 @@ export function deriveState(position) {
 // market = rij uit de scan (price, dip, distance_sma20, next_earnings_date, analist-velden)
 export function evaluate(position, market, now = Date.now()) {
   const st = deriveState(position);
+  const plan = planOf(position);
+  const TIERS = plan.tiers, SELL_FRACTION = plan.sell;
   const price = num(market?.price);
   const out = { state: st, price, signal: 'HOLD', title: 'Positie aanhouden', reason: '', qty: null, amount: null, levels: {}, notes: [], pnl: null };
   if (st.shares <= 0) { out.signal = 'CLOSED'; out.title = 'Positie gesloten'; out.reason = 'Er zijn geen aandelen meer over.'; return out; }
