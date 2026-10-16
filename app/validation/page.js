@@ -9,11 +9,6 @@ const GREEN='#35e5a0', AMBER='#f2b84b', RED='#ff7a7a', MUTED='#8da0b2', DIM='#61
 const card={padding:'18px 20px',border:'1px solid #1d2b38',borderRadius:12,background:'#0c141c'};
 const num={fontFamily:"'Space Grotesk',sans-serif",fontWeight:700};
 
-const COMPARE=[
-  {name:'Kopen en vasthouden',win:58,mean:'+8,4%',main:false},
-  {name:'Vorig beheer (6.0/6.1): 20% verkopen op +10/25/50/100%',win:73,mean:'+12,9%',main:false},
-  {name:'Model 6.2: 10% verkopen op +15/30/60/120%',win:70,mean:'+13,7%',main:true},
-];
 const YEARS=[['2020',93],['2021',52],['2022',65],['2023',76],['2024',80],['2025',71],['2026',74]];
 const DISCLAIMERS=[
   ['Dit is een simulatie','Het zijn historische berekeningen, geen echte trades. Echte resultaten staan vanaf 16-10-2026 op Alert history en Performance en worden daar per maand getoond.'],
@@ -35,7 +30,7 @@ export default function ValidationPage(){
   return <div className="appShell"><Sidebar/><main className="dashboard">
     <header className="topbar"><div><div className="eyebrow">MODEL / VALIDATIE</div><h1>Model validation</h1><p>Zo is het model getest op historische koersdata.</p></div><div className="topActions"><Link href="/" className="refresh secondary"><LayoutDashboard size={15}/> Dashboard</Link></div></header>
 
-    <section className="heroGrid"><div className="heroPanel"><div><span className="sectionEyebrow">HISTORISCHE SIMULATIE · 2020-2026</span><h2>Ongeveer 70% van de simulatie-trades stond na zes maanden in de plus</h2><p>Van 30.917 gesimuleerde signalen op aandelen uit de S&amp;P 500 en Nasdaq-100 stond 69,8% na zes maanden in de plus, netto na kosten. Dit zijn percentages van losse trades, geen rendement op je portfolio en geen belofte. Vergelijking: kopen en vasthouden haalde 58%.</p></div><div className="heroStats"><div><span>TRADES IN WINST</span><strong>70%</strong><small>van 30.917 signalen</small></div><div><span>GEM. RESULTAAT PER TRADE</span><strong>+13,7%</strong><small>na zes maanden, na kosten</small></div><div><span>SLECHTSTE 10% VAN DE TRADES</span><strong>−16%</strong><small>of slechter na zes maanden</small></div></div></div>
+    <section className="heroGrid"><div className="heroPanel"><div><span className="sectionEyebrow">HISTORISCHE SIMULATIE · 2020-2026</span><h2>Ongeveer 70% van de simulatie-trades stond na zes maanden in de plus</h2><p>Van 30.917 gesimuleerde signalen op aandelen uit de S&amp;P 500 en Nasdaq-100 stond 69,8% na zes maanden in de plus, netto na kosten. Dit zijn percentages van losse trades, geen rendement op je portfolio en geen belofte.</p></div><div className="heroStats"><div><span>TRADES IN WINST</span><strong>70%</strong><small>van 30.917 signalen</small></div><div><span>GEM. RESULTAAT PER TRADE</span><strong>+13,7%</strong><small>na zes maanden, na kosten</small></div><div><span>SLECHTSTE 10% VAN DE TRADES</span><strong>−16%</strong><small>of slechter na zes maanden</small></div></div></div>
     <div className="heroSignal"><div className="signalHeader"><span>EERSTE HELFT VS TWEEDE HELFT</span><ShieldCheck size={15}/></div><div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:12,padding:'18px 4px'}}>{[['2020-2023','68%','23.452 signalen'],['2024-2026','74%','7.465 signalen']].map(x=><div key={x[0]} style={{textAlign:'center'}}><div style={{...num,fontSize:34,color:GREEN}}>{x[1]}</div><div style={{fontSize:11,color:MUTED,marginTop:4}}>{x[0]}</div><div style={{fontSize:10,color:DIM}}>{x[2]}</div></div>)}</div></div></section>
 
     <section className="sectionBlock">
@@ -44,17 +39,12 @@ export default function ValidationPage(){
     </section>
 
     <section className="sectionBlock">
-      <Head eyebrow="02 · VERGELIJKING" title="Beter dan alleen kopen en vasthouden" sub="Percentage trades in winst na zes maanden en gemiddeld resultaat, voor dezelfde instappunten. Het nieuwe beheer geeft iets minder vaak winst dan het vorige, maar gemiddeld meer rendement."/>
-      <div style={{padding:'4px 22px 22px',display:'grid',gap:14}}>{COMPARE.map(c=><div key={c.name} style={{display:'grid',gridTemplateColumns:'minmax(150px,1.4fr) 3fr 56px 64px',alignItems:'center',gap:12}}><span style={{color:c.main?TEXT:MUTED,fontSize:13,fontWeight:c.main?700:400}}>{c.name}</span><Bar value={c.win} color={c.main?GREEN:'#4f6b82'}/><b style={{...num,color:c.main?GREEN:TEXT,textAlign:'right'}}>{c.win}%</b><span style={{color:MUTED,fontSize:12,textAlign:'right'}}>{c.mean}</span></div>)}</div>
-    </section>
-
-    <section className="sectionBlock">
-      <Head eyebrow="03 · PER JAAR" title="Per jaar sterk wisselend" sub="Percentage trades in winst, per jaar van instap. Zwakste jaar: 2021 met 52%, sterkste 2020 met 93%."/>
+      <Head eyebrow="02 · PER JAAR" title="Per jaar sterk wisselend" sub="Percentage trades in winst, per jaar van instap. Zwakste jaar: 2021 met 52%, sterkste 2020 met 93%."/>
       <div style={{padding:'4px 22px 22px',display:'grid',gridTemplateColumns:'repeat(auto-fit,minmax(110px,1fr))',gap:12}}>{YEARS.map(y=><div key={y[0]} style={card}><div style={{fontSize:11,color:DIM}}>{y[0]}</div><div style={{...num,fontSize:24,color:y[1]<65?AMBER:GREEN,margin:'4px 0 8px'}}>{y[1]}%</div><Bar value={y[1]} color={y[1]<65?AMBER:GREEN}/></div>)}</div>
     </section>
 
     <section className="sectionBlock">
-      <Head eyebrow="04 · DISCLAIMERS" title="Lees dit voor je op de cijfers vertrouwt"/>
+      <Head eyebrow="03 · DISCLAIMERS" title="Lees dit voor je op de cijfers vertrouwt"/>
       <div className="signalRules" style={{gridTemplateColumns:'repeat(auto-fit,minmax(260px,1fr))'}}>{DISCLAIMERS.map(d=><div key={d[0]} style={{padding:20}}><b style={{color:AMBER,fontSize:13}}>{d[0]}</b><p style={{margin:'10px 0 0',color:MUTED,fontSize:12,lineHeight:1.65}}>{d[1]}</p></div>)}</div>
     </section>
 
