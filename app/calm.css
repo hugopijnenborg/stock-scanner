@@ -1,0 +1,54 @@
+/* Rust: zelfde indeling, minder visuele ruis. Geen gloed, geen kleurverlopen, rustiger contrast, meer ruimte. Laadt als laatste. */
+:root { --bg: #131b27; --panel: #19232f; --panel2: #1d2836; --panel3: #223043; --line: #263548; --line2: #31435a; --muted: #93a4b8; --dim: #71849b; }
+html body, html body.body { background: #131b27 !important; }
+html body .sidebar { background: #0f1620 !important; border-right: 1px solid #223042 !important; }
+html body .sidebar:after, html body .heroPanel:before, html body .heroPanel:after, html body .heroSignal:before, html body .heroSignal:after,
+html body .alertGlow, html body .kpiCard:after, html body .opportunity:after, html body .opportunity:nth-child(1):after { display: none !important; }
+
+/* Vlakken: één effen kleur, dunne lijn, geen schaduw */
+html body .heroPanel, html body .heroSignal, html body .kpiCard, html body .kpiCard.hot, html body .sectionBlock,
+html body .alertCard, html body .detailPanel, html body .detailScore, html body .aiSummarySection, html body .searchBox,
+html body .enhancedAlertIntel, html body .intelSummary { background: #19232f !important; box-shadow: none !important; border-color: #263548 !important; }
+html body .sectionHeader { background: transparent !important; }
+html body .heroStats div:nth-child(2) { background: transparent !important; }
+html body .opportunity, html body .opportunity:nth-child(-n+2) { background: transparent !important; }
+html body .opportunity:hover, html body tbody tr:hover { background: #1d2836 !important; }
+html body .kpiCard.hot { border-color: #2f6f58 !important; }
+html body .alertCard { border-left: 3px solid #35e5a0 !important; }
+html body .topbar h1 { background: none !important; -webkit-text-fill-color: #f3f7fb !important; color: #f3f7fb !important; }
+
+/* Knoppen en status: vlak */
+html body .refresh, html body .refresh.secondary { background: #1f2b3b !important; box-shadow: none !important; border-color: #31435a !important; }
+html body .refresh.primary { background: #1e7a5a !important; border-color: #2a9a73 !important; color: #fff !important; }
+html body .refresh.primary:hover { background: #24906a !important; box-shadow: none !important; }
+html body .navItem.active { background: rgba(53, 229, 160, .10) !important; border-color: rgba(53, 229, 160, .28) !important; }
+html body .liveDot, html body .statusPill.live, html body .scoreRing, html body .kpiIcon, html body .emptyIcon { box-shadow: none !important; }
+html body .brandMark { background: #163b2c !important; }
+
+/* Kleine hoofdletter-labels: minder spatie, minder fel */
+html body .eyebrow, html body .sectionEyebrow, html body .navLabel, html body .heroStats span, html body .kpiCard span,
+html body .signalHeader, html body .scanMeta, html body .sideStat span, html body .liveStatus, html body th { letter-spacing: .06em !important; color: #8597ad !important; font-weight: 600 !important; }
+html body .why > span { letter-spacing: .06em !important; color: #8597ad !important; }
+
+/* Chips rustiger: neutrale kleur, geen rand-op-rand */
+html body .why > div > span { background: #202d3d !important; border: 1px solid #2a3a50 !important; color: #c6d2e0 !important; font-weight: 500 !important; }
+html body .signal.dipProfile.calm { background: #1d2c44 !important; color: #9bb8ea !important; border-color: #2c4468 !important; }
+html body .signal.dipProfile.agg { background: #3a2d18 !important; color: #f1bd68 !important; border-color: #5a4524 !important; }
+html body .earnWarn { background: #2b2415 !important; border: 1px solid #54431f !important; color: #f0c98a !important; font-weight: 500; }
+
+/* Ruimte */
+html body .dashboard { padding: 36px 44px 72px !important; }
+html body .topbar { margin-bottom: 30px !important; }
+html body .heroGrid, html body .kpiGrid, html body .sectionBlock { margin-bottom: 22px !important; }
+html body .sectionHeader { padding: 24px 28px 18px !important; }
+html body .alertCards { gap: 18px !important; padding: 0 18px 18px !important; }
+html body .alertCard { padding: 24px 26px !important; }
+html body .why { margin-top: 18px !important; padding-top: 16px !important; border-top-color: #263548 !important; }
+html body .why > div { gap: 8px !important; margin-top: 10px; }
+html body td { padding-top: 14px !important; padding-bottom: 14px !important; }
+html body .heroStats, html body .heroStats > div, html body .heroStats div:nth-child(1), html body .heroStats div:nth-child(3) { background: transparent !important; }
+html body .opportunityGrid { background: #263548 !important; }
+html body .opportunity, html body .opportunity:nth-child(-n+2) { background: #19232f !important; }
+html body .opportunity:hover { background: #1d2836 !important; }
+html body th, html body thead, html body thead tr { background: #1d2836 !important; }
+html body .tableWrap, html body .tablewrap { background: #19232f !important; }
