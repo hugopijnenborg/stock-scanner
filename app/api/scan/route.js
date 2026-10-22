@@ -5,6 +5,8 @@ export const revalidate = 0;
 
 // De scan wordt berekend door de n8n-workflow "Live scan" en staat in Supabase
 // (tabel scanner_scan_latest, 1 rij). Deze route leest die rij en rekent niets opnieuw uit.
+// Handmatig uitgesloten aandelen: worden in de app niet getoond (de scan zelf weet hier niets van).
+const EXCLUDED_TICKERS = ['KEYS'];
 const ALERT_THRESHOLD = 80;
 const WATCH_THRESHOLD = 65;
 
@@ -87,6 +89,7 @@ export async function GET() {
       data.alert_count = data.results.filter((row) => row.signal === 'ALERT').length;
       data.top_score = data.results.length ? data.results[0].overall_score : null;
     }
+    if (Array.isArray(data.results)) data.results = data.results.filter((r) => !EXCLUDED_TICKERS.includes(r.ticker));
     await attachCompanyInfo(data, url, key);
     data.alert_threshold = data.alert_threshold ?? ALERT_THRESHOLD;
     data.watch_threshold = data.watch_threshold ?? WATCH_THRESHOLD;
