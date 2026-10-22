@@ -1,0 +1,23 @@
+.miNotifWrap{position:fixed;right:16px;bottom:16px;z-index:60;display:flex;flex-direction:column;align-items:flex-end;gap:8px;max-width:calc(100vw - 32px)}
+.miNotifBtn{display:inline-flex;align-items:center;gap:8px;padding:11px 15px;border:1px solid #2a3b4d;border-radius:999px;background:#101923;color:#cfe0ec;font-weight:700;font-size:13px;cursor:pointer;box-shadow:0 8px 30px rgba(0,0,0,.45)}
+.miNotifBtn.hot{border-color:#2c8b64;background:linear-gradient(180deg,#174b37,#102b20);color:#e0fff0}
+.miNotifPanel{width:380px;max-width:100%;max-height:70vh;display:flex;flex-direction:column;border:1px solid #223b32;border-radius:14px;background:#0b1512;box-shadow:0 12px 40px rgba(0,0,0,.55);overflow:hidden}
+.miNotifHead{display:flex;justify-content:space-between;align-items:center;padding:12px 14px;border-bottom:1px solid #1e2d3a;color:#e0fff0;font-size:13px}
+.miNotifHead button{display:grid;place-items:center;width:26px;height:26px;border:1px solid #2a3b4d;border-radius:7px;background:#101923;color:#8da0b2;cursor:pointer}
+.miNotifList{overflow:auto;padding:8px}
+.miNotifItem{display:block;margin-bottom:8px;padding:10px 12px;border:1px solid #223b32;border-radius:10px;background:#0d1820;color:#cfe0ec;text-decoration:none;font-size:13px}
+.miNotifItem.review{border-color:#6b5320}.miNotifItem.info{border-color:#2a3b4d}
+.miNotifItem small{color:#708295}.miNotifItem p{margin:6px 0 0;color:#a0afbd;font-size:12px;line-height:1.45}
+.miNotifTag{display:inline-block;margin-right:8px;padding:3px 6px;border-radius:5px;border:1px solid #2a3b4d;font-size:9px;font-weight:800;letter-spacing:.08em}
+.miNotifTag.TP{color:#35e5a0;border-color:#2c8b64}.miNotifTag.ADD{color:#5cb8ff;border-color:#2b6a9c}.miNotifTag.REBUY{color:#c79bff;border-color:#6b4a9c}.miNotifTag.REVIEW,.miNotifTag.EARN{color:#ffd37a;border-color:#6b5320}
+.miNotifFoot{padding:10px 14px;border-top:1px solid #1e2d3a;color:#8da0b2;font-size:12px}.miNotifFoot label{display:flex;gap:8px;align-items:center;color:#cfe0ec}.miNotifFoot small{display:block;margin-top:6px;line-height:1.45}
+.navBadge{margin-left:auto;min-width:18px;padding:1px 6px;border-radius:999px;background:#35e5a0;color:#06140e;font-size:11px;font-weight:800;text-align:center}
+/* Meldingen op de portfolio-pagina */
+.notifSection{display:grid;gap:10px;padding:12px}
+.notifCard{display:flex;flex-wrap:wrap;gap:6px 14px;align-items:flex-start;padding:14px 16px;border:1px solid #223b32;border-radius:12px;background:#0d1820}
+.notifCard.review{border-color:#6b5320}.notifCard.info{border-color:#2a3b4d}
+.notifCard .nTop{display:flex;align-items:center;gap:10px;flex:1 1 100%}.notifCard .nTop b{font-size:18px}.notifCard .nTop small{color:#708295}
+.notifCard p{margin:0;flex:1 1 100%;color:#a0afbd;font-size:13px;line-height:1.5}.notifCard .nDetail{color:#e0fff0;font-weight:700}
+.notifCard a{margin-left:auto;color:#35e5a0;font-size:13px;font-weight:700;text-decoration:none}
+@media(max-width:720px){.miNotifWrap{right:12px;bottom:12px}.miNotifPanel{width:calc(100vw - 24px)}}
+.sectionHeader .statusPill{white-space:nowrap}

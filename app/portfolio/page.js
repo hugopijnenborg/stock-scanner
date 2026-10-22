@@ -16,6 +16,8 @@ import {
   X,
 } from 'lucide-react';
 import './portfolio.css';
+import './meldingen.css';
+import { buildNotifications, KIND_LABEL } from './notifications';
 import { evaluate, normalize, withEvent, planOf, PLANS, ADD_DROP, REBUY_DROP, MAX_UNITS } from './positionEngine';
 
 const KEY = 'marketintel_portfolio';
@@ -101,7 +103,7 @@ function PositionCard({ position, r, onChange, onRemove }) {
   const primaryType = ev.signal === 'TP' ? 'tp' : ev.signal === 'ADD' ? 'add' : ev.signal === 'REBUY' ? 'rebuy' : null;
 
   return (
-    <div className="positionCard">
+    <div className="positionCard" id={`pos-${position.ticker}`}>
       <div className="positionTop">
         <div>
           <span className="positionTicker">{position.ticker}</span>
@@ -250,6 +252,7 @@ export default function PortfolioPage() {
     const top = Object.entries(cnt).sort((a, b) => b[1] - a[1])[0];
     return top && top[1] >= 3 ? `${top[1]} van je ${open} posities zitten in de sector ${top[0]}. Aandelen in dezelfde sector bewegen vaak samen, dus het risico is groter dan het aantal posities doet vermoeden.` : null;
   }, [evals, map]);
+  const notifs = useMemo(() => buildNotifications(positions, map), [positions, map]);
   const counts = useMemo(() => {
     const c = { TP: 0, ADD: 0, REBUY: 0, HOLD: 0, REVIEW: 0 };
     evals.forEach(({ ev }) => { if (c[ev.signal] != null) c[ev.signal] += 1; });
@@ -326,6 +329,31 @@ export default function PortfolioPage() {
               <div><strong>{counts.HOLD}</strong><span>GEEN NIVEAU</span></div><div><strong>{counts.REVIEW}</strong><span>BEOORDELEN</span></div>
             </div>
           </div>
+        </section>
+
+        <section className="sectionBlock">
+          <div className="sectionHeader">
+            <div>
+              <div className="sectionEyebrow">00 · MELDINGEN</div>
+              <h2>Meldingen bij je posities</h2>
+              <p>Hier staat wat er nu aandacht nodig heeft: een bereikt niveau van het plan, iets dat in het bedrijf is veranderd, of cijfers die eraan komen. Een melding verdwijnt zodra je de stap bij de positie als “Gedaan” registreert.</p>
+            </div>
+            <div className={`statusPill ${notifs.some((n) => n.level !== 'info') ? 'live' : ''}`}><Bell size={13} />{notifs.filter((n) => n.level !== 'info').length} nu</div>
+          </div>
+          {notifs.length ? (
+            <div className="notifSection">
+              {notifs.map((n) => (
+                <div key={n.key} className={`notifCard ${n.level}`}>
+                  <div className="nTop"><span className={`miNotifTag ${n.kind}`}>{KIND_LABEL[n.kind]}</span><b>{n.ticker}</b><small>{n.company}</small></div>
+                  <p><b>{n.title}.</b> {n.text}</p>
+                  {n.detail && <p className="nDetail">{n.detail}</p>}
+                  <a href={`#pos-${n.ticker}`}>Naar de positie →</a>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div className="emptyState"><strong>Geen meldingen</strong><span>{positions.length ? 'Geen van je posities heeft op dit moment een niveau bereikt of iets dat aandacht vraagt.' : 'Zodra je posities hebt, verschijnen hier de meldingen.'}</span></div>
+          )}
         </section>
 
         <section className="sectionBlock">
