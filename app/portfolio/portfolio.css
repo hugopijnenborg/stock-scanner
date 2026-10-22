@@ -31,3 +31,13 @@
 .portfolioSignalSummary.four span{font-size:9px;letter-spacing:.04em;white-space:normal;text-align:center}
 .portfolioSignalSummary.four>div{padding:0 6px}
 .positionMain strong{font-size:14px;white-space:normal;overflow:visible;text-overflow:clip;word-break:break-word}
+
+.positionAction.review{color:#ffd37a;border-color:#6b5320;background:rgba(255,211,122,.08)}
+.positionAlert.review{border-color:#6b5320}
+.portfolioSignalSummary.five{grid-template-columns:repeat(5,1fr)}
+.portfolioSignalSummary.five span{font-size:9px;letter-spacing:.04em;white-space:normal;text-align:center}
+.portfolioSignalSummary.five>div{padding:0 6px}
+.signalRules.five{grid-template-columns:repeat(5,1fr)}
+@media(max-width:1300px){.signalRules.five{grid-template-columns:repeat(2,1fr)}}
+@media(max-width:600px){.signalRules.five{grid-template-columns:1fr}.portfolioSignalSummary.five{grid-template-columns:repeat(2,1fr)}}
+.portfolioSignalSummary.five{grid-template-columns:repeat(auto-fit,minmax(86px,1fr));height:auto;min-height:122px;row-gap:12px;padding:10px 0}.portfolioSignalSummary.five span{font-size:9px!important;letter-spacing:.03em!important;overflow-wrap:anywhere}

@@ -56,13 +56,45 @@ export function deriveState(position) {
   return { shares, cost, ext, cash, pool, lastTP, tierIdx, units, lastBuy, ntp, nadd, nrebuy, avg, unitCost: unitCost ?? (ext > 0 ? ext / Math.max(1, units) : null) };
 }
 
+const pctTxt = (v) => `${(v * 100).toFixed(0)}%`;
+const CONS_NL = { 'Strong Buy': 'sterk kopen', Buy: 'kopen', Hold: 'aanhouden', Sell: 'verkopen', 'Strong Sell': 'sterk verkopen' };
+
+// Veranderingen in het bedrijf die de reden van het signaal zwakker maken. Geen vaste koersstop en geen verkoopregel:
+// het zijn feiten om opnieuw te beoordelen. Dit is niet historisch getest (kwaliteits- en cijferfilters bleken in de test geen robuuste voorspeller).
+// Heeft de positie een momentopname van de feiten bij het signaal (entryFacts), dan telt alleen wat sindsdien is verslechterd.
+export function reviewFacts(position, market) {
+  const f = [];
+  if (!market) return f;
+  const e = position?.entryFacts || null;
+  const c = market.dip_context || {};
+
+  const g = num(market.revenue_growth ?? c.revenue_growth);
+  const g0 = num(e?.revenue_growth);
+  if (g !== null && Math.abs(g) < 5 && g < 0.10) f.push(`De omzetgroei is ${pctTxt(g)}${g0 !== null ? ` (bij het signaal ${pctTxt(g0)})` : ''}. Het model vraagt minimaal 10%.`);
+
+  const m = num(c.fcf_margin ?? market.fcf_margin), m0 = num(e?.fcf_margin);
+  if (m !== null && Math.abs(m) < 5 && m < 0 && (e ? (m0 !== null && m0 >= 0) : true)) f.push('De vrije kasstroom is negatief geworden.');
+
+  const u = num(c.pt_upside), u0 = num(e?.pt_upside);
+  if (u !== null && u < 0 && (e ? (u0 === null || u0 >= 0) : true)) f.push('De koers staat boven het gemiddelde koersdoel van analisten: de upside volgens analisten is weg.');
+
+  const cons = c.grades_consensus;
+  if (cons && /sell/i.test(cons) && !(e?.consensus && /sell/i.test(e.consensus))) f.push(`Het analistenconsensus is nu "${CONS_NL[cons] || cons}".`);
+
+  const s = num(market.last_earnings_surprise_pct), led = market.last_earnings_date ? String(market.last_earnings_date).slice(0, 10) : null;
+  const added = String(position?.addedAt || position?.events?.[0]?.date || '').slice(0, 10);
+  if (s !== null && s < 0 && led && added && led > added) f.push(`De kwartaalcijfers van ${led} kwamen ${Math.abs(s).toFixed(1)}% onder de verwachting.`);
+
+  return f;
+}
+
 // market = rij uit de scan (price, dip, distance_sma20, next_earnings_date, analist-velden)
 export function evaluate(position, market, now = Date.now()) {
   const st = deriveState(position);
   const plan = planOf(position);
   const TIERS = plan.tiers, SELL_FRACTION = plan.sell;
   const price = num(market?.price);
-  const out = { state: st, price, signal: 'HOLD', title: 'Positie aanhouden', reason: '', qty: null, amount: null, levels: {}, notes: [], pnl: null };
+  const out = { state: st, price, signal: 'HOLD', title: 'Geen niveau bereikt', reason: '', qty: null, amount: null, levels: {}, notes: [], pnl: null };
   if (st.shares <= 0) { out.signal = 'CLOSED'; out.title = 'Positie gesloten'; out.reason = 'Er zijn geen aandelen meer over.'; return out; }
   const nextTier = st.tierIdx < TIERS.length ? TIERS[st.tierIdx] : null;
   out.levels = {
@@ -76,38 +108,42 @@ export function evaluate(position, market, now = Date.now()) {
   const value = st.shares * price;
   out.pnl = { value, total: st.cash + value - st.ext, totalPct: st.ext > 0 ? (st.cash + value) / st.ext - 1 : null, openPct: st.avg ? price / st.avg - 1 : null };
   const dip = num(market?.dip);
-  const stretch = num(market?.distance_sma20);
 
   const daysSinceBuy = st.lastBuy ? (now - Date.parse(st.lastBuy)) / DAY : 999;
   const dipOk = dip === null || dip <= DIP_MAX_FOR_BUY;
 
   if (nextTier !== null && price >= out.levels.nextTP) {
-    out.signal = 'TP'; out.title = `Winst nemen (trap ${st.tierIdx + 1} van ${TIERS.length})`;
+    out.signal = 'TP'; out.title = `Winstniveau bereikt (trap ${st.tierIdx + 1} van ${TIERS.length})`;
     out.qty = st.shares * SELL_FRACTION; out.amount = out.qty * price;
-    out.reason = `Koers staat ${Math.round(nextTier * 100)}% of meer boven je gemiddelde koers. Verkoop ${SELL_FRACTION * 100}% van je aandelen en houd de rest voor de upside.`;
-    if (stretch !== null && stretch > MOMENTUM_STRETCH) {
-      out.notes.push({ tone: 'info', text: `Sterk momentum (${(stretch * 100).toFixed(0)}% boven het 20-daags gemiddelde). Historisch liepen zulke aandelen na een winstniveau gemiddeld verder door (+13 tot +15% in 3 maanden, tegen +4 tot +8% bij zwak momentum), maar met grote uitschieters. Je mag deze verkoop uitstellen.` });
-    }
+    out.reason = `De koers staat ${Math.round(nextTier * 100)}% of meer boven je gemiddelde koers. Volgens het plan wordt hier ${Math.round(SELL_FRACTION * 100)}% van de aandelen verkocht en blijft de rest staan.`;
   } else if (out.levels.add && price <= out.levels.add && dipOk && daysSinceBuy >= MIN_DAYS_BETWEEN_BUYS) {
-    out.signal = 'ADD'; out.title = `Bijkopen (${st.units} van ${MAX_UNITS} eenheden gebruikt)`;
+    out.signal = 'ADD'; out.title = `Bijkoopniveau bereikt (${st.units} van ${MAX_UNITS} eenheden gebruikt)`;
     out.amount = st.unitCost; out.qty = st.unitCost ? st.unitCost / price : null;
-    out.reason = `Koers staat ${Math.round(ADD_DROP * 100)}% of meer onder je gemiddelde koers en het aandeel zit nog in een dip. Eén eenheid is je eerste inleg.`;
-    if (out.pnl.openPct !== null && out.pnl.openPct <= DEEP_LOSS) {
-      out.notes.push({ tone: 'warn', text: 'Je zit 40% of meer onder je gemiddelde koers. Het model heeft hier geen stop; toets of de reden om te kopen nog klopt voor je bijkoopt.' });
-    }
+    out.reason = `De koers staat ${Math.round(ADD_DROP * 100)}% of meer onder je gemiddelde koers en het aandeel zit nog in een dip. Volgens het plan is bijkopen hier één eenheid (je eerste inleg).`;
   } else if (out.levels.rebuy && price <= out.levels.rebuy && dipOk) {
-    out.signal = 'REBUY'; out.title = 'Terugkopen';
+    out.signal = 'REBUY'; out.title = 'Terugkoopniveau bereikt';
     out.amount = st.pool; out.qty = st.pool / price;
-    out.reason = `Koers staat ${Math.round(REBUY_DROP * 100)}% of meer onder je laatste verkoopprijs (${st.lastTP.toFixed(2)}). Koop je winstopbrengst (${st.pool.toFixed(0)}) terug.`;
+    out.reason = `De koers staat ${Math.round(REBUY_DROP * 100)}% of meer onder je laatste verkoopprijs (${st.lastTP.toFixed(2)}). Volgens het plan wordt hier de opbrengst van je winstnemingen (${st.pool.toFixed(0)}) teruggekocht.`;
   } else {
     out.signal = 'HOLD';
     const bits = [];
-    if (out.levels.nextTP) bits.push(`volgende winstnemming bij ${out.levels.nextTP.toFixed(2)} (+${Math.round(nextTier * 100)}%)`);
-    if (out.levels.add) bits.push(`bijkopen onder ${out.levels.add.toFixed(2)}`);
-    if (out.levels.rebuy) bits.push(`terugkopen onder ${out.levels.rebuy.toFixed(2)}`);
-    out.title = 'Aanhouden';
-    out.reason = bits.length ? `Geen actie nodig: ${bits.join(', ')}.` : 'Geen actie nodig.';
-    if (out.levels.add && price <= out.levels.add && !dipOk) out.notes.push({ tone: 'info', text: 'De koers staat onder het bijkoopniveau, maar het aandeel zit niet meer diep in een dip. Het model koopt dan niet bij.' });
+    if (out.levels.nextTP) bits.push(`volgende winstniveau bij ${out.levels.nextTP.toFixed(2)} (+${Math.round(nextTier * 100)}%)`);
+    if (out.levels.add) bits.push(`bijkoopniveau onder ${out.levels.add.toFixed(2)}`);
+    if (out.levels.rebuy) bits.push(`terugkoopniveau onder ${out.levels.rebuy.toFixed(2)}`);
+    out.reason = bits.length ? `Er is geen niveau bereikt: ${bits.join(', ')}.` : 'Er is geen niveau bereikt.';
+    if (out.levels.add && price <= out.levels.add && !dipOk) out.notes.push({ tone: 'info', text: 'De koers staat onder het bijkoopniveau, maar het aandeel zit niet meer diep in een dip. Het plan koopt dan niet bij.' });
+  }
+
+  // Veranderingen in het bedrijf sinds het signaal (geen vaste koersstop)
+  const facts = reviewFacts(position, market);
+  facts.forEach((t) => out.notes.push({ tone: 'warn', text: t }));
+  if (facts.length) {
+    if (out.signal === 'HOLD') {
+      out.signal = 'REVIEW'; out.title = 'Opnieuw beoordelen';
+      out.reason = 'Sinds het signaal is er iets veranderd in het bedrijf dat de reden voor dit signaal zwakker maakt (zie hieronder). Het plan heeft geen vaste stop. Dit is een moment om opnieuw te kijken, geen opdracht om te verkopen. Deze controle is niet historisch getest.';
+    } else {
+      out.notes.push({ tone: 'warn', text: 'Er is iets verslechterd in het bedrijf sinds het signaal (zie hierboven). Weeg dat mee naast het plan. Deze controle is niet historisch getest.' });
+    }
   }
 
   // Context (geen trigger): cijfers en analisten

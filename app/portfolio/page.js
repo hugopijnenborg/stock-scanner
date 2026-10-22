@@ -42,8 +42,8 @@ const write = (rows) => {
   window.dispatchEvent(new Event('marketintel-portfolio-change'));
 };
 
-const SIGNAL_LABEL = { TP: 'WINST NEMEN', ADD: 'BIJKOPEN', REBUY: 'TERUGKOPEN', HOLD: 'AANHOUDEN', CLOSED: 'GESLOTEN' };
-const SIGNAL_TONE = { TP: 'tp', ADD: 'add', REBUY: 'rebuy', HOLD: 'hold', CLOSED: 'hold' };
+const SIGNAL_LABEL = { TP: 'WINSTNIVEAU', ADD: 'BIJKOOPNIVEAU', REBUY: 'TERUGKOOPNIVEAU', HOLD: 'GEEN NIVEAU', REVIEW: 'OPNIEUW BEOORDELEN', CLOSED: 'GESLOTEN' };
+const SIGNAL_TONE = { TP: 'tp', ADD: 'add', REBUY: 'rebuy', HOLD: 'hold', REVIEW: 'review', CLOSED: 'hold' };
 const EVENT_LABEL = { buy: 'Gekocht', add: 'Bijgekocht', rebuy: 'Teruggekocht', tp: 'Winst genomen', sell: 'Verkocht' };
 
 function Sidebar() {
@@ -130,7 +130,7 @@ function PositionCard({ position, r, onChange, onRemove }) {
             <b>{ev.title}</b>
             <span>{ev.reason}</span>
             {primaryType && ev.qty != null && (
-              <span className="suggest">Voorstel: {qtyFmt(ev.qty)} aandelen ≈ {money(ev.amount, 0)}</span>
+              <span className="suggest">Volgens het plan: {qtyFmt(ev.qty)} aandelen ≈ {money(ev.amount, 0)}</span>
             )}
           </div>
         </div>
@@ -230,10 +230,28 @@ export default function PortfolioPage() {
       cash += ev.state.cash;
       value += ev.pnl?.value || 0;
     }
-    return { ext, total: cash + value - ext, totalPct: ext ? (cash + value) / ext - 1 : null };
+    // Hoeveel er in totaal in kan als alle bijkoopniveaus worden gebruikt (eerste inleg x maximaal aantal eenheden)
+    let maxExt = 0;
+    for (const { ev } of evals) {
+      if (!ev.pnl) continue;
+      maxExt += ev.state.ext + Math.max(0, MAX_UNITS - ev.state.units) * (ev.state.unitCost || 0);
+    }
+    return { ext, maxExt, total: cash + value - ext, totalPct: ext ? (cash + value) / ext - 1 : null };
   }, [evals]);
+  const sectorNote = useMemo(() => {
+    const cnt = {};
+    let open = 0;
+    for (const { p, ev } of evals) {
+      if (ev.signal === 'CLOSED') continue;
+      open += 1;
+      const sec = map[p.ticker]?.sector || p.entryFacts?.sector;
+      if (sec) cnt[sec] = (cnt[sec] || 0) + 1;
+    }
+    const top = Object.entries(cnt).sort((a, b) => b[1] - a[1])[0];
+    return top && top[1] >= 3 ? `${top[1]} van je ${open} posities zitten in de sector ${top[0]}. Aandelen in dezelfde sector bewegen vaak samen, dus het risico is groter dan het aantal posities doet vermoeden.` : null;
+  }, [evals, map]);
   const counts = useMemo(() => {
-    const c = { TP: 0, ADD: 0, REBUY: 0, HOLD: 0 };
+    const c = { TP: 0, ADD: 0, REBUY: 0, HOLD: 0, REVIEW: 0 };
     evals.forEach(({ ev }) => { if (c[ev.signal] != null) c[ev.signal] += 1; });
     return c;
   }, [evals]);
@@ -266,9 +284,9 @@ export default function PortfolioPage() {
       <main className="dashboard">
         <header className="topbar">
           <div>
-            <div className="eyebrow">PORTFOLIO / POSITIEBEHEER</div>
+            <div className="eyebrow">PORTFOLIO / POSITIEPLAN</div>
             <h1>Mijn portfolio</h1>
-            <p>Je posities worden bewaakt volgens het geteste model: winst nemen in stappen, bijkopen, terugkopen en altijd een restpositie houden.</p>
+            <p>De app volgt je posities met het positieplan van model 6.2: winst nemen in stappen, bijkopen, terugkopen en altijd een restpositie houden. Dit is geen financieel advies.</p>
           </div>
           <div className="topActions">
             <div className="scanMeta">
@@ -286,12 +304,12 @@ export default function PortfolioPage() {
           <div className="heroPanel">
             <div>
               <span className="sectionEyebrow">PORTFOLIO OVERVIEW</span>
-              <h2>Wat moet je nu doen?</h2>
+              <h2>Stand van je posities</h2>
               <p>Je posities staan alleen in deze browser en zijn voor niemand anders zichtbaar. Maak af en toe een export als back-up.</p>
             </div>
             <div className="heroStats">
               <div><span>POSITIES</span><strong>{positions.length}</strong><small>aandelen</small></div>
-              <div><span>INLEG</span><strong>{money(stats.ext, 0)}</strong><small>totaal geïnvesteerd</small></div>
+              <div><span>INLEG</span><strong>{money(stats.ext, 0)}</strong><small>totaal geïnvesteerd · tot {money(stats.maxExt, 0)} als alle bijkoopniveaus worden gebruikt</small></div>
               <div>
                 <span>RENDEMENT TOTAAL</span>
                 <strong className={stats.total >= 0 ? 'positive' : 'negative'}>{stats.totalPct == null ? '—' : pct(stats.totalPct)}</strong>
@@ -301,11 +319,11 @@ export default function PortfolioPage() {
           </div>
           <div className="heroSignal">
             <div className="signalHeader"><span>SIGNALEN NU</span><Wallet size={15} /></div>
-            <div className="portfolioSignalSummary four">
-              <div><strong>{counts.TP}</strong><span>WINST NEMEN</span></div>
-              <div><strong>{counts.ADD}</strong><span>BIJKOPEN</span></div>
-              <div><strong>{counts.REBUY}</strong><span>TERUGKOPEN</span></div>
-              <div><strong>{counts.HOLD}</strong><span>AANHOUDEN</span></div>
+            <div className="portfolioSignalSummary five">
+              <div><strong>{counts.TP}</strong><span>WINSTNIVEAU</span></div>
+              <div><strong>{counts.ADD}</strong><span>BIJKOOPNIVEAU</span></div>
+              <div><strong>{counts.REBUY}</strong><span>TERUGKOOPNIVEAU</span></div>
+              <div><strong>{counts.HOLD}</strong><span>GEEN NIVEAU</span></div><div><strong>{counts.REVIEW}</strong><span>BEOORDELEN</span></div>
             </div>
           </div>
         </section>
@@ -315,18 +333,19 @@ export default function PortfolioPage() {
             <div>
               <div className="sectionEyebrow">01 · POSITIES</div>
               <h2>Actieve posities</h2>
-              <p>Als je een signaal hebt uitgevoerd, klik je op “Gedaan”. Dan houdt de app je gemiddelde koers, het terugkoop-potje en de volgende niveaus bij.</p>
+              <p>Heb je een stap uitgevoerd, klik dan op “Gedaan”. Dan houdt de app je gemiddelde koers, het terugkoop-potje en de volgende niveaus bij.</p>
             </div>
             <div className="statusPill live"><Activity size={13} />{positions.length} actief</div>
           </div>
 
+          {sectorNote && <div className="posNote" style={{ margin: '0 12px 12px' }}>ℹ {sectorNote}</div>}
           {loading && !positions.length ? (
             <div className="emptyState">Portfolio laden...</div>
           ) : positions.length === 0 ? (
             <div className="emptyState alertEmpty">
               <div className="emptyIcon"><Wallet size={20} /></div>
               <strong>Nog geen posities</strong>
-              <span>Open een signaal en klik op “Voeg toe aan portfolio” om een positie toe te voegen.</span>
+              <span>Je kunt alleen een aandeel toevoegen dat een actief signaal heeft. Open een signaal en klik op “Voeg toe aan portfolio”.</span>
               <Link href="/" className="refresh primary"><Bell size={14} /> Bekijk signalen</Link>
             </div>
           ) : (
@@ -342,27 +361,31 @@ export default function PortfolioPage() {
           <div className="sectionHeader">
             <div>
               <div className="sectionEyebrow">02 · REGELS</div>
-              <h2>Hoe het beheer werkt</h2>
-              <p>Deze regels komen uit een historische test op de S&P 500 en Nasdaq-100 (2020-2026, 6 maanden vooruit). Het beheer (winst nemen, bijkopen, terugkopen) deed het in die test gemiddeld ongeveer 4 procentpunt beter dan alleen vasthouden. Een historische simulatie, geen garantie. Posities die je vóór 6.2 opende houden hun oorspronkelijke niveaus (+10/25/50/100%, 20% per trap).</p>
+              <h2>Hoe het positieplan werkt</h2>
+              <p>Deze regels komen uit een historische simulatie op de S&P 500 en Nasdaq-100 (2020-2026, 6 maanden vooruit), waarin ongeveer 70% van de gesimuleerde posities na 6 maanden in de plus stond. Dat is een gemiddelde over alle jaren, in slechte periodes ligt het lager. Een simulatie, geen garantie en geen financieel advies. Posities die vóór 6.2 zijn geopend houden hun oorspronkelijke niveaus (+10/25/50/100%, 20% per trap).</p>
             </div>
             <Target size={18} />
           </div>
-          <div className="signalRules four">
+          <div className="signalRules five">
             <div>
-              <span className="positionAction tp">WINST NEMEN</span>
-              <p>Bij {PLANS['6.2'].tiers.map((t) => `+${Math.round(t * 100)}%`).join(', ')} boven je gemiddelde koers verkoop je telkens {PLANS['6.2'].sell * 100}% van je aandelen. Je houdt altijd een restpositie. Bij sterk momentum (meer dan 12% boven het 20-daags gemiddelde) mag je uitstellen.</p>
+              <span className="positionAction tp">WINSTNIVEAU</span>
+              <p>Bij {PLANS['6.2'].tiers.map((t) => `+${Math.round(t * 100)}%`).join(', ')} boven je gemiddelde koers verkoopt het plan telkens {PLANS['6.2'].sell * 100}% van de aandelen. Er blijft altijd een restpositie.</p>
             </div>
             <div>
-              <span className="positionAction add">BIJKOPEN</span>
-              <p>Als de koers {ADD_DROP * 100}% of meer onder je gemiddelde koers staat en het aandeel nog in een dip zit. Eén eenheid is je eerste inleg, maximaal {MAX_UNITS - 1} keer, minimaal 7 dagen na de vorige aankoop.</p>
+              <span className="positionAction add">BIJKOOPNIVEAU</span>
+              <p>Het plan koopt bij als de koers {ADD_DROP * 100}% of meer onder je gemiddelde koers staat en het aandeel nog in een dip zit. Eén eenheid is je eerste inleg, maximaal {MAX_UNITS - 1} keer, minimaal 7 dagen na de vorige aankoop. In totaal kan een positie dus tot {MAX_UNITS} keer je eerste inleg groeien.</p>
             </div>
             <div>
-              <span className="positionAction rebuy">TERUGKOPEN</span>
-              <p>Als de koers {REBUY_DROP * 100}% onder je laatste verkoopprijs zakt, koop je de opbrengst van je winstnemingen terug. Daarna beginnen de winsttrappen opnieuw.</p>
+              <span className="positionAction rebuy">TERUGKOOPNIVEAU</span>
+              <p>Zakt de koers {REBUY_DROP * 100}% onder je laatste verkoopprijs, dan koopt het plan de opbrengst van de winstnemingen terug. Daarna beginnen de winsttrappen opnieuw.</p>
             </div>
             <div>
-              <span className="positionAction hold">AANHOUDEN</span>
-              <p>In alle andere gevallen. Cijfers, analisten en koersdoelen staan erbij als context. Ze lossen geen signaal uit, want dat is historisch niet te toetsen.</p>
+              <span className="positionAction hold">GEEN NIVEAU</span>
+              <p>In alle andere gevallen gebeurt er niets. Cijfers, analisten en koersdoelen staan erbij als context.</p>
+            </div>
+            <div>
+              <span className="positionAction review">OPNIEUW BEOORDELEN</span>
+              <p>Er is geen vaste stop. De app meldt wel als er iets in het bedrijf verandert sinds het signaal: omzetgroei onder de 10%, negatieve vrije kasstroom, koers boven het koersdoel van analisten, een sell-consensus of kwartaalcijfers onder de verwachting. Dat is een moment om opnieuw te kijken, geen verkoopopdracht. Deze controle is niet historisch getest.</p>
             </div>
           </div>
         </section>
