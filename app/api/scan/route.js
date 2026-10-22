@@ -24,6 +24,41 @@ function normalizeResult(row) {
   };
 }
 
+
+const NOISE = /purchased by|sold by|acquired by|bought by|position in|stake in|(cuts?|trims?|raises?|boosts?|lifts?|sells?|buys?|adds?|lowers?)\s+(its\s+)?(holdings|stake|position|shares)|holdings\s+(cut|lifted|raised|trimmed|boosted)|lead plaintiff|class action|securities (fraud|litigation)|law (firm|offices)|investors (who|should|that)|zacks|gf (score|value)|gurufocus|partner program/i;
+
+async function attachCompanyInfo(data, url, key) {
+  try {
+    const tickers = [...new Set((data.results || []).filter((r) => r.dip_signal).map((r) => r.ticker))];
+    if (!tickers.length) return;
+    const list = tickers.map(encodeURIComponent).join(',');
+    const headers = { apikey: key, Authorization: `Bearer ${key}` };
+    const [nRes, aRes] = await Promise.all([
+      fetch(`${url}/rest/v1/scanner_company_news?select=ticker,fetched_at,profile,news,press&ticker=in.(${list})`, { headers, cache: 'no-store' }),
+      fetch(`${url}/rest/v1/scanner_alerts?select=ticker,alert_timestamp,alert_price&status=eq.PENDING&archived=eq.false&ticker=in.(${list})&order=alert_timestamp.desc`, { headers, cache: 'no-store' }),
+    ]);
+    const news = nRes.ok ? await nRes.json() : [];
+    const alerts = aRes.ok ? await aRes.json() : [];
+    const byNews = Object.fromEntries(news.map((x) => [x.ticker, x]));
+    const byAlert = {};
+    for (const a of alerts) if (!byAlert[a.ticker]) byAlert[a.ticker] = a;
+    for (const r of data.results) {
+      if (!r.dip_signal) continue;
+      const n = byNews[r.ticker];
+      if (n) {
+        r.company_info = {
+          fetched_at: n.fetched_at,
+          profile: n.profile || null,
+          news: (n.news || []).filter((x) => !NOISE.test(x.title || '')),
+          press: (n.press || []).filter((x) => !NOISE.test(x.title || '')),
+        };
+      }
+      const a = byAlert[r.ticker];
+      if (a) r.alert_info = { since: a.alert_timestamp, price: numberOrNull(a.alert_price) };
+    }
+  } catch (e) { /* aanvullende info is optioneel */ }
+}
+
 export async function GET() {
   const url = (process.env.SUPABASE_URL || '').replace(/\/$/, '');
   const key = process.env.SUPABASE_SERVICE_ROLE_KEY || '';
@@ -52,6 +87,7 @@ export async function GET() {
       data.alert_count = data.results.filter((row) => row.signal === 'ALERT').length;
       data.top_score = data.results.length ? data.results[0].overall_score : null;
     }
+    await attachCompanyInfo(data, url, key);
     data.alert_threshold = data.alert_threshold ?? ALERT_THRESHOLD;
     data.watch_threshold = data.watch_threshold ?? WATCH_THRESHOLD;
 
