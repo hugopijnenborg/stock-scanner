@@ -2,6 +2,7 @@
 const NL = {
   brand: 'Market Intelligence', brandSub: 'Signalen en portfolio',
   nav_signals: 'Signalen', nav_history: 'Historie', nav_performance: 'Prestaties', nav_validation: 'Modelvalidatie', nav_portfolio: 'Portfolio',
+  kpi_signals: 'Actieve signalen', kpi_signals_sub: 'van maximaal 5', kpi_near: 'Dichtbij een signaal', kpi_near_sub: 'bijna aan alle regels', kpi_universe: 'Aandelen gevolgd', kpi_universe_sub: 'S&P 500 en Nasdaq-100', kpi_scan: 'Laatste scan', col_trend: 'Verloop',
   nav_menu: 'Menu', status_active: 'Marktscanner actief', side_signals: 'Signalen', side_close: 'Dichtbij een signaal',
   search: 'Zoek aandeel of bedrijf', last_scan: 'Laatste scan', run_scan: 'Nieuwe scan', loading: 'Laden…', scan_started: 'Scan wordt gestart…', scan_done: 'Nieuwe scan voltooid.',
   theme_light: 'Licht', theme_dark: 'Donker', language: 'Taal',
@@ -45,6 +46,7 @@ const NL = {
 const EN = {
   brand: 'Market Intelligence', brandSub: 'Signals and portfolio',
   nav_signals: 'Signals', nav_history: 'History', nav_performance: 'Performance', nav_validation: 'Model validation', nav_portfolio: 'Portfolio',
+  kpi_signals: 'Active signals', kpi_signals_sub: 'of maximum 5', kpi_near: 'Close to a signal', kpi_near_sub: 'almost meet all rules', kpi_universe: 'Stocks tracked', kpi_universe_sub: 'S&P 500 and Nasdaq-100', kpi_scan: 'Last scan', col_trend: 'Trend',
   nav_menu: 'Menu', status_active: 'Market scanner active', side_signals: 'Signals', side_close: 'Close to a signal',
   search: 'Search stock or company', last_scan: 'Last scan', run_scan: 'Run scan', loading: 'Loading…', scan_started: 'Starting scan…', scan_done: 'New scan completed.',
   theme_light: 'Light', theme_dark: 'Dark', language: 'Language',

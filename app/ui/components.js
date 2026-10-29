@@ -188,3 +188,26 @@ export function DetailPanel({ r, t, f, lang, whyNotText, open, onClose }) {
     </aside>
   );
 }
+
+export function Avatar({ ticker }) {
+  const h = [...String(ticker)].reduce((a, c) => (a * 31 + c.charCodeAt(0)) % 360, 7);
+  return <span className="mi-av" style={{ '--h': h }} aria-hidden="true">{String(ticker).slice(0, 2)}</span>;
+}
+
+export function MiniSpark({ data }) {
+  if (!Array.isArray(data) || data.length < 3) return <span />;
+  const w = 84, h = 28, pad = 2;
+  const min = Math.min(...data), max = Math.max(...data), span = max - min || 1;
+  const d = data.map((v, i) => `${i ? 'L' : 'M'}${(pad + (i * (w - 2 * pad)) / (data.length - 1)).toFixed(1)},${(h - pad - ((v - min) / span) * (h - 2 * pad)).toFixed(1)}`).join(' ');
+  const up = data[data.length - 1] >= data[0];
+  return <svg className="mi-mini" viewBox={`0 0 ${w} ${h}`} width={w} height={h} aria-hidden="true"><path d={d} fill="none" stroke={up ? 'var(--mi-pos)' : 'var(--mi-neg)'} strokeWidth="1.6" strokeLinejoin="round" strokeLinecap="round" /></svg>;
+}
+
+export function Kpi({ icon: Icon, tone, label, value, sub }) {
+  return (
+    <div className="mi-kpi">
+      <span className={`mi-kpi-ic ${tone}`}><Icon size={18} /></span>
+      <div><small>{label}</small><b className="num">{value}</b><em>{sub}</em></div>
+    </div>
+  );
+}

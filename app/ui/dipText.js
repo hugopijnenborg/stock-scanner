@@ -7,6 +7,7 @@ export const makeFmt = (lang) => {
     signed: (v, d = 1) => (ok(v) ? `${Number(v) >= 0 ? '+' : '−'}${Math.abs(Number(v) * 100).toFixed(d)}%` : '—'),
     num: (v, d = 1) => (ok(v) ? Number(v).toFixed(d) : '—'),
     usd: (v, d = 2) => (ok(v) && Number(v) > 0 ? `$${Number(v).toLocaleString('en-US', { minimumFractionDigits: d, maximumFractionDigits: d })}` : '—'),
+    time: (v) => { if (!v) return '—'; const x = new Date(v); return Number.isNaN(x.getTime()) ? '—' : x.toLocaleTimeString(loc, { hour: '2-digit', minute: '2-digit' }); },
     date: (v) => { if (!v) return '—'; const x = new Date(v); return Number.isNaN(x.getTime()) ? String(v).slice(0, 10) : x.toLocaleDateString(loc); },
     int: (v) => Number(v).toLocaleString(loc),
   };

@@ -1,12 +1,12 @@
 'use client';
 
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { ChevronRight } from 'lucide-react';
+import { Bell, ChevronRight, Clock, Layers, Target } from 'lucide-react';
 import './ui/mi.css';
 import { useSettings } from './ui/settings';
 import { makeT } from './ui/i18n';
 import { highlights, makeFmt, shortfall, whyNot } from './ui/dipText';
-import { DetailPanel, Sidebar, TopBar } from './ui/components';
+import { Avatar, DetailPanel, Kpi, MiniSpark, Sidebar, TopBar } from './ui/components';
 
 const dipVal = (r) => (r.dip == null ? 9 : Number(r.dip));
 
@@ -102,22 +102,28 @@ export default function Home() {
               <h1>{t('signals_title')}</h1>
               <p>{t('signals_sub')}</p>
             </div>
+            <div className="mi-kpis">
+              <Kpi icon={Bell} tone="blue" label={t('kpi_signals')} value={alerts.length} sub={t('kpi_signals_sub')} />
+              <Kpi icon={Target} tone="amber" label={t('kpi_near')} value={opps.length} sub={t('kpi_near_sub')} />
+              <Kpi icon={Layers} tone="violet" label={t('kpi_universe')} value={universe.length || '—'} sub={t('kpi_universe_sub')} />
+              <Kpi icon={Clock} tone="green" label={t('kpi_scan')} value={data?.generated_at ? f.time(data.generated_at) : '—'} sub={data?.generated_at ? f.date(data.generated_at) : ''} />
+            </div>
             {notice && <div className="mi-notice">{notice}</div>}
             {error && <div className="mi-error">{error}</div>}
 
             <section className="mi-card" aria-label={t('signals_title')}>
               <div className="mi-row head mi-grid-sig">
-                <span className="c-rank">#</span><span>{t('col_stock')}</span><span className="c-price">{t('col_price')}</span><span className="c-chg">{t('col_change')}</span><span>{t('col_52')}</span><span className="c-why">{t('col_reason')}</span><span />
+                <span className="c-rank">#</span><span>{t('col_stock')}</span><span className="c-price">{t('col_price')}</span><span className="c-chg">{t('col_change')}</span><span className="c-trend">{t('col_trend')}</span><span>{t('col_52')}</span><span />
               </div>
               {alerts.length ? alerts.map((r, i) => (
                 <button key={r.ticker} className={`mi-row mi-grid-sig${selected?.ticker === r.ticker ? ' sel' : ''}`} onClick={() => pick(r)}>
                   <span className="mi-rank num c-rank">{i + 1}</span>
-                  <span className="mi-stock"><b>{r.ticker}</b><small>{r.company_name}</small></span>
+                  <span className="mi-stock"><Avatar ticker={r.ticker} /><span><b>{r.ticker}</b><small>{r.company_name}</small></span></span>
                   <span className="num">{f.usd(r.price)}</span>
                   <span className="num c-chg">{chg(r)}</span>
-                  <span className="num">{f.signed(r.d52, 0)}</span>
-                  <span className="mi-small c-why">{highlights(r, t, f)}</span>
-                  <ChevronRight size={16} className="mi-chev" />
+                  <span className="c-trend"><MiniSpark data={r.spark} /></span>
+                  <span className="num"><span className="mi-pill neg">{f.signed(r.d52, 0)}</span></span>
+                                    <ChevronRight size={16} className="mi-chev" />
                 </button>
               )) : <div className="mi-empty"><b>{t('empty_title')}</b>{t('empty_text')}</div>}
             </section>
@@ -128,7 +134,7 @@ export default function Home() {
                 <div className="mi-row head mi-grid-tbl"><span>{t('col_stock')}</span><span>{t('col_price')}</span><span>{t('col_52')}</span><span className="c-30">{t('col_30')}</span><span className="c-miss">{t('col_missing')}</span></div>
                 {opps.map((r) => (
                   <button key={r.ticker} className={`mi-row mi-grid-tbl${selected?.ticker === r.ticker ? ' sel' : ''}`} onClick={() => pick(r)}>
-                    <span className="mi-stock"><b>{r.ticker}</b><small>{r.company_name}</small></span>
+                    <span className="mi-stock"><Avatar ticker={r.ticker} /><span><b>{r.ticker}</b><small>{r.company_name}</small></span></span>
                     <span className="num">{f.usd(r.price)}</span>
                     <span className="num">{f.signed(r.d52, 0)}</span>
                     <span className="num c-30">{f.signed(r.dd30, 0)}</span>
@@ -144,7 +150,7 @@ export default function Home() {
                 <div className="mi-row head mi-grid-tbl"><span>{t('col_stock')}</span><span>{t('col_price')}</span><span>{t('col_52')}</span><span className="c-30">{t('col_30')}</span><span className="c-miss">{t('col_status')}</span></div>
                 {visible.map((r) => (
                   <button key={r.ticker} className={`mi-row mi-grid-tbl${selected?.ticker === r.ticker ? ' sel' : ''}`} onClick={() => pick(r)}>
-                    <span className="mi-stock"><b>{r.ticker}</b><small>{r.company_name}</small></span>
+                    <span className="mi-stock"><Avatar ticker={r.ticker} /><span><b>{r.ticker}</b><small>{r.company_name}</small></span></span>
                     <span className="num">{f.usd(r.price)}</span>
                     <span className="num">{r.d52 == null ? '—' : f.signed(r.d52, 0)}</span>
                     <span className="num c-30">{r.dd30 == null ? '—' : f.signed(r.dd30, 0)}</span>
