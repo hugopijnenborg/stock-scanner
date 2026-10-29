@@ -1,4 +1,6 @@
 import './globals.css';
+import './ui/tokens.css';
+import { SETTINGS_SCRIPT } from './ui/settings';
 import './marketintel-overrides.css';
 import './analyst-ui-hide.css';
 import PortfolioBridge from './portfolio/PortfolioBridge';
@@ -10,5 +12,5 @@ export const metadata = {
 };
 
 export default function RootLayout({ children }) {
-  return <html lang="en"><head><link rel="stylesheet" href="/widget-fix.css" /><link rel="stylesheet" href="/readability.css" /></head><body><PortfolioBridge /><MeldingenWidget />{children}</body></html>;
+  return <html lang="nl" data-theme="light" suppressHydrationWarning><head><script dangerouslySetInnerHTML={{ __html: SETTINGS_SCRIPT }} /><link rel="stylesheet" href="/widget-fix.css" /><link rel="stylesheet" href="/readability.css" /></head><body><PortfolioBridge /><MeldingenWidget />{children}</body></html>;
 }
