@@ -2,7 +2,7 @@
 html[data-theme='light']{
   --mi-bg:#f6f7f9;--mi-surface:#ffffff;--mi-surface2:#fafbfc;--mi-line:#dde1e8;--mi-line2:#eceff3;
   --mi-text:#0f1b2d;--mi-muted:#5e6b7e;--mi-faint:#8b96a6;
-  --mi-accent:#2457d6;--mi-accent-ink:#1b46b0;--mi-accent-soft:#eaf0fd;--mi-accent-line:#c4d4f7;
+  --mi-accent:#2457d6;--mi-accent-ink:#1b46b0;--mi-accent-soft:#e7eefd;--mi-accent-line:#c4d4f7;
   --mi-warn:#8a5200;--mi-warn-soft:#fdf3e0;--mi-warn-line:#f1d9a8;--mi-neg:#b42318;--mi-pos:#16794a;
   --mi-side:#101c33;--mi-side-line:#1f3050;--mi-side-text:#b3c0d6;--mi-side-active:#1a2d52;
   --mi-shadow:0 1px 2px rgba(16,24,40,.04),0 4px 14px rgba(16,24,40,.05);--mi-shadow-lg:0 12px 32px rgba(16,24,40,.14);
