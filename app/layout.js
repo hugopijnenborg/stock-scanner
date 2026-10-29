@@ -1,3 +1,6 @@
+import '@fontsource/ibm-plex-sans/latin-400.css';
+import '@fontsource/ibm-plex-sans/latin-500.css';
+import '@fontsource/ibm-plex-sans/latin-600.css';
 import './globals.css';
 import './ui/tokens.css';
 import { SETTINGS_SCRIPT } from './ui/settings';

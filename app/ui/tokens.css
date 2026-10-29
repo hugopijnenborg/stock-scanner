@@ -1,24 +1,24 @@
 /* Kleuren en maten voor het nieuwe ontwerp. Licht en donker staan hier; de pagina's gebruiken alleen de variabelen. */
 html[data-theme='light']{
-  --mi-bg:#f4f5f7;--mi-surface:#ffffff;--mi-surface2:#f8f9fb;--mi-line:#e3e6eb;--mi-line2:#eef0f3;
+  --mi-bg:#f6f7f9;--mi-surface:#ffffff;--mi-surface2:#fafbfc;--mi-line:#dde1e8;--mi-line2:#eceff3;
   --mi-text:#0f1b2d;--mi-muted:#5e6b7e;--mi-faint:#8b96a6;
-  --mi-accent:#0e7c54;--mi-accent-ink:#0a5e40;--mi-accent-soft:#e6f4ee;--mi-accent-line:#bfe3d2;
-  --mi-warn:#8a5200;--mi-warn-soft:#fdf3e0;--mi-warn-line:#f1d9a8;--mi-neg:#c0362c;--mi-pos:#0e7c54;
-  --mi-side:#0f1e33;--mi-side-line:#1d2f48;--mi-side-text:#b7c3d4;--mi-side-active:#17304e;
+  --mi-accent:#1f3a5f;--mi-accent-ink:#1f3a5f;--mi-accent-soft:#eef2f8;--mi-accent-line:#cfd9e8;
+  --mi-warn:#8a5200;--mi-warn-soft:#fdf3e0;--mi-warn-line:#f1d9a8;--mi-neg:#b42318;--mi-pos:#16794a;
+  --mi-side:#14202f;--mi-side-line:#223246;--mi-side-text:#aebbcc;--mi-side-active:#1d2d42;
   --mi-shadow:0 1px 2px rgba(16,24,40,.05);--mi-shadow-lg:0 12px 32px rgba(16,24,40,.14);
 }
 html[data-theme='dark']{
   --mi-bg:#0a101b;--mi-surface:#111a2a;--mi-surface2:#0e1624;--mi-line:#202d41;--mi-line2:#18233499;
   --mi-text:#e8edf4;--mi-muted:#93a1b5;--mi-faint:#6b7a90;
-  --mi-accent:#3fbf8a;--mi-accent-ink:#7fe0b4;--mi-accent-soft:#0f2b27;--mi-accent-line:#1f5a47;
-  --mi-warn:#e7b15a;--mi-warn-soft:#2b2312;--mi-warn-line:#5a4519;--mi-neg:#f07a70;--mi-pos:#3fbf8a;
+  --mi-accent:#6f96c9;--mi-accent-ink:#a9c4e8;--mi-accent-soft:#16233a;--mi-accent-line:#2a4166;
+  --mi-warn:#e7b15a;--mi-warn-soft:#2b2312;--mi-warn-line:#5a4519;--mi-neg:#ee7b70;--mi-pos:#4cc38a;
   --mi-side:#070c16;--mi-side-line:#16213a;--mi-side-text:#9fb0c6;--mi-side-active:#111c31;
   --mi-shadow:0 1px 2px rgba(0,0,0,.3);--mi-shadow-lg:0 12px 32px rgba(0,0,0,.5);
 }
 body:has(.mi){background:var(--mi-bg)!important}
 /* Meldingenknop (staat in de layout) volgt het thema */
 html[data-theme='light'] .miNotifBtn{background:#fff;color:#0f1b2d;border-color:#d5dae2;box-shadow:0 6px 20px rgba(16,24,40,.14)}
-html[data-theme='light'] .miNotifBtn.hot{background:#0e7c54;color:#fff;border-color:#0a5e40}
+html[data-theme='light'] .miNotifBtn.hot{background:#1f3a5f;color:#fff;border-color:#162b47}
 html[data-theme='light'] .miNotifPanel{background:#fff;border-color:#e3e6eb;box-shadow:0 12px 32px rgba(16,24,40,.18)}
 html[data-theme='light'] .miNotifHead{color:#0f1b2d;border-color:#e3e6eb}html[data-theme='light'] .miNotifHead button{background:#f4f5f7;color:#5e6b7e;border-color:#e3e6eb}
 html[data-theme='light'] .miNotifItem{background:#f8f9fb;border-color:#e3e6eb;color:#0f1b2d}html[data-theme='light'] .miNotifItem p{color:#5e6b7e}html[data-theme='light'] .miNotifItem small{color:#8b96a6}
