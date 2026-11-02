@@ -71,3 +71,21 @@
 .nearWhy:empty{display:none}
 @media(max-width:1250px){.opportunityGrid.nearGrid{grid-template-columns:repeat(3,minmax(0,1fr))}}
 @media(max-width:720px){.opportunityGrid.nearGrid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+
+/* Verhouding: actieve signalen groter, dichtbij een signaal kleiner */
+.dipCard{min-height:150px!important;padding:16px 16px!important;gap:7px!important}
+.dipCard .tickerBig{font-size:21px!important}
+.dipCard .companyName{font-size:12.5px!important}
+.dipCard .dipPrice{font-size:17px!important}
+.dipCard .dipWarn{font-size:11px!important;padding:3px 8px!important}
+.dipCard .dipLink{font-size:12px!important}
+.alertCards.dipCards{gap:12px!important;padding:16px!important}
+.opportunityGrid.nearGrid{gap:8px!important;padding:12px 14px 14px!important}
+.nearCard{min-height:0!important;padding:9px 11px!important;gap:3px!important;border-radius:8px!important}
+.nearTop b{font-size:14px!important}
+.nearTop i{font-size:9px!important}
+.nearName{font-size:10.5px!important}
+.nearStats{margin-top:1px!important}
+.nearStats span{font-size:10px!important}
+.nearStats b{font-size:11px!important}
+.nearWhy{font-size:9.5px!important;margin-top:2px!important}
