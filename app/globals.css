@@ -105,3 +105,9 @@
 .sectionBlock:has(.nearGrid){border-color:#2b5f78}
 .sectionBlock:has(.nearGrid)>.sectionHeader{background:linear-gradient(90deg,rgba(67,199,255,.10),transparent 65%);border-bottom-color:#1d3a4c}
 @media(max-width:900px){.nearHead,.nearRow{grid-template-columns:34px minmax(0,1fr) 78px 52px;padding:9px 14px}.c30,.cw{display:none}}
+
+/* Dichtbij: koerskolom erbij, "wat ontbreekt" alleen als er echt iets ontbreekt */
+.nearHead,.nearRow{grid-template-columns:40px minmax(0,1.4fr) 90px 100px 100px 56px minmax(0,1.4fr)!important}
+.nearHead.noWhy,.nearRow.noWhy{grid-template-columns:40px minmax(0,1.6fr) 100px 110px 110px 60px!important}
+.nearHead.noWhy .cw,.nearRow.noWhy .cw{display:none}
+@media(max-width:900px){.nearHead,.nearRow,.nearHead.noWhy,.nearRow.noWhy{grid-template-columns:30px minmax(0,1fr) 70px 52px 40px!important;gap:8px!important;padding:9px 12px!important}}
