@@ -24,3 +24,7 @@
 
 @media(max-width:900px){th,td{padding:8px 5px}}@media(max-width:640px){th{font-size:6px;letter-spacing:.04em;padding:7px 3px}td{font-size:8.5px;padding:8px 3px}.tablewrap{overflow-x:visible}}
 .topbar{flex-wrap:wrap;gap:14px}.topActions{flex-wrap:wrap;max-width:100%}.scanMeta{max-width:100%}@media(max-width:900px){.topbar>div:first-child{min-width:0;flex:1 1 260px}.topActions{width:100%}}
+
+/* Kleur voor stijgers en dalers op alle pagina's (stond eerder alleen in portfolio.css, waardoor Historie en Prestaties zonder kleur laadden bij direct openen) */
+.positive{color:var(--green,#2ee59d)!important}
+.negative{color:var(--red,#ff6b7a)!important}
