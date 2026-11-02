@@ -28,3 +28,15 @@
 /* Kleur voor stijgers en dalers op alle pagina's (stond eerder alleen in portfolio.css, waardoor Historie en Prestaties zonder kleur laadden bij direct openen) */
 .positive{color:var(--green,#2ee59d)!important}
 .negative{color:var(--red,#ff6b7a)!important}
+
+/* Compacte signaalkaarten: 5 naast elkaar */
+.alertCards.dipCards{grid-template-columns:repeat(5,minmax(0,1fr));gap:10px;padding:14px}
+.dipCard{display:flex;flex-direction:column;gap:5px;padding:12px 13px!important;min-height:104px}
+.dipCard:hover{transform:translateY(-2px)}
+.dipCard .tickerBig{font-size:16px!important;line-height:1.2}
+.dipCard .companyName{display:block;margin:0!important;font-size:11.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.dipCard .dipPrice{font-weight:600;font-size:14px}
+.dipCard .dipWarn{display:inline-flex;width:fit-content;max-width:100%;font-size:10.5px;color:#ffbd66;background:#2a2010;border:1px solid #5a4519;border-radius:6px;padding:2px 7px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.dipCard .dipLink{margin-top:auto;color:#35e5a0;font-size:11px;font-weight:700}
+@media(max-width:1250px){.alertCards.dipCards{grid-template-columns:repeat(3,minmax(0,1fr))}}
+@media(max-width:720px){.alertCards.dipCards{grid-template-columns:repeat(2,minmax(0,1fr))}}
